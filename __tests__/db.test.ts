@@ -88,6 +88,22 @@ describe('data layer', () => {
     expect(visible[0].id).toBe(visibleEvent.id);
   });
 
+  test('getUpcomingEvents excludes past and hidden events, soonest first', async () => {
+    const past = await events.createEvent(db, { name: 'Last Year Show', date: '2020-01-01' });
+    const soon = await events.createEvent(db, { name: 'Soon Show', date: '2099-02-01' });
+    const later = await events.createEvent(db, { name: 'Later Show', date: '2099-03-01' });
+    const hidden = await events.createEvent(db, {
+      name: 'Draft Show',
+      date: '2099-01-15',
+      visible: false,
+    });
+
+    const upcoming = await events.getUpcomingEvents(db, '2099-01-01');
+    expect(upcoming.map((e) => e.id)).toEqual([soon.id, later.id]);
+    expect(upcoming.map((e) => e.id)).not.toContain(past.id);
+    expect(upcoming.map((e) => e.id)).not.toContain(hidden.id);
+  });
+
   async function createVendorAndEvent() {
     const vendor = await vendors.createVendor(db, { businessName: 'Test Vendor' });
     const event = await events.createEvent(db, { name: 'Test Event', date: '2026-05-01' });

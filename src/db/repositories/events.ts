@@ -1,6 +1,6 @@
 import type { SQLDatabase } from '../SQLDatabase';
 import type { Event } from '../types';
-import { fromBool, nowIso, toBool } from './shared';
+import { fromBool, nowIso, toBool, todayIso } from './shared';
 
 interface EventRow {
   id: number;
@@ -76,6 +76,18 @@ export async function getVisibleEvents(db: SQLDatabase): Promise<Event[]> {
   const rows = await db.getAllAsync<EventRow>(
     'SELECT * FROM events WHERE visible = 1 ORDER BY date ASC',
     []
+  );
+  return rows.map(mapRow);
+}
+
+/** Visible events on or after `referenceDate` (defaults to today), soonest first. */
+export async function getUpcomingEvents(
+  db: SQLDatabase,
+  referenceDate: string = todayIso()
+): Promise<Event[]> {
+  const rows = await db.getAllAsync<EventRow>(
+    'SELECT * FROM events WHERE visible = 1 AND date >= ? ORDER BY date ASC',
+    [referenceDate]
   );
   return rows.map(mapRow);
 }

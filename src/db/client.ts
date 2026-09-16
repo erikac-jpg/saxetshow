@@ -1,6 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 import { initSchema } from './schema';
+import { seedInitialEvents } from './seed';
 import type { SQLDatabase } from './SQLDatabase';
 
 const DATABASE_NAME = 'saxetshow.db';
@@ -17,6 +18,7 @@ export function getDatabase(): Promise<SQLDatabase> {
     dbPromise = (async () => {
       const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
       await initSchema(db);
+      await seedInitialEvents(db);
       return db;
     })();
   }
