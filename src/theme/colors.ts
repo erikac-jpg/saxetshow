@@ -10,4 +10,5 @@ export const colors = {
   textPrimary: '#1A2E4A',
   textSecondary: '#5B6B82',
   headerSubtitle: '#C9D3E0',
+  divider: '#E3D9C2',
 };

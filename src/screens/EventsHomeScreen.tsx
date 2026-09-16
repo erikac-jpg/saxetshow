@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
@@ -13,6 +14,7 @@ import { getDatabase } from '../db/client';
 import { getUpcomingEvents } from '../db/repositories/events';
 import type { Event } from '../db/types';
 import { colors } from '../theme/colors';
+import { displayFont } from '../theme/fonts';
 
 function formatEventDate(dateString: string): string {
   const date = new Date(`${dateString}T00:00:00`);
@@ -27,9 +29,12 @@ function formatEventDate(dateString: string): string {
   });
 }
 
-function EventCard({ event }: { event: Event }) {
+function EventCard({ event, onPress }: { event: Event; onPress: () => void }) {
   return (
-    <View style={styles.card}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+    >
       {event.image ? (
         <Image source={{ uri: event.image }} style={styles.cardImage} />
       ) : (
@@ -42,7 +47,7 @@ function EventCard({ event }: { event: Event }) {
         <Text style={styles.cardDate}>{formatEventDate(event.date)}</Text>
         {event.location ? <Text style={styles.cardLocation}>{event.location}</Text> : null}
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -56,7 +61,11 @@ function EmptyState() {
   );
 }
 
-export default function EventsHomeScreen() {
+export default function EventsHomeScreen({
+  onSelectEvent,
+}: {
+  onSelectEvent: (event: Event) => void;
+}) {
   const [events, setEvents] = useState<Event[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +112,9 @@ export default function EventsHomeScreen() {
         <FlatList
           data={events}
           keyExtractor={(item) => String(item.id)}
-          renderItem={({ item }) => <EventCard event={item} />}
+          renderItem={({ item }) => (
+            <EventCard event={item} onPress={() => onSelectEvent(item)} />
+          )}
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.navy} />
@@ -122,21 +133,21 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: colors.navy,
     paddingTop: 20,
-    paddingBottom: 20,
+    paddingBottom: 22,
     paddingHorizontal: 20,
     borderBottomWidth: 4,
     borderBottomColor: colors.red,
   },
   headerTitle: {
+    fontFamily: displayFont,
     color: colors.white,
-    fontSize: 28,
-    fontWeight: '800',
+    fontSize: 36,
     letterSpacing: 0.5,
   },
   headerSubtitle: {
     color: colors.headerSubtitle,
     fontSize: 13,
-    marginTop: 4,
+    marginTop: 2,
     letterSpacing: 1.5,
     fontWeight: '600',
   },
@@ -146,20 +157,23 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     backgroundColor: colors.white,
-    borderRadius: 10,
+    borderRadius: 14,
     overflow: 'hidden',
-    borderLeftWidth: 5,
+    borderLeftWidth: 10,
     borderLeftColor: colors.red,
-    marginBottom: 14,
+    marginBottom: 18,
     shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 5,
+  },
+  cardPressed: {
+    opacity: 0.85,
   },
   cardImage: {
-    width: 96,
-    height: 96,
+    width: 108,
+    alignSelf: 'stretch',
   },
   cardImagePlaceholder: {
     backgroundColor: colors.navy,
@@ -167,29 +181,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardImagePlaceholderText: {
-    fontSize: 32,
+    fontSize: 36,
     color: colors.white,
   },
   cardBody: {
     flex: 1,
-    padding: 12,
+    padding: 18,
     justifyContent: 'center',
   },
   cardTitle: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     color: colors.textPrimary,
   },
   cardDate: {
     fontSize: 14,
     color: colors.red,
-    fontWeight: '600',
-    marginTop: 4,
+    fontWeight: '700',
+    marginTop: 6,
   },
   cardLocation: {
     fontSize: 13,
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: 4,
   },
   centered: {
     flex: 1,
