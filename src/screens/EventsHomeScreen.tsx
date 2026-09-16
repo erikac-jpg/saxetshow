@@ -94,7 +94,7 @@ export default function EventsHomeScreen({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Saxetshow</Text>
+        <Text style={styles.headerTitle}>Saxet Gun Show</Text>
         <Text style={styles.headerSubtitle}>UPCOMING GUN SHOWS</Text>
       </View>
 
