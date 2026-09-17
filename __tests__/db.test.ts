@@ -88,6 +88,21 @@ describe('data layer', () => {
     expect(visible[0].id).toBe(visibleEvent.id);
   });
 
+  test('total_tables defaults to 0 and can be updated on an event', async () => {
+    const event = await events.createEvent(db, { name: 'Venue Test Show', date: '2026-06-01' });
+    expect(event.totalTables).toBe(0);
+
+    const created = await events.createEvent(db, {
+      name: 'Preset Venue Show',
+      date: '2026-06-02',
+      totalTables: 40,
+    });
+    expect(created.totalTables).toBe(40);
+
+    const updated = await events.updateEvent(db, event.id, { totalTables: 25 });
+    expect(updated?.totalTables).toBe(25);
+  });
+
   test('getUpcomingEvents excludes past and hidden events, soonest first', async () => {
     const past = await events.createEvent(db, { name: 'Last Year Show', date: '2020-01-01' });
     const soon = await events.createEvent(db, { name: 'Soon Show', date: '2099-02-01' });

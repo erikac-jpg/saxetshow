@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS events (
   description TEXT,
   image TEXT,
   visible INTEGER NOT NULL DEFAULT 1 CHECK (visible IN (0, 1)),
+  total_tables INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -102,4 +103,20 @@ CREATE INDEX IF NOT EXISTS idx_waitlist_event_id ON waitlist(event_id);
 
 export async function initSchema(db: SQLDatabase): Promise<void> {
   await db.execAsync(SCHEMA_SQL);
+  await migrateSchema(db);
+}
+
+/**
+ * `CREATE TABLE IF NOT EXISTS` above only applies to brand-new databases, so
+ * columns added later need an explicit migration for installs that already
+ * created the table. Each step is a no-op once applied.
+ */
+async function migrateSchema(db: SQLDatabase): Promise<void> {
+  const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(events)', []);
+  const hasTotalTables = columns.some((column) => column.name === 'total_tables');
+  if (!hasTotalTables) {
+    await db.execAsync(
+      'ALTER TABLE events ADD COLUMN total_tables INTEGER NOT NULL DEFAULT 0'
+    );
+  }
 }

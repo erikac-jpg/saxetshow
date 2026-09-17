@@ -38,6 +38,7 @@ export interface Event {
   description: string | null;
   image: string | null;
   visible: boolean;
+  totalTables: number;
   createdAt: string;
   updatedAt: string;
 }
