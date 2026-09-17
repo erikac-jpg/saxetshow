@@ -10,6 +10,7 @@ interface EventRow {
   description: string | null;
   image: string | null;
   visible: number;
+  total_tables: number;
   created_at: string;
   updated_at: string;
 }
@@ -23,6 +24,7 @@ function mapRow(row: EventRow): Event {
     description: row.description,
     image: row.image,
     visible: toBool(row.visible),
+    totalTables: row.total_tables,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -35,6 +37,7 @@ export interface CreateEventInput {
   description?: string | null;
   image?: string | null;
   visible?: boolean;
+  totalTables?: number;
 }
 
 export type UpdateEventInput = Partial<CreateEventInput>;
@@ -42,8 +45,8 @@ export type UpdateEventInput = Partial<CreateEventInput>;
 export async function createEvent(db: SQLDatabase, input: CreateEventInput): Promise<Event> {
   const now = nowIso();
   const result = await db.runAsync(
-    `INSERT INTO events (name, date, location, description, image, visible, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO events (name, date, location, description, image, visible, total_tables, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       input.name,
       input.date,
@@ -51,6 +54,7 @@ export async function createEvent(db: SQLDatabase, input: CreateEventInput): Pro
       input.description ?? null,
       input.image ?? null,
       fromBool(input.visible ?? true),
+      input.totalTables ?? 0,
       now,
       now,
     ]
@@ -102,7 +106,7 @@ export async function updateEvent(
     return null;
   }
   await db.runAsync(
-    `UPDATE events SET name = ?, date = ?, location = ?, description = ?, image = ?, visible = ?, updated_at = ?
+    `UPDATE events SET name = ?, date = ?, location = ?, description = ?, image = ?, visible = ?, total_tables = ?, updated_at = ?
      WHERE id = ?`,
     [
       input.name ?? existing.name,
@@ -111,6 +115,7 @@ export async function updateEvent(
       input.description !== undefined ? input.description : existing.description,
       input.image !== undefined ? input.image : existing.image,
       fromBool(input.visible ?? existing.visible),
+      input.totalTables ?? existing.totalTables,
       nowIso(),
       id,
     ]
