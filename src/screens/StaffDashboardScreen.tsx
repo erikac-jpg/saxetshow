@@ -10,12 +10,13 @@ import {
   View,
 } from 'react-native';
 
+import { getAgreementsForEvent } from '../db/repositories/agreements';
 import { getDatabase } from '../db/client';
 import { getAllEvents, getEventById, updateEvent } from '../db/repositories/events';
 import { getTableRequestsForEvent, updateTableRequestStatus } from '../db/repositories/tableRequests';
 import { getAllVendors } from '../db/repositories/vendors';
 import { getWaitlistForEvent, removeFromWaitlist } from '../db/repositories/waitlist';
-import type { Event, TableRequest, Vendor, WaitlistEntry } from '../db/types';
+import type { Agreement, Event, TableRequest, Vendor, WaitlistEntry } from '../db/types';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
 
@@ -39,12 +40,23 @@ function formatShortDate(dateString: string): string {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-export default function StaffDashboardScreen({ onExit }: { onExit: () => void }) {
+export default function StaffDashboardScreen({
+  onExit,
+  onOpenVendorProfile,
+  onOpenAgreement,
+}: {
+  onExit: () => void;
+  onOpenVendorProfile: (vendorId: number) => void;
+  onOpenAgreement: (vendorId: number, eventId: number) => void;
+}) {
   const [events, setEvents] = useState<Event[] | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [requests, setRequests] = useState<TableRequest[]>([]);
   const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
+  const [agreementsByVendorId, setAgreementsByVendorId] = useState<Map<number, Agreement>>(
+    new Map()
+  );
   const [vendorsById, setVendorsById] = useState<Map<number, Vendor>>(new Map());
   const [totalTablesInput, setTotalTablesInput] = useState('0');
   const [loading, setLoading] = useState(true);
@@ -71,14 +83,16 @@ export default function StaffDashboardScreen({ onExit }: { onExit: () => void })
 
   const loadEventDetails = useCallback(async (eventId: number) => {
     const db = await getDatabase();
-    const [event, eventRequests, eventWaitlist] = await Promise.all([
+    const [event, eventRequests, eventWaitlist, eventAgreements] = await Promise.all([
       getEventById(db, eventId),
       getTableRequestsForEvent(db, eventId),
       getWaitlistForEvent(db, eventId),
+      getAgreementsForEvent(db, eventId),
     ]);
     setSelectedEvent(event);
     setRequests(eventRequests);
     setWaitlist(eventWaitlist);
+    setAgreementsByVendorId(new Map(eventAgreements.map((agreement) => [agreement.vendorId, agreement])));
   }, []);
 
   useEffect(() => {
@@ -262,11 +276,14 @@ export default function StaffDashboardScreen({ onExit }: { onExit: () => void })
                       key={request.id}
                       request={request}
                       vendorName={vendorsById.get(request.vendorId)?.businessName ?? 'Unknown vendor'}
+                      agreementStatus={agreementsByVendorId.get(request.vendorId)?.status ?? null}
                       exceedsOpenTables={
                         request.status === 'pending' && request.tablesWanted > tablesOpen
                       }
                       onApprove={() => handleApprove(request)}
                       onDeny={() => handleDeny(request)}
+                      onOpenVendorProfile={() => onOpenVendorProfile(request.vendorId)}
+                      onOpenAgreement={() => onOpenAgreement(request.vendorId, request.eventId)}
                     />
                   ))
                 )}
@@ -284,6 +301,7 @@ export default function StaffDashboardScreen({ onExit }: { onExit: () => void })
                       vendorName={vendorsById.get(entry.vendorId)?.businessName ?? 'Unknown vendor'}
                       onOffer={() => handleOffer(entry)}
                       onRemove={() => handleRemoveFromWaitlist(entry)}
+                      onOpenVendorProfile={() => onOpenVendorProfile(entry.vendorId)}
                     />
                   ))
                 )}
@@ -311,25 +329,40 @@ const STATUS_LABEL: Record<TableRequest['status'], string> = {
   denied: 'Denied',
 };
 
+const AGREEMENT_LABEL: Record<Agreement['status'], string> = {
+  not_sent: 'Not Signed',
+  sent: 'Not Signed',
+  signed: 'Signed',
+};
+
 function RequestRow({
   request,
   vendorName,
+  agreementStatus,
   exceedsOpenTables,
   onApprove,
   onDeny,
+  onOpenVendorProfile,
+  onOpenAgreement,
 }: {
   request: TableRequest;
   vendorName: string;
+  agreementStatus: Agreement['status'] | null;
   exceedsOpenTables: boolean;
   onApprove: () => void;
   onDeny: () => void;
+  onOpenVendorProfile: () => void;
+  onOpenAgreement: () => void;
 }) {
+  const isSigned = agreementStatus === 'signed';
   return (
     <View style={styles.row}>
       <View style={styles.rowTopLine}>
-        <Text style={styles.rowTitle} numberOfLines={1}>
-          {vendorName}
-        </Text>
+        <Pressable onPress={onOpenVendorProfile} style={styles.vendorNameLink} hitSlop={4}>
+          <Text style={styles.rowTitle} numberOfLines={1}>
+            {vendorName}
+          </Text>
+        </Pressable>
         <View style={[styles.statusPill, styles[`statusPill_${request.status}`]]}>
           <Text style={styles.statusPillText}>{STATUS_LABEL[request.status]}</Text>
         </View>
@@ -338,6 +371,11 @@ function RequestRow({
         {request.tablesWanted} {request.tablesWanted === 1 ? 'table' : 'tables'} requested
       </Text>
       {exceedsOpenTables && <Text style={styles.flagText}>⚠ Not enough tables</Text>}
+      <Pressable onPress={onOpenAgreement} hitSlop={4} style={styles.agreementLink}>
+        <Text style={[styles.agreementLinkText, isSigned && styles.agreementLinkTextSigned]}>
+          Agreement: {AGREEMENT_LABEL[agreementStatus ?? 'not_sent']} ›
+        </Text>
+      </Pressable>
       <View style={styles.rowActions}>
         <Pressable
           style={({ pressed }) => [styles.actionButton, styles.approveButton, pressed && styles.actionButtonPressed]}
@@ -361,18 +399,22 @@ function WaitlistRow({
   vendorName,
   onOffer,
   onRemove,
+  onOpenVendorProfile,
 }: {
   entry: WaitlistEntry;
   vendorName: string;
   onOffer: () => void;
   onRemove: () => void;
+  onOpenVendorProfile: () => void;
 }) {
   return (
     <View style={styles.row}>
       <View style={styles.rowTopLine}>
-        <Text style={styles.rowTitle} numberOfLines={1}>
-          {vendorName}
-        </Text>
+        <Pressable onPress={onOpenVendorProfile} style={styles.vendorNameLink} hitSlop={4}>
+          <Text style={styles.rowTitle} numberOfLines={1}>
+            {vendorName}
+          </Text>
+        </Pressable>
         <Text style={styles.waitlistPosition}>#{entry.position}</Text>
       </View>
       <Text style={styles.rowSubtitle}>
@@ -564,12 +606,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  vendorNameLink: {
+    flex: 1,
+  },
   rowTitle: {
     flex: 1,
     fontSize: 16,
     fontWeight: '700',
     color: colors.textPrimary,
     marginRight: 8,
+    textDecorationLine: 'underline',
+    textDecorationColor: colors.divider,
   },
   rowSubtitle: {
     fontSize: 13,
@@ -581,6 +628,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.red,
     marginTop: 6,
+  },
+  agreementLink: {
+    marginTop: 8,
+  },
+  agreementLinkText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.red,
+  },
+  agreementLinkTextSigned: {
+    color: colors.navy,
   },
   statusPill: {
     borderRadius: 999,

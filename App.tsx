@@ -4,16 +4,27 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 import type { Event } from './src/db/types';
+import AgreementScreen from './src/screens/AgreementScreen';
 import EventDetailScreen from './src/screens/EventDetailScreen';
 import EventsHomeScreen from './src/screens/EventsHomeScreen';
 import StaffDashboardScreen from './src/screens/StaffDashboardScreen';
+import VendorProfileScreen from './src/screens/VendorProfileScreen';
 import { colors } from './src/theme/colors';
 
-type Route = { screen: 'home' } | { screen: 'detail'; event: Event } | { screen: 'staff' };
+type Route =
+  | { screen: 'home' }
+  | { screen: 'detail'; event: Event }
+  | { screen: 'staff' }
+  | { screen: 'vendorProfile'; vendorId: number }
+  | { screen: 'agreement'; vendorId: number; eventId: number };
+
+const MEMBER_SCREENS: Route['screen'][] = ['home', 'detail'];
 
 export default function App() {
   const [fontsLoaded] = useFonts({ Rye_400Regular });
   const [route, setRoute] = useState<Route>({ screen: 'home' });
+
+  const backToStaff = () => setRoute({ screen: 'staff' });
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -26,11 +37,21 @@ export default function App() {
         <EventsHomeScreen onSelectEvent={(event) => setRoute({ screen: 'detail', event })} />
       ) : route.screen === 'detail' ? (
         <EventDetailScreen event={route.event} onBack={() => setRoute({ screen: 'home' })} />
+      ) : route.screen === 'vendorProfile' ? (
+        <VendorProfileScreen vendorId={route.vendorId} onBack={backToStaff} />
+      ) : route.screen === 'agreement' ? (
+        <AgreementScreen vendorId={route.vendorId} eventId={route.eventId} onBack={backToStaff} />
       ) : (
-        <StaffDashboardScreen onExit={() => setRoute({ screen: 'home' })} />
+        <StaffDashboardScreen
+          onExit={() => setRoute({ screen: 'home' })}
+          onOpenVendorProfile={(vendorId) => setRoute({ screen: 'vendorProfile', vendorId })}
+          onOpenAgreement={(vendorId, eventId) =>
+            setRoute({ screen: 'agreement', vendorId, eventId })
+          }
+        />
       )}
 
-      {fontsLoaded && route.screen !== 'staff' && (
+      {fontsLoaded && MEMBER_SCREENS.includes(route.screen) && (
         <Pressable
           style={styles.staffFab}
           onPress={() => setRoute({ screen: 'staff' })}
