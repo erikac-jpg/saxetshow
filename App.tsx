@@ -7,6 +7,7 @@ import type { Event } from './src/db/types';
 import AgreementScreen from './src/screens/AgreementScreen';
 import EventDetailScreen from './src/screens/EventDetailScreen';
 import EventsHomeScreen from './src/screens/EventsHomeScreen';
+import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 import StaffDashboardScreen from './src/screens/StaffDashboardScreen';
 import VendorProfileScreen from './src/screens/VendorProfileScreen';
 import { colors } from './src/theme/colors';
@@ -14,6 +15,7 @@ import { colors } from './src/theme/colors';
 type Route =
   | { screen: 'home' }
   | { screen: 'detail'; event: Event }
+  | { screen: 'privacyPolicy' }
   | { screen: 'staff' }
   | { screen: 'vendorProfile'; vendorId: number }
   | { screen: 'agreement'; vendorId: number; eventId: number };
@@ -24,6 +26,7 @@ export default function App() {
   const [fontsLoaded] = useFonts({ Rye_400Regular });
   const [route, setRoute] = useState<Route>({ screen: 'home' });
 
+  const backToHome = () => setRoute({ screen: 'home' });
   const backToStaff = () => setRoute({ screen: 'staff' });
 
   return (
@@ -34,16 +37,21 @@ export default function App() {
           <ActivityIndicator color={colors.navy} size="large" />
         </View>
       ) : route.screen === 'home' ? (
-        <EventsHomeScreen onSelectEvent={(event) => setRoute({ screen: 'detail', event })} />
+        <EventsHomeScreen
+          onSelectEvent={(event) => setRoute({ screen: 'detail', event })}
+          onOpenPrivacyPolicy={() => setRoute({ screen: 'privacyPolicy' })}
+        />
       ) : route.screen === 'detail' ? (
-        <EventDetailScreen event={route.event} onBack={() => setRoute({ screen: 'home' })} />
+        <EventDetailScreen event={route.event} onBack={backToHome} />
+      ) : route.screen === 'privacyPolicy' ? (
+        <PrivacyPolicyScreen onBack={backToHome} />
       ) : route.screen === 'vendorProfile' ? (
         <VendorProfileScreen vendorId={route.vendorId} onBack={backToStaff} />
       ) : route.screen === 'agreement' ? (
         <AgreementScreen vendorId={route.vendorId} eventId={route.eventId} onBack={backToStaff} />
       ) : (
         <StaffDashboardScreen
-          onExit={() => setRoute({ screen: 'home' })}
+          onExit={backToHome}
           onOpenVendorProfile={(vendorId) => setRoute({ screen: 'vendorProfile', vendorId })}
           onOpenAgreement={(vendorId, eventId) =>
             setRoute({ screen: 'agreement', vendorId, eventId })

@@ -63,8 +63,10 @@ function EmptyState() {
 
 export default function EventsHomeScreen({
   onSelectEvent,
+  onOpenPrivacyPolicy,
 }: {
   onSelectEvent: (event: Event) => void;
+  onOpenPrivacyPolicy: () => void;
 }) {
   const [events, setEvents] = useState<Event[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -98,29 +100,37 @@ export default function EventsHomeScreen({
         <Text style={styles.headerSubtitle}>UPCOMING GUN SHOWS</Text>
       </View>
 
-      {events === null ? (
-        <View style={styles.centered}>
-          <ActivityIndicator color={colors.navy} size="large" />
-        </View>
-      ) : error ? (
-        <View style={styles.centered}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      ) : events.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <FlatList
-          data={events}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={({ item }) => (
-            <EventCard event={item} onPress={() => onSelectEvent(item)} />
-          )}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.navy} />
-          }
-        />
-      )}
+      <View style={styles.body}>
+        {events === null ? (
+          <View style={styles.centered}>
+            <ActivityIndicator color={colors.navy} size="large" />
+          </View>
+        ) : error ? (
+          <View style={styles.centered}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : events.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <FlatList
+            data={events}
+            keyExtractor={(item) => String(item.id)}
+            renderItem={({ item }) => (
+              <EventCard event={item} onPress={() => onSelectEvent(item)} />
+            )}
+            contentContainerStyle={styles.listContent}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.navy} />
+            }
+          />
+        )}
+      </View>
+
+      <View style={styles.footer}>
+        <Pressable onPress={onOpenPrivacyPolicy} hitSlop={8}>
+          <Text style={styles.footerLink}>Privacy Policy</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -151,8 +161,23 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     fontWeight: '600',
   },
+  body: {
+    flex: 1,
+  },
   listContent: {
     padding: 16,
+  },
+  footer: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+    backgroundColor: colors.cream,
+  },
+  footerLink: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    textDecorationLine: 'underline',
   },
   card: {
     flexDirection: 'row',
