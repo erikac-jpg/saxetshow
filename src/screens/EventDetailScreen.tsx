@@ -72,8 +72,28 @@ export default function EventDetailScreen({
         >
           <Text style={styles.ctaButtonText}>I’m Interested — Request Tables</Text>
         </Pressable>
+
+        <View style={styles.divider} />
+
+        <Text style={styles.sectionLabel}>BECOME A VENDOR</Text>
+        <View style={styles.stepsList}>
+          <VendorStep number={1} label="Reserve a table" />
+          <VendorStep number={2} label="Sign the vendor agreement" />
+          <VendorStep number={3} label="Set up and sell" />
+        </View>
       </View>
     </ScrollView>
+  );
+}
+
+function VendorStep({ number, label }: { number: number; label: string }) {
+  return (
+    <View style={styles.stepRow}>
+      <View style={styles.stepNumber}>
+        <Text style={styles.stepNumberText}>{number}</Text>
+      </View>
+      <Text style={styles.stepLabel}>{label}</Text>
+    </View>
   );
 }
 
@@ -176,5 +196,33 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     letterSpacing: 0.3,
+  },
+  stepsList: {
+    marginTop: 4,
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  stepNumber: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.navy,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  stepNumberText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  stepLabel: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
   },
 });
