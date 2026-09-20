@@ -10,8 +10,7 @@ import {
   View,
 } from 'react-native';
 
-import { getDatabase } from '../db/client';
-import { createVendor, getVendorById, updateVendor } from '../db/repositories/vendors';
+import { createVendor, getVendorById, updateVendor } from '../db/supabase/vendors';
 import type { Vendor } from '../db/types';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
@@ -63,8 +62,7 @@ export default function VendorProfileScreen({
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
-    const db = await getDatabase();
-    const found = await getVendorById(db, vendorId);
+    const found = await getVendorById(vendorId);
     setVendor(found);
     setForm(found ? formFromVendor(found) : EMPTY_FORM);
   }, [vendorId]);
@@ -84,7 +82,6 @@ export default function VendorProfileScreen({
     }
     setSaving(true);
     try {
-      const db = await getDatabase();
       const input = {
         businessName: form.businessName.trim(),
         contactName: form.contactName.trim() || null,
@@ -96,8 +93,8 @@ export default function VendorProfileScreen({
         boothNotes: form.boothNotes.trim() || null,
       };
       const saved = vendor
-        ? await updateVendor(db, vendor.id, input)
-        : await createVendor(db, input);
+        ? await updateVendor(vendor.id, input)
+        : await createVendor(input);
       setVendor(saved);
       Alert.alert('Saved', 'This vendor profile has been saved.');
     } finally {

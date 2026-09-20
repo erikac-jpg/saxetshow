@@ -10,12 +10,11 @@ import {
   View,
 } from 'react-native';
 
-import { getAgreementsForEvent } from '../db/repositories/agreements';
-import { getDatabase } from '../db/client';
-import { getAllEvents, getEventById, updateEvent } from '../db/repositories/events';
-import { getTableRequestsForEvent, updateTableRequestStatus } from '../db/repositories/tableRequests';
-import { getAllVendors } from '../db/repositories/vendors';
-import { getWaitlistForEvent, removeFromWaitlist } from '../db/repositories/waitlist';
+import { getAgreementsForEvent } from '../db/supabase/agreements';
+import { getAllEvents, getEventById, updateEvent } from '../db/supabase/events';
+import { getTableRequestsForEvent, updateTableRequestStatus } from '../db/supabase/tableRequests';
+import { getAllVendors } from '../db/supabase/vendors';
+import { getWaitlistForEvent, removeFromWaitlist } from '../db/supabase/waitlist';
 import type { Agreement, Event, TableRequest, Vendor, WaitlistEntry } from '../db/types';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
@@ -64,8 +63,7 @@ export default function StaffDashboardScreen({
 
   const loadEvents = useCallback(async () => {
     try {
-      const db = await getDatabase();
-      const [allEvents, allVendors] = await Promise.all([getAllEvents(db), getAllVendors(db)]);
+      const [allEvents, allVendors] = await Promise.all([getAllEvents(), getAllVendors()]);
       setEvents(allEvents);
       setVendorsById(new Map(allVendors.map((vendor) => [vendor.id, vendor])));
       setSelectedEventId((current) => current ?? allEvents[0]?.id ?? null);
@@ -82,12 +80,11 @@ export default function StaffDashboardScreen({
   }, [loadEvents]);
 
   const loadEventDetails = useCallback(async (eventId: number) => {
-    const db = await getDatabase();
     const [event, eventRequests, eventWaitlist, eventAgreements] = await Promise.all([
-      getEventById(db, eventId),
-      getTableRequestsForEvent(db, eventId),
-      getWaitlistForEvent(db, eventId),
-      getAgreementsForEvent(db, eventId),
+      getEventById(eventId),
+      getTableRequestsForEvent(eventId),
+      getWaitlistForEvent(eventId),
+      getAgreementsForEvent(eventId),
     ]);
     setSelectedEvent(event);
     setRequests(eventRequests);
@@ -128,8 +125,7 @@ export default function StaffDashboardScreen({
   const commitTotalTables = useCallback(async () => {
     if (!selectedEvent) return;
     const parsed = Math.max(0, parseInt(totalTablesInput, 10) || 0);
-    const db = await getDatabase();
-    const updated = await updateEvent(db, selectedEvent.id, { totalTables: parsed });
+    const updated = await updateEvent(selectedEvent.id, { totalTables: parsed });
     if (updated) {
       setSelectedEvent(updated);
       setEvents((prev) => prev?.map((event) => (event.id === updated.id ? updated : event)) ?? prev);
@@ -139,20 +135,17 @@ export default function StaffDashboardScreen({
 
   const refreshRequests = useCallback(async () => {
     if (selectedEventId == null) return;
-    const db = await getDatabase();
-    setRequests(await getTableRequestsForEvent(db, selectedEventId));
+    setRequests(await getTableRequestsForEvent(selectedEventId));
   }, [selectedEventId]);
 
   const refreshWaitlist = useCallback(async () => {
     if (selectedEventId == null) return;
-    const db = await getDatabase();
-    setWaitlist(await getWaitlistForEvent(db, selectedEventId));
+    setWaitlist(await getWaitlistForEvent(selectedEventId));
   }, [selectedEventId]);
 
   const handleApprove = useCallback(
     async (request: TableRequest) => {
-      const db = await getDatabase();
-      await updateTableRequestStatus(db, request.id, 'approved');
+      await updateTableRequestStatus(request.id, 'approved');
       await refreshRequests();
     },
     [refreshRequests]
@@ -160,8 +153,7 @@ export default function StaffDashboardScreen({
 
   const handleDeny = useCallback(
     async (request: TableRequest) => {
-      const db = await getDatabase();
-      await updateTableRequestStatus(db, request.id, 'denied');
+      await updateTableRequestStatus(request.id, 'denied');
       await refreshRequests();
     },
     [refreshRequests]
@@ -177,8 +169,7 @@ export default function StaffDashboardScreen({
 
   const handleRemoveFromWaitlist = useCallback(
     async (entry: WaitlistEntry) => {
-      const db = await getDatabase();
-      await removeFromWaitlist(db, entry.id);
+      await removeFromWaitlist(entry.id);
       await refreshWaitlist();
     },
     [refreshWaitlist]
