@@ -5,10 +5,9 @@ import {
   createAgreement,
   getAgreementForVendorAndEvent,
   updateAgreementStatus,
-} from '../db/repositories/agreements';
-import { getDatabase } from '../db/client';
-import { getEventById } from '../db/repositories/events';
-import { getVendorById } from '../db/repositories/vendors';
+} from '../db/supabase/agreements';
+import { getEventById } from '../db/supabase/events';
+import { getVendorById } from '../db/supabase/vendors';
 import type { Agreement, Event, Vendor } from '../db/types';
 import {
   VENDOR_AGREEMENT_PARAGRAPHS,
@@ -35,11 +34,10 @@ export default function AgreementScreen({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const db = await getDatabase();
       const [loadedVendor, loadedEvent, loadedAgreement] = await Promise.all([
-        getVendorById(db, vendorId),
-        getEventById(db, eventId),
-        getAgreementForVendorAndEvent(db, vendorId, eventId),
+        getVendorById(vendorId),
+        getEventById(eventId),
+        getAgreementForVendorAndEvent(vendorId, eventId),
       ]);
       setVendor(loadedVendor);
       setEvent(loadedEvent);
@@ -56,10 +54,9 @@ export default function AgreementScreen({
   const commitSign = useCallback(async () => {
     setSigning(true);
     try {
-      const db = await getDatabase();
       const signed = agreement
-        ? await updateAgreementStatus(db, agreement.id, 'signed')
-        : await createAgreement(db, { vendorId, eventId, status: 'signed' });
+        ? await updateAgreementStatus(agreement.id, 'signed')
+        : await createAgreement({ vendorId, eventId, status: 'signed' });
       setAgreement(signed);
       Alert.alert('Signed', 'This agreement is now marked as signed.');
     } finally {
