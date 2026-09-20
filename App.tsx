@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 import type { Event } from './src/db/types';
+import { getMyVendorId, setMyVendorId } from './src/local/myVendorIdentity';
 import AgreementScreen from './src/screens/AgreementScreen';
 import EventDetailScreen from './src/screens/EventDetailScreen';
 import EventsHomeScreen from './src/screens/EventsHomeScreen';
@@ -18,6 +19,7 @@ type Route =
   | { screen: 'privacyPolicy' }
   | { screen: 'staff' }
   | { screen: 'vendorProfile'; vendorId: number }
+  | { screen: 'myVendorProfile'; vendorId: number | null }
   | { screen: 'agreement'; vendorId: number; eventId: number };
 
 const MEMBER_SCREENS: Route['screen'][] = ['home', 'detail'];
@@ -28,6 +30,11 @@ export default function App() {
 
   const backToHome = () => setRoute({ screen: 'home' });
   const backToStaff = () => setRoute({ screen: 'staff' });
+
+  const openMyVendorProfile = async () => {
+    const vendorId = await getMyVendorId();
+    setRoute({ screen: 'myVendorProfile', vendorId });
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -46,7 +53,14 @@ export default function App() {
       ) : route.screen === 'privacyPolicy' ? (
         <PrivacyPolicyScreen onBack={backToHome} />
       ) : route.screen === 'vendorProfile' ? (
-        <VendorProfileScreen vendorId={route.vendorId} onBack={backToStaff} />
+        <VendorProfileScreen vendorId={route.vendorId} onBack={backToStaff} isStaffView />
+      ) : route.screen === 'myVendorProfile' ? (
+        <VendorProfileScreen
+          vendorId={route.vendorId}
+          onBack={backToHome}
+          onSaved={(vendor) => setMyVendorId(vendor.id)}
+          subtitle="MY PROFILE"
+        />
       ) : route.screen === 'agreement' ? (
         <AgreementScreen vendorId={route.vendorId} eventId={route.eventId} onBack={backToStaff} />
       ) : (
@@ -60,13 +74,18 @@ export default function App() {
       )}
 
       {fontsLoaded && MEMBER_SCREENS.includes(route.screen) && (
-        <Pressable
-          style={styles.staffFab}
-          onPress={() => setRoute({ screen: 'staff' })}
-          hitSlop={8}
-        >
-          <Text style={styles.staffFabText}>Staff</Text>
-        </Pressable>
+        <>
+          <Pressable style={styles.vendorFab} onPress={openMyVendorProfile} hitSlop={8}>
+            <Text style={styles.vendorFabText}>Vendor</Text>
+          </Pressable>
+          <Pressable
+            style={styles.staffFab}
+            onPress={() => setRoute({ screen: 'staff' })}
+            hitSlop={8}
+          >
+            <Text style={styles.staffFabText}>Staff</Text>
+          </Pressable>
+        </>
       )}
     </SafeAreaView>
   );
@@ -97,6 +116,26 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   staffFabText: {
+    color: colors.white,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  vendorFab: {
+    position: 'absolute',
+    left: 16,
+    bottom: 16,
+    backgroundColor: colors.red,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 999,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 5,
+  },
+  vendorFabText: {
     color: colors.white,
     fontSize: 13,
     fontWeight: '800',

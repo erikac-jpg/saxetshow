@@ -2,7 +2,7 @@ import { supabase } from '../supabaseClient';
 import type { Vendor } from '../types';
 
 const VENDOR_SELECT =
-  'id, userId:user_id, businessName:business_name, contactName:contact_name, phone, email, website, address, productsTheyBring:products_they_bring, boothNotes:booth_notes, feesOwed:fees_owed, createdAt:created_at, updatedAt:updated_at';
+  'id, userId:user_id, businessName:business_name, contactName:contact_name, phone, email, website, address, productsTheyBring:products_they_bring, boothNotes:booth_notes, feesOwed:fees_owed, fflLicenseNumber:ffl_license_number, fflExpirationDate:ffl_expiration_date, vendorCategory:vendor_category, preferredTableLocation:preferred_table_location, staffNotes:staff_notes, insuranceOnFile:insurance_on_file, insuranceExpirationDate:insurance_expiration_date, staffTags:staff_tags, createdAt:created_at, updatedAt:updated_at';
 
 export interface CreateVendorInput {
   userId?: number | null;
@@ -15,6 +15,14 @@ export interface CreateVendorInput {
   productsTheyBring?: string | null;
   boothNotes?: string | null;
   feesOwed?: number;
+  fflLicenseNumber?: string | null;
+  fflExpirationDate?: string | null;
+  vendorCategory?: string | null;
+  preferredTableLocation?: string | null;
+  staffNotes?: string | null;
+  insuranceOnFile?: boolean;
+  insuranceExpirationDate?: string | null;
+  staffTags?: string[];
 }
 
 export type UpdateVendorInput = Partial<CreateVendorInput>;
@@ -33,6 +41,14 @@ export async function createVendor(input: CreateVendorInput): Promise<Vendor> {
       products_they_bring: input.productsTheyBring ?? null,
       booth_notes: input.boothNotes ?? null,
       fees_owed: input.feesOwed ?? 0,
+      ffl_license_number: input.fflLicenseNumber ?? null,
+      ffl_expiration_date: input.fflExpirationDate ?? null,
+      vendor_category: input.vendorCategory ?? null,
+      preferred_table_location: input.preferredTableLocation ?? null,
+      staff_notes: input.staffNotes ?? null,
+      insurance_on_file: input.insuranceOnFile ?? false,
+      insurance_expiration_date: input.insuranceExpirationDate ?? null,
+      staff_tags: input.staffTags ?? [],
     })
     .select(VENDOR_SELECT)
     .single();
@@ -81,6 +97,16 @@ export async function updateVendor(id: number, input: UpdateVendorInput): Promis
   if (input.productsTheyBring !== undefined) patch.products_they_bring = input.productsTheyBring;
   if (input.boothNotes !== undefined) patch.booth_notes = input.boothNotes;
   if (input.feesOwed !== undefined) patch.fees_owed = input.feesOwed;
+  if (input.fflLicenseNumber !== undefined) patch.ffl_license_number = input.fflLicenseNumber;
+  if (input.fflExpirationDate !== undefined) patch.ffl_expiration_date = input.fflExpirationDate;
+  if (input.vendorCategory !== undefined) patch.vendor_category = input.vendorCategory;
+  if (input.preferredTableLocation !== undefined)
+    patch.preferred_table_location = input.preferredTableLocation;
+  if (input.staffNotes !== undefined) patch.staff_notes = input.staffNotes;
+  if (input.insuranceOnFile !== undefined) patch.insurance_on_file = input.insuranceOnFile;
+  if (input.insuranceExpirationDate !== undefined)
+    patch.insurance_expiration_date = input.insuranceExpirationDate;
+  if (input.staffTags !== undefined) patch.staff_tags = input.staffTags;
 
   const { data, error } = await supabase
     .from('vendors')

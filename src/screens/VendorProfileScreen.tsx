@@ -10,10 +10,13 @@ import {
   View,
 } from 'react-native';
 
+import { getRequestHistoryForVendor, type VendorRequestHistoryEntry } from '../db/supabase/tableRequests';
 import { createVendor, getVendorById, updateVendor } from '../db/supabase/vendors';
-import type { Vendor } from '../db/types';
+import type { TableRequestStatus, Vendor } from '../db/types';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
+
+const STAFF_TAG_OPTIONS = ['Reliable', 'New Vendor', 'VIP', 'Do Not Rebook'] as const;
 
 interface FormState {
   businessName: string;
@@ -24,6 +27,14 @@ interface FormState {
   address: string;
   productsTheyBring: string;
   boothNotes: string;
+  fflLicenseNumber: string;
+  fflExpirationDate: string;
+  vendorCategory: string;
+  preferredTableLocation: string;
+  staffNotes: string;
+  insuranceOnFile: boolean;
+  insuranceExpirationDate: string;
+  staffTags: string[];
 }
 
 const EMPTY_FORM: FormState = {
@@ -35,6 +46,14 @@ const EMPTY_FORM: FormState = {
   address: '',
   productsTheyBring: '',
   boothNotes: '',
+  fflLicenseNumber: '',
+  fflExpirationDate: '',
+  vendorCategory: '',
+  preferredTableLocation: '',
+  staffNotes: '',
+  insuranceOnFile: false,
+  insuranceExpirationDate: '',
+  staffTags: [],
 };
 
 function formFromVendor(vendor: Vendor): FormState {
@@ -47,21 +66,75 @@ function formFromVendor(vendor: Vendor): FormState {
     address: vendor.address ?? '',
     productsTheyBring: vendor.productsTheyBring ?? '',
     boothNotes: vendor.boothNotes ?? '',
+    fflLicenseNumber: vendor.fflLicenseNumber ?? '',
+    fflExpirationDate: vendor.fflExpirationDate ?? '',
+    vendorCategory: vendor.vendorCategory ?? '',
+    preferredTableLocation: vendor.preferredTableLocation ?? '',
+    staffNotes: vendor.staffNotes ?? '',
+    insuranceOnFile: vendor.insuranceOnFile,
+    insuranceExpirationDate: vendor.insuranceExpirationDate ?? '',
+    staffTags: vendor.staffTags,
   };
+}
+
+/** Days until `dateString`; negative means already past. Null if unparseable/empty. */
+function daysUntil(dateString: string): number | null {
+  if (!dateString) return null;
+  const target = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(target.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function expirationWarning(label: string, dateString: string): string | null {
+  const days = daysUntil(dateString);
+  if (days === null) return null;
+  if (days < 0) return `⚠ ${label} expired`;
+  if (days <= 60) return `⚠ ${label} expires in ${days} days`;
+  return null;
+}
+
+function deriveAttendance(entry: VendorRequestHistoryEntry): string {
+  if (entry.status === 'denied') return 'Cancelled';
+  if (entry.checkedInAt) return 'Attended';
+  const eventTime = new Date(`${entry.eventDate}T00:00:00`).getTime();
+  const isPast = !Number.isNaN(eventTime) && eventTime < Date.now();
+  if (entry.status === 'approved' && isPast) return 'No-Show';
+  if (entry.status === 'approved') return 'Upcoming';
+  return 'Pending';
+}
+
+function formatShortDate(dateString: string): string {
+  const date = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return dateString;
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 export default function VendorProfileScreen({
   vendorId,
   onBack,
+  onSaved,
+  subtitle = 'STAFF VIEW',
+  isStaffView = false,
 }: {
-  vendorId: number;
+  vendorId: number | null;
   onBack: () => void;
+  onSaved?: (vendor: Vendor) => void;
+  subtitle?: string;
+  isStaffView?: boolean;
 }) {
   const [vendor, setVendor] = useState<Vendor | null | undefined>(undefined);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [history, setHistory] = useState<VendorRequestHistoryEntry[] | null>(null);
 
   const load = useCallback(async () => {
+    if (vendorId === null) {
+      setVendor(null);
+      setForm(EMPTY_FORM);
+      return;
+    }
     const found = await getVendorById(vendorId);
     setVendor(found);
     setForm(found ? formFromVendor(found) : EMPTY_FORM);
@@ -71,8 +144,23 @@ export default function VendorProfileScreen({
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (isStaffView && vendorId !== null) {
+      getRequestHistoryForVendor(vendorId).then(setHistory);
+    }
+  }, [isStaffView, vendorId]);
+
   const updateField = (field: keyof FormState) => (value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const toggleTag = (tag: string) => {
+    setForm((prev) => ({
+      ...prev,
+      staffTags: prev.staffTags.includes(tag)
+        ? prev.staffTags.filter((t) => t !== tag)
+        : [...prev.staffTags, tag],
+    }));
   };
 
   const handleSave = useCallback(async () => {
@@ -91,16 +179,31 @@ export default function VendorProfileScreen({
         address: form.address.trim() || null,
         productsTheyBring: form.productsTheyBring.trim() || null,
         boothNotes: form.boothNotes.trim() || null,
+        fflLicenseNumber: form.fflLicenseNumber.trim() || null,
+        fflExpirationDate: form.fflExpirationDate.trim() || null,
+        vendorCategory: form.vendorCategory.trim() || null,
+        preferredTableLocation: form.preferredTableLocation.trim() || null,
+        ...(isStaffView
+          ? {
+              staffNotes: form.staffNotes.trim() || null,
+              insuranceOnFile: form.insuranceOnFile,
+              insuranceExpirationDate: form.insuranceExpirationDate.trim() || null,
+              staffTags: form.staffTags,
+            }
+          : {}),
       };
       const saved = vendor
         ? await updateVendor(vendor.id, input)
         : await createVendor(input);
       setVendor(saved);
+      if (saved) {
+        onSaved?.(saved);
+      }
       Alert.alert('Saved', 'This vendor profile has been saved.');
     } finally {
       setSaving(false);
     }
-  }, [form, vendor]);
+  }, [form, vendor, onSaved, isStaffView]);
 
   if (vendor === undefined) {
     return (
@@ -111,6 +214,10 @@ export default function VendorProfileScreen({
   }
 
   const isNewProfile = vendor === null;
+  const fflWarning = expirationWarning('FFL license', form.fflExpirationDate);
+  const insuranceWarning = isStaffView
+    ? expirationWarning('Insurance', form.insuranceExpirationDate)
+    : null;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
@@ -119,18 +226,29 @@ export default function VendorProfileScreen({
           <Text style={styles.backButtonText}>‹ Back</Text>
         </Pressable>
         <Text style={styles.headerTitle}>Vendor Profile</Text>
-        <Text style={styles.headerSubtitle}>STAFF VIEW</Text>
+        <Text style={styles.headerSubtitle}>{subtitle}</Text>
       </View>
 
       <View style={styles.content}>
         {isNewProfile && (
           <View style={styles.notice}>
             <Text style={styles.noticeText}>
-              This vendor doesn’t have a profile yet. Fill in what you know below and create one.
+              No profile yet — fill in what you know below to create one.
             </Text>
           </View>
         )}
+        {fflWarning && (
+          <View style={styles.warningNotice}>
+            <Text style={styles.warningNoticeText}>{fflWarning}</Text>
+          </View>
+        )}
+        {insuranceWarning && (
+          <View style={styles.warningNotice}>
+            <Text style={styles.warningNoticeText}>{insuranceWarning}</Text>
+          </View>
+        )}
 
+        <Text style={styles.sectionLabel}>CONTACT INFO</Text>
         <Field
           label="Business Name*"
           value={form.businessName}
@@ -154,7 +272,31 @@ export default function VendorProfileScreen({
           keyboardType="email-address"
         />
         <Field label="Website" value={form.website} onChangeText={updateField('website')} />
-        <Field label="Address" value={form.address} onChangeText={updateField('address')} />
+        <Field label="Mailing Address" value={form.address} onChangeText={updateField('address')} />
+
+        <Text style={styles.sectionLabel}>VENDOR DETAILS</Text>
+        <Field
+          label="FFL License Number"
+          value={form.fflLicenseNumber}
+          onChangeText={updateField('fflLicenseNumber')}
+        />
+        <Field
+          label="FFL Expiration Date (YYYY-MM-DD)"
+          value={form.fflExpirationDate}
+          onChangeText={updateField('fflExpirationDate')}
+        />
+        <Field
+          label="Vendor Category"
+          value={form.vendorCategory}
+          onChangeText={updateField('vendorCategory')}
+          placeholder="Firearms, Ammo, Accessories, Knives, Apparel…"
+        />
+        <Field
+          label="Preferred Table Location"
+          value={form.preferredTableLocation}
+          onChangeText={updateField('preferredTableLocation')}
+          placeholder="Corner, near entrance, near power…"
+        />
         <Field
           label="Products They Bring"
           value={form.productsTheyBring}
@@ -168,6 +310,77 @@ export default function VendorProfileScreen({
           multiline
         />
 
+        {isStaffView && (
+          <>
+            <Text style={styles.sectionLabel}>STAFF ONLY</Text>
+            <Field
+              label="Staff Notes (private)"
+              value={form.staffNotes}
+              onChangeText={updateField('staffNotes')}
+              multiline
+              placeholder="Always brings extra tables, difficult to reach…"
+            />
+
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>Insurance On File</Text>
+              <View style={styles.toggleRow}>
+                <Pressable
+                  style={[styles.toggleOption, form.insuranceOnFile && styles.toggleOptionActive]}
+                  onPress={() => setForm((prev) => ({ ...prev, insuranceOnFile: true }))}
+                >
+                  <Text
+                    style={[
+                      styles.toggleOptionText,
+                      form.insuranceOnFile && styles.toggleOptionTextActive,
+                    ]}
+                  >
+                    Yes
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.toggleOption, !form.insuranceOnFile && styles.toggleOptionActive]}
+                  onPress={() => setForm((prev) => ({ ...prev, insuranceOnFile: false }))}
+                >
+                  <Text
+                    style={[
+                      styles.toggleOptionText,
+                      !form.insuranceOnFile && styles.toggleOptionTextActive,
+                    ]}
+                  >
+                    No
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+
+            <Field
+              label="Insurance Expiration Date (YYYY-MM-DD)"
+              value={form.insuranceExpirationDate}
+              onChangeText={updateField('insuranceExpirationDate')}
+            />
+
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>Tags</Text>
+              <View style={styles.tagRow}>
+                {STAFF_TAG_OPTIONS.map((tag) => {
+                  const active = form.staffTags.includes(tag);
+                  return (
+                    <Pressable
+                      key={tag}
+                      style={[styles.tagChip, active && styles.tagChipActive]}
+                      onPress={() => toggleTag(tag)}
+                    >
+                      <Text style={[styles.tagChipText, active && styles.tagChipTextActive]}>
+                        {tag}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          </>
+        )}
+
         <Pressable
           style={({ pressed }) => [styles.saveButton, pressed && styles.saveButtonPressed]}
           onPress={handleSave}
@@ -177,8 +390,46 @@ export default function VendorProfileScreen({
             {saving ? 'Saving…' : isNewProfile ? 'Create Profile' : 'Save Changes'}
           </Text>
         </Pressable>
+
+        {isStaffView && !isNewProfile && (
+          <>
+            <Text style={styles.sectionLabel}>VENDOR HISTORY</Text>
+            {history === null ? (
+              <ActivityIndicator color={colors.navy} />
+            ) : history.length === 0 ? (
+              <Text style={styles.emptyHistoryText}>No past table requests for this vendor.</Text>
+            ) : (
+              history.map((entry) => (
+                <HistoryRow key={entry.id} entry={entry} />
+              ))
+            )}
+          </>
+        )}
       </View>
     </ScrollView>
+  );
+}
+
+const STATUS_LABEL: Record<TableRequestStatus, string> = {
+  pending: 'Pending',
+  approved: 'Approved',
+  denied: 'Denied',
+};
+
+function HistoryRow({ entry }: { entry: VendorRequestHistoryEntry }) {
+  return (
+    <View style={styles.historyRow}>
+      <Text style={styles.historyEventName} numberOfLines={1}>
+        {entry.eventName}
+      </Text>
+      <Text style={styles.historyMeta}>
+        {formatShortDate(entry.eventDate)} · {entry.tablesWanted}{' '}
+        {entry.tablesWanted === 1 ? 'table' : 'tables'} · {STATUS_LABEL[entry.status]}
+      </Text>
+      <Text style={styles.historyMeta}>
+        Payment: {entry.paymentStatus} · {deriveAttendance(entry)}
+      </Text>
+    </View>
   );
 }
 
@@ -188,12 +439,14 @@ function Field({
   onChangeText,
   multiline,
   keyboardType,
+  placeholder,
 }: {
   label: string;
   value: string;
   onChangeText: (value: string) => void;
   multiline?: boolean;
   keyboardType?: 'phone-pad' | 'email-address';
+  placeholder?: string;
 }) {
   return (
     <View style={styles.field}>
@@ -204,6 +457,8 @@ function Field({
         style={[styles.fieldInput, multiline && styles.fieldInputMultiline]}
         multiline={multiline}
         keyboardType={keyboardType}
+        placeholder={placeholder}
+        placeholderTextColor={colors.textSecondary}
         autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
       />
     </View>
@@ -267,6 +522,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textPrimary,
   },
+  warningNotice: {
+    backgroundColor: '#F3DCDC',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 12,
+  },
+  warningNoticeText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.red,
+  },
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: colors.navy,
+    letterSpacing: 1.5,
+    marginTop: 8,
+    marginBottom: 12,
+  },
   field: {
     marginBottom: 16,
   },
@@ -290,6 +564,56 @@ const styles = StyleSheet.create({
     minHeight: 80,
     textAlignVertical: 'top',
   },
+  toggleRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  toggleOption: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    backgroundColor: colors.white,
+  },
+  toggleOptionActive: {
+    backgroundColor: colors.navy,
+    borderColor: colors.navy,
+  },
+  toggleOptionText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  toggleOptionTextActive: {
+    color: colors.white,
+  },
+  tagRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  tagChip: {
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    backgroundColor: colors.white,
+  },
+  tagChipActive: {
+    backgroundColor: colors.red,
+    borderColor: colors.red,
+  },
+  tagChipText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  tagChipTextActive: {
+    color: colors.white,
+  },
   saveButton: {
     backgroundColor: colors.navy,
     borderRadius: 12,
@@ -310,5 +634,27 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     letterSpacing: 0.3,
+  },
+  emptyHistoryText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  historyRow: {
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.divider,
+  },
+  historyEventName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  historyMeta: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
 });

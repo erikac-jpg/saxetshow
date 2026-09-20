@@ -12,10 +12,15 @@ import {
 
 import { getAgreementsForEvent } from '../db/supabase/agreements';
 import { getAllEvents, getEventById, updateEvent } from '../db/supabase/events';
-import { getTableRequestsForEvent, updateTableRequestStatus } from '../db/supabase/tableRequests';
+import {
+  getTableRequestsForEvent,
+  setCheckedIn,
+  updateTableRequestPayment,
+  updateTableRequestStatus,
+} from '../db/supabase/tableRequests';
 import { getAllVendors } from '../db/supabase/vendors';
 import { getWaitlistForEvent, removeFromWaitlist } from '../db/supabase/waitlist';
-import type { Agreement, Event, TableRequest, Vendor, WaitlistEntry } from '../db/types';
+import type { Agreement, Event, PaymentStatus, TableRequest, Vendor, WaitlistEntry } from '../db/types';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
 
@@ -159,6 +164,33 @@ export default function StaffDashboardScreen({
     [refreshRequests]
   );
 
+  const handleSetPaymentStatus = useCallback(
+    async (request: TableRequest, paymentStatus: PaymentStatus) => {
+      await updateTableRequestPayment(request.id, { paymentStatus });
+      await refreshRequests();
+    },
+    [refreshRequests]
+  );
+
+  const handleSetPaymentDetail = useCallback(
+    async (request: TableRequest, field: 'paymentMethod' | 'checkNumber', value: string) => {
+      await updateTableRequestPayment(request.id, {
+        paymentStatus: request.paymentStatus,
+        [field]: value.trim() || null,
+      });
+      await refreshRequests();
+    },
+    [refreshRequests]
+  );
+
+  const handleToggleCheckIn = useCallback(
+    async (request: TableRequest) => {
+      await setCheckedIn(request.id, !request.checkedInAt);
+      await refreshRequests();
+    },
+    [refreshRequests]
+  );
+
   const handleOffer = useCallback(
     (entry: WaitlistEntry) => {
       const vendorName = vendorsById.get(entry.vendorId)?.businessName ?? 'This vendor';
@@ -275,6 +307,11 @@ export default function StaffDashboardScreen({
                       onDeny={() => handleDeny(request)}
                       onOpenVendorProfile={() => onOpenVendorProfile(request.vendorId)}
                       onOpenAgreement={() => onOpenAgreement(request.vendorId, request.eventId)}
+                      onSetPaymentStatus={(status) => handleSetPaymentStatus(request, status)}
+                      onSetPaymentDetail={(field, value) =>
+                        handleSetPaymentDetail(request, field, value)
+                      }
+                      onToggleCheckIn={() => handleToggleCheckIn(request)}
                     />
                   ))
                 )}
@@ -326,6 +363,13 @@ const AGREEMENT_LABEL: Record<Agreement['status'], string> = {
   signed: 'Signed',
 };
 
+const PAYMENT_OPTIONS: PaymentStatus[] = ['unpaid', 'partial', 'paid'];
+const PAYMENT_LABEL: Record<PaymentStatus, string> = {
+  unpaid: 'Unpaid',
+  partial: 'Partial',
+  paid: 'Paid',
+};
+
 function RequestRow({
   request,
   vendorName,
@@ -335,6 +379,9 @@ function RequestRow({
   onDeny,
   onOpenVendorProfile,
   onOpenAgreement,
+  onSetPaymentStatus,
+  onSetPaymentDetail,
+  onToggleCheckIn,
 }: {
   request: TableRequest;
   vendorName: string;
@@ -344,8 +391,19 @@ function RequestRow({
   onDeny: () => void;
   onOpenVendorProfile: () => void;
   onOpenAgreement: () => void;
+  onSetPaymentStatus: (status: PaymentStatus) => void;
+  onSetPaymentDetail: (field: 'paymentMethod' | 'checkNumber', value: string) => void;
+  onToggleCheckIn: () => void;
 }) {
   const isSigned = agreementStatus === 'signed';
+  const [methodInput, setMethodInput] = useState(request.paymentMethod ?? '');
+  const [checkNumberInput, setCheckNumberInput] = useState(request.checkNumber ?? '');
+
+  useEffect(() => {
+    setMethodInput(request.paymentMethod ?? '');
+    setCheckNumberInput(request.checkNumber ?? '');
+  }, [request.id, request.paymentMethod, request.checkNumber]);
+
   return (
     <View style={styles.row}>
       <View style={styles.rowTopLine}>
@@ -367,6 +425,63 @@ function RequestRow({
           Agreement: {AGREEMENT_LABEL[agreementStatus ?? 'not_sent']} ›
         </Text>
       </Pressable>
+
+      <View style={styles.paymentSection}>
+        <Text style={styles.paymentLabel}>PAYMENT</Text>
+        <View style={styles.paymentPillRow}>
+          {PAYMENT_OPTIONS.map((option) => {
+            const active = request.paymentStatus === option;
+            return (
+              <Pressable
+                key={option}
+                style={[styles.paymentPill, active && styles.paymentPillActive]}
+                onPress={() => onSetPaymentStatus(option)}
+              >
+                <Text style={[styles.paymentPillText, active && styles.paymentPillTextActive]}>
+                  {PAYMENT_LABEL[option]}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        <View style={styles.paymentDetailRow}>
+          <TextInput
+            value={methodInput}
+            onChangeText={setMethodInput}
+            onEndEditing={() => onSetPaymentDetail('paymentMethod', methodInput)}
+            placeholder="Method (cash, check…)"
+            placeholderTextColor={colors.textSecondary}
+            style={styles.paymentDetailInput}
+          />
+          <TextInput
+            value={checkNumberInput}
+            onChangeText={setCheckNumberInput}
+            onEndEditing={() => onSetPaymentDetail('checkNumber', checkNumberInput)}
+            placeholder="Check #"
+            placeholderTextColor={colors.textSecondary}
+            style={styles.paymentDetailInput}
+          />
+        </View>
+      </View>
+
+      <Pressable
+        style={({ pressed }) => [
+          styles.checkInButton,
+          request.checkedInAt && styles.checkInButtonActive,
+          pressed && styles.actionButtonPressed,
+        ]}
+        onPress={onToggleCheckIn}
+      >
+        <Text
+          style={[
+            styles.checkInButtonText,
+            request.checkedInAt && styles.checkInButtonTextActive,
+          ]}
+        >
+          {request.checkedInAt ? 'Checked In ✓' : 'Check In'}
+        </Text>
+      </Pressable>
+
       <View style={styles.rowActions}>
         <Pressable
           style={({ pressed }) => [styles.actionButton, styles.approveButton, pressed && styles.actionButtonPressed]}
@@ -629,6 +744,77 @@ const styles = StyleSheet.create({
     color: colors.red,
   },
   agreementLinkTextSigned: {
+    color: colors.navy,
+  },
+  paymentSection: {
+    marginTop: 12,
+  },
+  paymentLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.textSecondary,
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  paymentPillRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  paymentPill: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 8,
+    paddingVertical: 7,
+    alignItems: 'center',
+    backgroundColor: colors.white,
+  },
+  paymentPillActive: {
+    backgroundColor: colors.navy,
+    borderColor: colors.navy,
+  },
+  paymentPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  paymentPillTextActive: {
+    color: colors.white,
+  },
+  paymentDetailRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  paymentDetailInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    fontSize: 13,
+    color: colors.textPrimary,
+    backgroundColor: colors.white,
+  },
+  checkInButton: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: colors.navy,
+    borderRadius: 10,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  checkInButtonActive: {
+    backgroundColor: '#DCEBDD',
+    borderColor: '#DCEBDD',
+  },
+  checkInButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.navy,
+  },
+  checkInButtonTextActive: {
     color: colors.navy,
   },
   statusPill: {

@@ -4,6 +4,10 @@ export type TableRequestStatus = 'pending' | 'approved' | 'denied';
 
 export type AgreementStatus = 'not_sent' | 'sent' | 'signed';
 
+export type PaymentStatus = 'unpaid' | 'partial' | 'paid';
+
+export type StaffTag = 'Reliable' | 'New Vendor' | 'VIP' | 'Do Not Rebook';
+
 export interface User {
   id: number;
   name: string;
@@ -26,6 +30,16 @@ export interface Vendor {
   productsTheyBring: string | null;
   boothNotes: string | null;
   feesOwed: number;
+  /** Vendor-editable: facts about themselves. */
+  fflLicenseNumber: string | null;
+  fflExpirationDate: string | null;
+  vendorCategory: string | null;
+  preferredTableLocation: string | null;
+  /** Staff-only: never shown to the vendor about themselves. */
+  staffNotes: string | null;
+  insuranceOnFile: boolean;
+  insuranceExpirationDate: string | null;
+  staffTags: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -49,6 +63,11 @@ export interface TableRequest {
   eventId: number;
   tablesWanted: number;
   status: TableRequestStatus;
+  /** Staff-only, per event. */
+  paymentStatus: PaymentStatus;
+  paymentMethod: string | null;
+  checkNumber: string | null;
+  checkedInAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

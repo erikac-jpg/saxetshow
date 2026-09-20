@@ -18,6 +18,13 @@ interface VendorRow {
   updated_at: string;
 }
 
+/**
+ * Vendor tracking fields (FFL, category, insurance, staff tags, etc.) only
+ * exist on the Supabase-backed repository (see ../supabase/vendors.ts) -
+ * this local SQLite path is superseded and kept only for the Jest suite,
+ * so those fields are just hardcoded defaults here rather than real
+ * columns.
+ */
 function mapRow(row: VendorRow): Vendor {
   return {
     id: row.id,
@@ -31,6 +38,14 @@ function mapRow(row: VendorRow): Vendor {
     productsTheyBring: row.products_they_bring,
     boothNotes: row.booth_notes,
     feesOwed: row.fees_owed,
+    fflLicenseNumber: null,
+    fflExpirationDate: null,
+    vendorCategory: null,
+    preferredTableLocation: null,
+    staffNotes: null,
+    insuranceOnFile: false,
+    insuranceExpirationDate: null,
+    staffTags: [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

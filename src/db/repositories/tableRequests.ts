@@ -12,6 +12,12 @@ interface TableRequestRow {
   updated_at: string;
 }
 
+/**
+ * Payment/check-in tracking only exists on the Supabase-backed repository
+ * (see ../supabase/tableRequests.ts) - this local SQLite path is
+ * superseded and kept only for the Jest suite, so those fields are just
+ * hardcoded defaults here rather than real columns.
+ */
 function mapRow(row: TableRequestRow): TableRequest {
   return {
     id: row.id,
@@ -19,6 +25,10 @@ function mapRow(row: TableRequestRow): TableRequest {
     eventId: row.event_id,
     tablesWanted: row.tables_wanted,
     status: row.status,
+    paymentStatus: 'unpaid',
+    paymentMethod: null,
+    checkNumber: null,
+    checkedInAt: null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
