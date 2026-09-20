@@ -48,10 +48,12 @@ export default function StaffDashboardScreen({
   onExit,
   onOpenVendorProfile,
   onOpenAgreement,
+  onOpenQrCheckIn,
 }: {
   onExit: () => void;
   onOpenVendorProfile: (vendorId: number) => void;
   onOpenAgreement: (vendorId: number, eventId: number) => void;
+  onOpenQrCheckIn: (eventId: number) => void;
 }) {
   const [events, setEvents] = useState<Event[] | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
@@ -275,6 +277,13 @@ export default function StaffDashboardScreen({
                   value={daysUntilShow != null ? formatDaysUntil(daysUntilShow) : '—'}
                 />
               </View>
+
+              <Pressable
+                style={({ pressed }) => [styles.scanButton, pressed && styles.actionButtonPressed]}
+                onPress={() => onOpenQrCheckIn(selectedEvent.id)}
+              >
+                <Text style={styles.scanButtonText}>📷 Scan Check-In</Text>
+              </Pressable>
 
               <View style={styles.card}>
                 <Text style={styles.sectionLabel}>TABLE SETUP</Text>
@@ -664,6 +673,24 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     letterSpacing: 0.5,
     marginTop: 2,
+  },
+  scanButton: {
+    backgroundColor: colors.red,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  scanButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   card: {
     backgroundColor: colors.white,

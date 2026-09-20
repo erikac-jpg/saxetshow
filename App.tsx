@@ -9,6 +9,7 @@ import AgreementScreen from './src/screens/AgreementScreen';
 import EventDetailScreen from './src/screens/EventDetailScreen';
 import EventsHomeScreen from './src/screens/EventsHomeScreen';
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
+import QrCheckInScreen from './src/screens/QrCheckInScreen';
 import StaffDashboardScreen from './src/screens/StaffDashboardScreen';
 import VendorProfileScreen from './src/screens/VendorProfileScreen';
 import { colors } from './src/theme/colors';
@@ -20,7 +21,8 @@ type Route =
   | { screen: 'staff' }
   | { screen: 'vendorProfile'; vendorId: number }
   | { screen: 'myVendorProfile'; vendorId: number | null }
-  | { screen: 'agreement'; vendorId: number; eventId: number };
+  | { screen: 'agreement'; vendorId: number; eventId: number }
+  | { screen: 'qrCheckIn'; eventId: number };
 
 const MEMBER_SCREENS: Route['screen'][] = ['home', 'detail'];
 
@@ -63,6 +65,8 @@ export default function App() {
         />
       ) : route.screen === 'agreement' ? (
         <AgreementScreen vendorId={route.vendorId} eventId={route.eventId} onBack={backToStaff} />
+      ) : route.screen === 'qrCheckIn' ? (
+        <QrCheckInScreen eventId={route.eventId} onBack={backToStaff} />
       ) : (
         <StaffDashboardScreen
           onExit={backToHome}
@@ -70,6 +74,7 @@ export default function App() {
           onOpenAgreement={(vendorId, eventId) =>
             setRoute({ screen: 'agreement', vendorId, eventId })
           }
+          onOpenQrCheckIn={(eventId) => setRoute({ screen: 'qrCheckIn', eventId })}
         />
       )}
 

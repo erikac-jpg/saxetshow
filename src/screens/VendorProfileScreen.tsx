@@ -13,8 +13,10 @@ import {
 import { getRequestHistoryForVendor, type VendorRequestHistoryEntry } from '../db/supabase/tableRequests';
 import { createVendor, getVendorById, updateVendor } from '../db/supabase/vendors';
 import type { TableRequestStatus, Vendor } from '../db/types';
+import VendorQrCode from '../components/VendorQrCode';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
+import { daysUntil, expirationWarning } from '../util/expiration';
 
 const STAFF_TAG_OPTIONS = ['Reliable', 'New Vendor', 'VIP', 'Do Not Rebook'] as const;
 
@@ -75,24 +77,6 @@ function formFromVendor(vendor: Vendor): FormState {
     insuranceExpirationDate: vendor.insuranceExpirationDate ?? '',
     staffTags: vendor.staffTags,
   };
-}
-
-/** Days until `dateString`; negative means already past. Null if unparseable/empty. */
-function daysUntil(dateString: string): number | null {
-  if (!dateString) return null;
-  const target = new Date(`${dateString}T00:00:00`);
-  if (Number.isNaN(target.getTime())) return null;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-}
-
-function expirationWarning(label: string, dateString: string): string | null {
-  const days = daysUntil(dateString);
-  if (days === null) return null;
-  if (days < 0) return `⚠ ${label} expired`;
-  if (days <= 60) return `⚠ ${label} expires in ${days} days`;
-  return null;
 }
 
 function deriveAttendance(entry: VendorRequestHistoryEntry): string {
@@ -391,6 +375,16 @@ export default function VendorProfileScreen({
           </Text>
         </Pressable>
 
+        {!isNewProfile && vendor && (
+          <View style={styles.qrSection}>
+            <Text style={styles.sectionLabel}>CHECK-IN QR CODE</Text>
+            <Text style={styles.qrHint}>
+              Show this to staff at the door — they'll scan it to check you in.
+            </Text>
+            <VendorQrCode vendorId={vendor.id} />
+          </View>
+        )}
+
         {isStaffView && !isNewProfile && (
           <>
             <Text style={styles.sectionLabel}>VENDOR HISTORY</Text>
@@ -638,6 +632,16 @@ const styles = StyleSheet.create({
   emptyHistoryText: {
     fontSize: 14,
     color: colors.textSecondary,
+  },
+  qrSection: {
+    marginTop: 24,
+    alignItems: 'center',
+  },
+  qrHint: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 14,
   },
   historyRow: {
     backgroundColor: colors.white,
