@@ -10,8 +10,7 @@ import {
   View,
 } from 'react-native';
 
-import { getDatabase } from '../db/client';
-import { getUpcomingEvents } from '../db/repositories/events';
+import { getUpcomingEvents } from '../db/supabase/events';
 import type { Event } from '../db/types';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
@@ -74,8 +73,7 @@ export default function EventsHomeScreen({
 
   const loadEvents = useCallback(async () => {
     try {
-      const db = await getDatabase();
-      const upcoming = await getUpcomingEvents(db);
+      const upcoming = await getUpcomingEvents();
       setEvents(upcoming);
       setError(null);
     } catch (e) {
