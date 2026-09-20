@@ -99,14 +99,19 @@ export default function VendorProfileScreen({
   vendorId,
   onBack,
   onSaved,
+  onSignOut,
   subtitle = 'STAFF VIEW',
   isStaffView = false,
+  linkUserId = null,
 }: {
   vendorId: number | null;
   onBack: () => void;
   onSaved?: (vendor: Vendor) => void;
+  onSignOut?: () => void;
   subtitle?: string;
   isStaffView?: boolean;
+  /** When creating a brand-new profile, link it to this signed-in account. */
+  linkUserId?: number | null;
 }) {
   const [vendor, setVendor] = useState<Vendor | null | undefined>(undefined);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -178,7 +183,7 @@ export default function VendorProfileScreen({
       };
       const saved = vendor
         ? await updateVendor(vendor.id, input)
-        : await createVendor(input);
+        : await createVendor({ ...input, userId: linkUserId });
       setVendor(saved);
       if (saved) {
         onSaved?.(saved);
@@ -187,7 +192,7 @@ export default function VendorProfileScreen({
     } finally {
       setSaving(false);
     }
-  }, [form, vendor, onSaved, isStaffView]);
+  }, [form, vendor, onSaved, isStaffView, linkUserId]);
 
   if (vendor === undefined) {
     return (
@@ -206,9 +211,16 @@ export default function VendorProfileScreen({
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
-        <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
-          <Text style={styles.backButtonText}>‹ Back</Text>
-        </Pressable>
+        <View style={styles.headerTopRow}>
+          <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
+            <Text style={styles.backButtonText}>‹ Back</Text>
+          </Pressable>
+          {onSignOut && (
+            <Pressable onPress={onSignOut} hitSlop={12}>
+              <Text style={styles.signOutText}>Sign Out</Text>
+            </Pressable>
+          )}
+        </View>
         <Text style={styles.headerTitle}>Vendor Profile</Text>
         <Text style={styles.headerSubtitle}>{subtitle}</Text>
       </View>
@@ -481,13 +493,23 @@ const styles = StyleSheet.create({
     borderBottomWidth: 4,
     borderBottomColor: colors.red,
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   backButton: {
     alignSelf: 'flex-start',
-    marginBottom: 10,
   },
   backButtonText: {
     color: colors.white,
     fontSize: 15,
+    fontWeight: '700',
+  },
+  signOutText: {
+    color: colors.headerSubtitle,
+    fontSize: 14,
     fontWeight: '700',
   },
   headerTitle: {

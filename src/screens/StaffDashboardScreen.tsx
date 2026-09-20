@@ -49,11 +49,13 @@ export default function StaffDashboardScreen({
   onOpenVendorProfile,
   onOpenAgreement,
   onOpenQrCheckIn,
+  onSignOut,
 }: {
   onExit: () => void;
   onOpenVendorProfile: (vendorId: number) => void;
   onOpenAgreement: (vendorId: number, eventId: number) => void;
   onOpenQrCheckIn: (eventId: number) => void;
+  onSignOut?: () => void;
 }) {
   const [events, setEvents] = useState<Event[] | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
@@ -220,9 +222,16 @@ export default function StaffDashboardScreen({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Pressable onPress={onExit} style={styles.exitButton} hitSlop={12}>
-          <Text style={styles.exitButtonText}>‹ Exit</Text>
-        </Pressable>
+        <View style={styles.headerTopRow}>
+          <Pressable onPress={onExit} style={styles.exitButton} hitSlop={12}>
+            <Text style={styles.exitButtonText}>‹ Exit</Text>
+          </Pressable>
+          {onSignOut && (
+            <Pressable onPress={onSignOut} hitSlop={12}>
+              <Text style={styles.signOutText}>Sign Out</Text>
+            </Pressable>
+          )}
+        </View>
         <Text style={styles.headerTitle}>Staff Dashboard</Text>
         <Text style={styles.headerSubtitle}>SHOW MANAGEMENT</Text>
       </View>
@@ -581,13 +590,23 @@ const styles = StyleSheet.create({
     borderBottomWidth: 4,
     borderBottomColor: colors.red,
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   exitButton: {
     alignSelf: 'flex-start',
-    marginBottom: 10,
   },
   exitButtonText: {
     color: colors.white,
     fontSize: 15,
+    fontWeight: '700',
+  },
+  signOutText: {
+    color: colors.headerSubtitle,
+    fontSize: 14,
     fontWeight: '700',
   },
   headerTitle: {

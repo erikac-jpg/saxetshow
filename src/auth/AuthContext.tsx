@@ -1,0 +1,164 @@
+import type { Session } from '@supabase/supabase-js';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
+
+import { getUnclaimedVendorByEmail, getVendorByUserId, updateVendor } from '../db/supabase/vendors';
+import { createUserProfile, getUserByAuthId } from '../db/supabase/users';
+import { supabase } from '../db/supabaseClient';
+import type { User, Vendor } from '../db/types';
+
+export interface AuthActionResult {
+  error: string | null;
+  /** True when Supabase requires email confirmation before a session exists. */
+  needsConfirmation?: boolean;
+  user: User | null;
+  vendor: Vendor | null;
+}
+
+interface AuthContextValue {
+  loading: boolean;
+  session: Session | null;
+  appUser: User | null;
+  vendor: Vendor | null;
+  isStaff: boolean;
+  signUp: (input: { name: string; email: string; password: string }) => Promise<AuthActionResult>;
+  signIn: (email: string, password: string) => Promise<AuthActionResult>;
+  signOut: () => Promise<void>;
+  /** Adopts a just-saved vendor profile into context without a refetch. */
+  applyVendor: (vendor: Vendor) => void;
+}
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+/**
+ * Loads (or lazily creates) the `users` profile row for a signed-in
+ * Supabase Auth account, then resolves their linked vendor - auto-claiming
+ * a pre-existing vendor profile with a matching, not-yet-linked email if
+ * one exists, so a vendor who self-served before real auth existed doesn't
+ * end up with a second, empty profile.
+ */
+async function loadAppUser(
+  authUserId: string,
+  fallbackEmail: string
+): Promise<{ appUser: User; vendor: Vendor | null }> {
+  let appUser = await getUserByAuthId(authUserId);
+  if (!appUser) {
+    appUser = await createUserProfile({
+      authUserId,
+      name: fallbackEmail,
+      email: fallbackEmail,
+      role: 'member',
+    });
+  }
+
+  let vendor = await getVendorByUserId(appUser.id);
+  if (!vendor && appUser.email) {
+    const unclaimed = await getUnclaimedVendorByEmail(appUser.email);
+    if (unclaimed) {
+      vendor = await updateVendor(unclaimed.id, { userId: appUser.id });
+    }
+  }
+
+  return { appUser, vendor };
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
+  const [appUser, setAppUser] = useState<User | null>(null);
+  const [vendor, setVendor] = useState<Vendor | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!active) return;
+      setSession(data.session);
+      if (data.session) {
+        const result = await loadAppUser(data.session.user.id, data.session.user.email ?? '');
+        if (!active) return;
+        setAppUser(result.appUser);
+        setVendor(result.vendor);
+      }
+      setLoading(false);
+    });
+
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+      if (!newSession) {
+        setAppUser(null);
+        setVendor(null);
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.subscription.unsubscribe();
+    };
+  }, []);
+
+  const signUp = useCallback<AuthContextValue['signUp']>(async ({ name, email, password }) => {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      return { error: error.message, user: null, vendor: null };
+    }
+    if (!data.user) {
+      return { error: 'Something went wrong creating your account.', user: null, vendor: null };
+    }
+
+    const newUser = await createUserProfile({ authUserId: data.user.id, name, email, role: 'member' });
+    setAppUser(newUser);
+    setVendor(null);
+
+    if (!data.session) {
+      return { error: null, needsConfirmation: true, user: newUser, vendor: null };
+    }
+    return { error: null, user: newUser, vendor: null };
+  }, []);
+
+  const signIn = useCallback<AuthContextValue['signIn']>(async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !data.session) {
+      return { error: error?.message ?? 'Sign in failed.', user: null, vendor: null };
+    }
+    const result = await loadAppUser(data.session.user.id, data.session.user.email ?? email);
+    setAppUser(result.appUser);
+    setVendor(result.vendor);
+    return { error: null, user: result.appUser, vendor: result.vendor };
+  }, []);
+
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
+    setAppUser(null);
+    setVendor(null);
+  }, []);
+
+  const applyVendor = useCallback((next: Vendor) => {
+    setVendor(next);
+  }, []);
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      loading,
+      session,
+      appUser,
+      vendor,
+      isStaff: appUser?.role === 'staff',
+      signUp,
+      signIn,
+      signOut,
+      applyVendor,
+    }),
+    [loading, session, appUser, vendor, signUp, signIn, signOut, applyVendor]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return ctx;
+}

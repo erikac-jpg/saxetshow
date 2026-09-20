@@ -76,6 +76,24 @@ export async function getVendorByUserId(userId: number): Promise<Vendor | null> 
   return (data as unknown as Vendor) ?? null;
 }
 
+/**
+ * An existing vendor profile with no account linked yet, matching this
+ * email - lets a vendor who used self-service before real auth existed
+ * "claim" their old profile by signing up with the same email, instead
+ * of ending up with a second, empty one. `limit(1)` rather than
+ * `maybeSingle()` since old demo data could plausibly have duplicates.
+ */
+export async function getUnclaimedVendorByEmail(email: string): Promise<Vendor | null> {
+  const { data, error } = await supabase
+    .from('vendors')
+    .select(VENDOR_SELECT)
+    .eq('email', email)
+    .is('user_id', null)
+    .limit(1);
+  if (error) throw error;
+  return ((data as unknown as Vendor[]) ?? [])[0] ?? null;
+}
+
 export async function getAllVendors(): Promise<Vendor[]> {
   const { data, error } = await supabase
     .from('vendors')
