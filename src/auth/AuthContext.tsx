@@ -39,13 +39,14 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
  */
 async function loadAppUser(
   authUserId: string,
-  fallbackEmail: string
+  fallbackEmail: string,
+  fallbackName?: string
 ): Promise<{ appUser: User; vendor: Vendor | null }> {
   let appUser = await getUserByAuthId(authUserId);
   if (!appUser) {
     appUser = await createUserProfile({
       authUserId,
-      name: fallbackEmail,
+      name: fallbackName || fallbackEmail,
       email: fallbackEmail,
       role: 'member',
     });
@@ -75,7 +76,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!active) return;
       setSession(data.session);
       if (data.session) {
-        const result = await loadAppUser(data.session.user.id, data.session.user.email ?? '');
+        const result = await loadAppUser(
+          data.session.user.id,
+          data.session.user.email ?? '',
+          data.session.user.user_metadata?.name
+        );
         if (!active) return;
         setAppUser(result.appUser);
         setVendor(result.vendor);
@@ -98,7 +103,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = useCallback<AuthContextValue['signUp']>(async ({ name, email, password }) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    // The name goes into auth user_metadata (not just passed to
+    // createUserProfile below) because when email confirmation is
+    // required there's no session yet - the `users` row can't be
+    // inserted until the account is confirmed and actually signed in
+    // (an unauthenticated insert has no auth.uid() for RLS to check
+    // against). It's picked back up from metadata in loadAppUser at
+    // that first sign-in.
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name } },
+    });
     if (error) {
       return { error: error.message, user: null, vendor: null };
     }
@@ -106,13 +122,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: 'Something went wrong creating your account.', user: null, vendor: null };
     }
 
+    if (!data.session) {
+      return { error: null, needsConfirmation: true, user: null, vendor: null };
+    }
+
     const newUser = await createUserProfile({ authUserId: data.user.id, name, email, role: 'member' });
     setAppUser(newUser);
     setVendor(null);
-
-    if (!data.session) {
-      return { error: null, needsConfirmation: true, user: newUser, vendor: null };
-    }
     return { error: null, user: newUser, vendor: null };
   }, []);
 
@@ -121,7 +137,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error || !data.session) {
       return { error: error?.message ?? 'Sign in failed.', user: null, vendor: null };
     }
-    const result = await loadAppUser(data.session.user.id, data.session.user.email ?? email);
+    const result = await loadAppUser(
+      data.session.user.id,
+      data.session.user.email ?? email,
+      data.session.user.user_metadata?.name
+    );
     setAppUser(result.appUser);
     setVendor(result.vendor);
     return { error: null, user: result.appUser, vendor: result.vendor };
