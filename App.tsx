@@ -53,7 +53,7 @@ export default function App() {
       ) : route.screen === 'privacyPolicy' ? (
         <PrivacyPolicyScreen onBack={backToHome} />
       ) : route.screen === 'vendorProfile' ? (
-        <VendorProfileScreen vendorId={route.vendorId} onBack={backToStaff} />
+        <VendorProfileScreen vendorId={route.vendorId} onBack={backToStaff} isStaffView />
       ) : route.screen === 'myVendorProfile' ? (
         <VendorProfileScreen
           vendorId={route.vendorId}
