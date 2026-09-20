@@ -53,15 +53,24 @@ function formFromVendor(vendor: Vendor): FormState {
 export default function VendorProfileScreen({
   vendorId,
   onBack,
+  onSaved,
+  subtitle = 'STAFF VIEW',
 }: {
-  vendorId: number;
+  vendorId: number | null;
   onBack: () => void;
+  onSaved?: (vendor: Vendor) => void;
+  subtitle?: string;
 }) {
   const [vendor, setVendor] = useState<Vendor | null | undefined>(undefined);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
+    if (vendorId === null) {
+      setVendor(null);
+      setForm(EMPTY_FORM);
+      return;
+    }
     const found = await getVendorById(vendorId);
     setVendor(found);
     setForm(found ? formFromVendor(found) : EMPTY_FORM);
@@ -96,11 +105,14 @@ export default function VendorProfileScreen({
         ? await updateVendor(vendor.id, input)
         : await createVendor(input);
       setVendor(saved);
+      if (saved) {
+        onSaved?.(saved);
+      }
       Alert.alert('Saved', 'This vendor profile has been saved.');
     } finally {
       setSaving(false);
     }
-  }, [form, vendor]);
+  }, [form, vendor, onSaved]);
 
   if (vendor === undefined) {
     return (
@@ -119,14 +131,14 @@ export default function VendorProfileScreen({
           <Text style={styles.backButtonText}>‹ Back</Text>
         </Pressable>
         <Text style={styles.headerTitle}>Vendor Profile</Text>
-        <Text style={styles.headerSubtitle}>STAFF VIEW</Text>
+        <Text style={styles.headerSubtitle}>{subtitle}</Text>
       </View>
 
       <View style={styles.content}>
         {isNewProfile && (
           <View style={styles.notice}>
             <Text style={styles.noticeText}>
-              This vendor doesn’t have a profile yet. Fill in what you know below and create one.
+              No profile yet — fill in what you know below to create one.
             </Text>
           </View>
         )}
