@@ -1,4 +1,6 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { useAudioPlayer } from 'expo-audio';
+import * as Haptics from 'expo-haptics';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -30,6 +32,28 @@ export default function QrCheckInScreen({
   const [scanning, setScanning] = useState(true);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
+  const dingPlayer = useAudioPlayer(require('../../assets/sounds/scan-success.wav'));
+
+  // Staff are scanning in a noisy, busy room and aren't staring at the
+  // screen — a ding + buzz tells them "got it" (or "try again") without
+  // looking. Errors are swallowed: feedback is a nice-to-have, never a
+  // reason to block the scan flow (e.g. on web, where haptics no-op).
+  const playScanFeedback = useCallback(
+    (outcome: 'success' | 'error') => {
+      Haptics.notificationAsync(
+        outcome === 'success'
+          ? Haptics.NotificationFeedbackType.Success
+          : Haptics.NotificationFeedbackType.Error
+      ).catch(() => {});
+      if (outcome === 'success') {
+        dingPlayer
+          .seekTo(0)
+          .catch(() => {})
+          .finally(() => dingPlayer.play());
+      }
+    },
+    [dingPlayer]
+  );
 
   const handleBarcodeScanned = useCallback(
     async (scan: { data: string }) => {
@@ -37,6 +61,7 @@ export default function QrCheckInScreen({
       setScanning(false);
       const vendorId = parseVendorQrPayload(scan.data);
       if (vendorId === null) {
+        playScanFeedback('error');
         setResult({ kind: 'invalid' });
         return;
       }
@@ -44,17 +69,19 @@ export default function QrCheckInScreen({
       try {
         const vendor = await getVendorById(vendorId);
         if (!vendor) {
+          playScanFeedback('error');
           setResult({ kind: 'not_found' });
           return;
         }
         const requests = await getTableRequestsForVendor(vendorId);
         const request = requests.find((r) => r.eventId === eventId) ?? null;
+        playScanFeedback('success');
         setResult({ kind: 'vendor', vendor, request });
       } finally {
         setBusy(false);
       }
     },
-    [scanning, eventId]
+    [scanning, eventId, playScanFeedback]
   );
 
   const scanNext = () => {
