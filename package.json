@@ -8,6 +8,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "eas:login": "eas login",
+    "eas:configure": "eas build:configure",
     "build:ios": "eas build --platform ios --profile production",
     "submit:ios": "eas submit --platform ios --latest",
     "test": "jest",
