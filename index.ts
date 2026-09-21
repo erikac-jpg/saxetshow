@@ -1,3 +1,5 @@
+import './src/webErrorOverlay';
+
 import { registerRootComponent } from 'expo';
 
 import App from './App';

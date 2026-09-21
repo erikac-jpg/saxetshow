@@ -72,21 +72,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!active) return;
-      setSession(data.session);
-      if (data.session) {
-        const result = await loadAppUser(
-          data.session.user.id,
-          data.session.user.email ?? '',
-          data.session.user.user_metadata?.name
-        );
+    supabase.auth
+      .getSession()
+      .then(async ({ data }) => {
         if (!active) return;
-        setAppUser(result.appUser);
-        setVendor(result.vendor);
-      }
-      setLoading(false);
-    });
+        setSession(data.session);
+        if (data.session) {
+          const result = await loadAppUser(
+            data.session.user.id,
+            data.session.user.email ?? '',
+            data.session.user.user_metadata?.name
+          );
+          if (!active) return;
+          setAppUser(result.appUser);
+          setVendor(result.vendor);
+        }
+      })
+      .catch((err) => {
+        // A stale/invalid session shouldn't be able to wedge the whole
+        // app on its loading screen forever - log it and fall back to
+        // signed-out rather than hanging indefinitely.
+        console.error('Failed to restore session:', err);
+        if (active) setSession(null);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
 
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
@@ -126,10 +137,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: null, needsConfirmation: true, user: null, vendor: null };
     }
 
-    const newUser = await createUserProfile({ authUserId: data.user.id, name, email, role: 'member' });
-    setAppUser(newUser);
-    setVendor(null);
-    return { error: null, user: newUser, vendor: null };
+    try {
+      const newUser = await createUserProfile({ authUserId: data.user.id, name, email, role: 'member' });
+      setAppUser(newUser);
+      setVendor(null);
+      return { error: null, user: newUser, vendor: null };
+    } catch (err) {
+      return {
+        error: err instanceof Error ? err.message : 'Something went wrong creating your profile.',
+        user: null,
+        vendor: null,
+      };
+    }
   }, []);
 
   const signIn = useCallback<AuthContextValue['signIn']>(async (email, password) => {
@@ -137,14 +156,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error || !data.session) {
       return { error: error?.message ?? 'Sign in failed.', user: null, vendor: null };
     }
-    const result = await loadAppUser(
-      data.session.user.id,
-      data.session.user.email ?? email,
-      data.session.user.user_metadata?.name
-    );
-    setAppUser(result.appUser);
-    setVendor(result.vendor);
-    return { error: null, user: result.appUser, vendor: result.vendor };
+    try {
+      const result = await loadAppUser(
+        data.session.user.id,
+        data.session.user.email ?? email,
+        data.session.user.user_metadata?.name
+      );
+      setAppUser(result.appUser);
+      setVendor(result.vendor);
+      return { error: null, user: result.appUser, vendor: result.vendor };
+    } catch (err) {
+      return {
+        error: err instanceof Error ? err.message : 'Signed in, but something went wrong loading your profile.',
+        user: null,
+        vendor: null,
+      };
+    }
   }, []);
 
   const signOut = useCallback(async () => {
