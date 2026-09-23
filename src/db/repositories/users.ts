@@ -15,6 +15,7 @@ interface UserRow {
 function mapRow(row: UserRow): User {
   return {
     id: row.id,
+    authUserId: null,
     name: row.name,
     email: row.email,
     role: row.role,

@@ -1,26 +1,26 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
-  PRIVACY_POLICY_PARAGRAPHS,
-  PRIVACY_POLICY_TITLE,
-} from '../content/privacyPolicyTemplate';
+  TERMS_AND_CONDITIONS_PARAGRAPHS,
+  TERMS_AND_CONDITIONS_TITLE,
+} from '../content/termsAndConditionsTemplate';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
 
-export default function PrivacyPolicyScreen({ onBack }: { onBack: () => void }) {
+export default function TermsAndConditionsScreen({ onBack }: { onBack: () => void }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
           <Text style={styles.backButtonText}>‹ Back</Text>
         </Pressable>
-        <Text style={styles.headerTitle}>Privacy Policy</Text>
+        <Text style={styles.headerTitle}>Terms & Conditions</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
-          <Text style={styles.policyTitle}>{PRIVACY_POLICY_TITLE}</Text>
-          {PRIVACY_POLICY_PARAGRAPHS.map((paragraph, index) => (
+          <Text style={styles.policyTitle}>{TERMS_AND_CONDITIONS_TITLE}</Text>
+          {TERMS_AND_CONDITIONS_PARAGRAPHS.map((paragraph, index) => (
             <Text key={index} style={styles.paragraph}>
               {paragraph}
             </Text>

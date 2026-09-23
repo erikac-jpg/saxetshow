@@ -10,6 +10,7 @@ export type StaffTag = 'Reliable' | 'New Vendor' | 'VIP' | 'Do Not Rebook';
 
 export interface User {
   id: number;
+  authUserId: string | null;
   name: string;
   email: string;
   role: UserRole;

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { getRequestHistoryForVendor, type VendorRequestHistoryEntry } from '../db/supabase/tableRequests';
+import { deleteMyAccount } from '../db/supabase/users';
 import { createVendor, getVendorById, updateVendor } from '../db/supabase/vendors';
 import type { TableRequestStatus, Vendor } from '../db/types';
 import VendorQrCode from '../components/VendorQrCode';
@@ -99,18 +100,24 @@ export default function VendorProfileScreen({
   vendorId,
   onBack,
   onSaved,
+  onSignOut,
   subtitle = 'STAFF VIEW',
   isStaffView = false,
+  linkUserId = null,
 }: {
   vendorId: number | null;
   onBack: () => void;
   onSaved?: (vendor: Vendor) => void;
+  onSignOut?: () => void | Promise<void>;
   subtitle?: string;
   isStaffView?: boolean;
+  /** When creating a brand-new profile, link it to this signed-in account. */
+  linkUserId?: number | null;
 }) {
   const [vendor, setVendor] = useState<Vendor | null | undefined>(undefined);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [history, setHistory] = useState<VendorRequestHistoryEntry[] | null>(null);
 
   const load = useCallback(async () => {
@@ -178,7 +185,7 @@ export default function VendorProfileScreen({
       };
       const saved = vendor
         ? await updateVendor(vendor.id, input)
-        : await createVendor(input);
+        : await createVendor({ ...input, userId: linkUserId });
       setVendor(saved);
       if (saved) {
         onSaved?.(saved);
@@ -187,7 +194,35 @@ export default function VendorProfileScreen({
     } finally {
       setSaving(false);
     }
-  }, [form, vendor, onSaved, isStaffView]);
+  }, [form, vendor, onSaved, isStaffView, linkUserId]);
+
+  const handleDeleteAccount = useCallback(() => {
+    Alert.alert(
+      'Delete Account',
+      'This permanently deletes your account and personal information. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              await deleteMyAccount();
+              await onSignOut?.();
+            } catch (err) {
+              Alert.alert(
+                'Something went wrong',
+                err instanceof Error ? err.message : 'Please try again.'
+              );
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  }, [onSignOut]);
 
   if (vendor === undefined) {
     return (
@@ -206,9 +241,16 @@ export default function VendorProfileScreen({
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
-        <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
-          <Text style={styles.backButtonText}>‹ Back</Text>
-        </Pressable>
+        <View style={styles.headerTopRow}>
+          <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
+            <Text style={styles.backButtonText}>‹ Back</Text>
+          </Pressable>
+          {onSignOut && (
+            <Pressable onPress={onSignOut} hitSlop={12}>
+              <Text style={styles.signOutText}>Sign Out</Text>
+            </Pressable>
+          )}
+        </View>
         <Text style={styles.headerTitle}>Vendor Profile</Text>
         <Text style={styles.headerSubtitle}>{subtitle}</Text>
       </View>
@@ -399,6 +441,24 @@ export default function VendorProfileScreen({
             )}
           </>
         )}
+
+        {onSignOut && (
+          <View style={styles.dangerZone}>
+            <Text style={styles.sectionLabel}>DELETE ACCOUNT</Text>
+            <Text style={styles.dangerHint}>
+              Permanently deletes your login and personal information. This cannot be undone.
+            </Text>
+            <Pressable
+              style={({ pressed }) => [styles.deleteButton, pressed && styles.deleteButtonPressed]}
+              onPress={handleDeleteAccount}
+              disabled={deleting}
+            >
+              <Text style={styles.deleteButtonText}>
+                {deleting ? 'Deleting…' : 'Delete My Account'}
+              </Text>
+            </Pressable>
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -479,15 +539,26 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 20,
     borderBottomWidth: 4,
-    borderBottomColor: colors.red,
+    borderBottomColor: colors.brass,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   backButton: {
     alignSelf: 'flex-start',
-    marginBottom: 10,
+    paddingVertical: 6,
   },
   backButtonText: {
     color: colors.white,
-    fontSize: 15,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  signOutText: {
+    color: colors.headerSubtitle,
+    fontSize: 16,
     fontWeight: '700',
   },
   headerTitle: {
@@ -498,8 +569,8 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     color: colors.headerSubtitle,
-    fontSize: 13,
-    marginTop: 2,
+    fontSize: 14,
+    marginTop: 4,
     letterSpacing: 1.5,
     fontWeight: '600',
   },
@@ -507,67 +578,72 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   notice: {
-    backgroundColor: '#F0E6C8',
+    backgroundColor: '#EDE0C6',
     borderRadius: 10,
-    padding: 14,
-    marginBottom: 18,
+    padding: 16,
+    marginBottom: 20,
   },
   noticeText: {
-    fontSize: 14,
+    fontSize: 16,
+    lineHeight: 23,
     color: colors.textPrimary,
   },
   warningNotice: {
-    backgroundColor: '#F3DCDC',
+    backgroundColor: '#F1DCD3',
     borderRadius: 10,
-    padding: 14,
-    marginBottom: 12,
+    padding: 16,
+    marginBottom: 14,
   },
   warningNoticeText: {
-    fontSize: 14,
+    fontSize: 16,
+    lineHeight: 23,
     fontWeight: '700',
     color: colors.red,
   },
   sectionLabel: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
     color: colors.navy,
     letterSpacing: 1.5,
-    marginTop: 8,
-    marginBottom: 12,
+    marginTop: 10,
+    marginBottom: 14,
   },
   field: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   fieldLabel: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '700',
     color: colors.textSecondary,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   fieldInput: {
     borderWidth: 1,
     borderColor: colors.divider,
     borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    fontSize: 15,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    minHeight: 52,
+    fontSize: 17,
     color: colors.textPrimary,
     backgroundColor: colors.white,
   },
   fieldInputMultiline: {
-    minHeight: 80,
+    minHeight: 96,
     textAlignVertical: 'top',
   },
   toggleRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
   },
   toggleOption: {
     flex: 1,
     borderWidth: 1,
     borderColor: colors.divider,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 14,
+    minHeight: 52,
+    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.white,
   },
@@ -576,7 +652,7 @@ const styles = StyleSheet.create({
     borderColor: colors.navy,
   },
   toggleOptionText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
     color: colors.textPrimary,
   },
@@ -586,34 +662,38 @@ const styles = StyleSheet.create({
   tagRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 10,
   },
   tagChip: {
     borderWidth: 1,
     borderColor: colors.divider,
     borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    minHeight: 44,
+    justifyContent: 'center',
     backgroundColor: colors.white,
   },
   tagChipActive: {
-    backgroundColor: colors.red,
-    borderColor: colors.red,
+    backgroundColor: colors.brass,
+    borderColor: colors.brass,
   },
   tagChipText: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '700',
     color: colors.textPrimary,
   },
   tagChipTextActive: {
-    color: colors.white,
+    color: colors.textPrimary,
   },
   saveButton: {
     backgroundColor: colors.navy,
     borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 18,
+    minHeight: 56,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 10,
     shadowColor: '#000',
     shadowOpacity: 0.15,
     shadowRadius: 6,
@@ -625,40 +705,72 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: colors.white,
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '800',
     letterSpacing: 0.3,
   },
   emptyHistoryText: {
-    fontSize: 14,
+    fontSize: 16,
+    lineHeight: 23,
     color: colors.textSecondary,
   },
   qrSection: {
-    marginTop: 24,
+    marginTop: 28,
     alignItems: 'center',
   },
   qrHint: {
-    fontSize: 13,
+    fontSize: 15,
+    lineHeight: 21,
     color: colors.textSecondary,
     textAlign: 'center',
+    marginBottom: 16,
+  },
+  dangerZone: {
+    marginTop: 36,
+    paddingTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+  },
+  dangerHint: {
+    fontSize: 15,
+    lineHeight: 21,
+    color: colors.textSecondary,
     marginBottom: 14,
+  },
+  deleteButton: {
+    borderWidth: 1,
+    borderColor: colors.red,
+    borderRadius: 12,
+    paddingVertical: 16,
+    minHeight: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteButtonPressed: {
+    opacity: 0.7,
+  },
+  deleteButtonText: {
+    color: colors.red,
+    fontSize: 16,
+    fontWeight: '800',
   },
   historyRow: {
     backgroundColor: colors.white,
     borderRadius: 10,
-    padding: 14,
-    marginBottom: 10,
+    padding: 16,
+    marginBottom: 12,
     borderLeftWidth: 4,
     borderLeftColor: colors.divider,
   },
   historyEventName: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
     color: colors.textPrimary,
   },
   historyMeta: {
-    fontSize: 13,
+    fontSize: 14,
+    lineHeight: 20,
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: 3,
   },
 });

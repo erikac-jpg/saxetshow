@@ -49,11 +49,13 @@ export default function StaffDashboardScreen({
   onOpenVendorProfile,
   onOpenAgreement,
   onOpenQrCheckIn,
+  onSignOut,
 }: {
   onExit: () => void;
   onOpenVendorProfile: (vendorId: number) => void;
   onOpenAgreement: (vendorId: number, eventId: number) => void;
   onOpenQrCheckIn: (eventId: number) => void;
+  onSignOut?: () => void;
 }) {
   const [events, setEvents] = useState<Event[] | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
@@ -220,9 +222,16 @@ export default function StaffDashboardScreen({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Pressable onPress={onExit} style={styles.exitButton} hitSlop={12}>
-          <Text style={styles.exitButtonText}>‹ Exit</Text>
-        </Pressable>
+        <View style={styles.headerTopRow}>
+          <Pressable onPress={onExit} style={styles.exitButton} hitSlop={12}>
+            <Text style={styles.exitButtonText}>‹ Exit</Text>
+          </Pressable>
+          {onSignOut && (
+            <Pressable onPress={onSignOut} hitSlop={12}>
+              <Text style={styles.signOutText}>Sign Out</Text>
+            </Pressable>
+          )}
+        </View>
         <Text style={styles.headerTitle}>Staff Dashboard</Text>
         <Text style={styles.headerSubtitle}>SHOW MANAGEMENT</Text>
       </View>
@@ -565,13 +574,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.cream,
   },
   errorText: {
+    fontSize: 16,
+    lineHeight: 23,
     color: colors.red,
     paddingHorizontal: 24,
     textAlign: 'center',
   },
   emptyText: {
     color: colors.textSecondary,
-    fontSize: 15,
+    fontSize: 16,
   },
   header: {
     backgroundColor: colors.navy,
@@ -579,15 +590,26 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 20,
     borderBottomWidth: 4,
-    borderBottomColor: colors.red,
+    borderBottomColor: colors.brass,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   exitButton: {
     alignSelf: 'flex-start',
-    marginBottom: 10,
+    paddingVertical: 6,
   },
   exitButtonText: {
     color: colors.white,
-    fontSize: 15,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  signOutText: {
+    color: colors.headerSubtitle,
+    fontSize: 16,
     fontWeight: '700',
   },
   headerTitle: {
@@ -598,8 +620,8 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     color: colors.headerSubtitle,
-    fontSize: 13,
-    marginTop: 2,
+    fontSize: 14,
+    marginTop: 4,
     letterSpacing: 1.5,
     fontWeight: '600',
   },
@@ -614,10 +636,12 @@ const styles = StyleSheet.create({
   selectorPill: {
     backgroundColor: colors.white,
     borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
     marginRight: 10,
-    minWidth: 140,
+    minWidth: 150,
+    minHeight: 56,
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: colors.divider,
   },
@@ -626,7 +650,7 @@ const styles = StyleSheet.create({
     borderColor: colors.navy,
   },
   selectorPillTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
     color: colors.textPrimary,
   },
@@ -634,9 +658,9 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   selectorPillDate: {
-    fontSize: 12,
+    fontSize: 14,
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: 3,
   },
   selectorPillDateActive: {
     color: colors.headerSubtitle,
@@ -655,7 +679,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     marginBottom: 12,
     borderLeftWidth: 6,
-    borderLeftColor: colors.red,
+    borderLeftColor: colors.brass,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 6,
@@ -663,21 +687,25 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   statValue: {
-    fontFamily: displayFont,
-    fontSize: 34,
+    // Deliberately not the decorative display font - these are numbers
+    // staff need to read quickly and accurately, not a title.
+    fontSize: 32,
+    fontWeight: '800',
     color: colors.navy,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
     color: colors.textSecondary,
     letterSpacing: 0.5,
-    marginTop: 2,
+    marginTop: 4,
   },
   scanButton: {
-    backgroundColor: colors.red,
+    backgroundColor: colors.brass,
     borderRadius: 14,
-    paddingVertical: 16,
+    paddingVertical: 18,
+    minHeight: 56,
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
     shadowColor: '#000',
@@ -687,16 +715,16 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   scanButtonText: {
-    color: colors.white,
-    fontSize: 16,
+    color: colors.textPrimary,
+    fontSize: 17,
     fontWeight: '800',
     letterSpacing: 0.3,
   },
   card: {
     backgroundColor: colors.white,
     borderRadius: 14,
-    padding: 18,
-    marginBottom: 16,
+    padding: 20,
+    marginBottom: 18,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 6,
@@ -704,33 +732,35 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   sectionLabel: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
     color: colors.navy,
     letterSpacing: 1.5,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   fieldLabel: {
-    fontSize: 14,
+    fontSize: 15,
     color: colors.textSecondary,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   totalTablesInput: {
     borderWidth: 1,
     borderColor: colors.divider,
     borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    fontSize: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    minHeight: 52,
+    fontSize: 19,
     fontWeight: '700',
     color: colors.textPrimary,
   },
   emptySectionText: {
-    fontSize: 14,
+    fontSize: 16,
+    lineHeight: 23,
     color: colors.textSecondary,
   },
   row: {
-    paddingVertical: 14,
+    paddingVertical: 20,
     borderTopWidth: 1,
     borderTopColor: colors.divider,
   },
@@ -741,10 +771,11 @@ const styles = StyleSheet.create({
   },
   vendorNameLink: {
     flex: 1,
+    paddingVertical: 4,
   },
   rowTitle: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
     color: colors.textPrimary,
     marginRight: 8,
@@ -752,21 +783,23 @@ const styles = StyleSheet.create({
     textDecorationColor: colors.divider,
   },
   rowSubtitle: {
-    fontSize: 13,
+    fontSize: 15,
+    lineHeight: 21,
     color: colors.textSecondary,
-    marginTop: 4,
+    marginTop: 5,
   },
   flagText: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '700',
     color: colors.red,
-    marginTop: 6,
-  },
-  agreementLink: {
     marginTop: 8,
   },
+  agreementLink: {
+    marginTop: 10,
+    paddingVertical: 4,
+  },
   agreementLinkText: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '700',
     color: colors.red,
   },
@@ -774,26 +807,28 @@ const styles = StyleSheet.create({
     color: colors.navy,
   },
   paymentSection: {
-    marginTop: 12,
+    marginTop: 14,
   },
   paymentLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
     color: colors.textSecondary,
     letterSpacing: 0.5,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   paymentPillRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   paymentPill: {
     flex: 1,
     borderWidth: 1,
     borderColor: colors.divider,
     borderRadius: 8,
-    paddingVertical: 7,
+    paddingVertical: 12,
+    minHeight: 44,
+    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.white,
   },
@@ -802,7 +837,7 @@ const styles = StyleSheet.create({
     borderColor: colors.navy,
   },
   paymentPillText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     color: colors.textPrimary,
   },
@@ -818,18 +853,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.divider,
     borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    fontSize: 13,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    minHeight: 44,
+    fontSize: 15,
     color: colors.textPrimary,
     backgroundColor: colors.white,
   },
   checkInButton: {
-    marginTop: 10,
+    marginTop: 12,
     borderWidth: 1,
     borderColor: colors.navy,
     borderRadius: 10,
-    paddingVertical: 8,
+    paddingVertical: 14,
+    minHeight: 48,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   checkInButtonActive: {
@@ -837,7 +875,7 @@ const styles = StyleSheet.create({
     borderColor: '#DCEBDD',
   },
   checkInButtonText: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '700',
     color: colors.navy,
   },
@@ -846,38 +884,40 @@ const styles = StyleSheet.create({
   },
   statusPill: {
     borderRadius: 999,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
   },
   statusPill_pending: {
-    backgroundColor: '#F0E6C8',
+    backgroundColor: '#EDE0C6',
   },
   statusPill_approved: {
     backgroundColor: '#DCEBDD',
   },
   statusPill_denied: {
-    backgroundColor: '#F3DCDC',
+    backgroundColor: '#F1DCD3',
   },
   statusPillText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
     color: colors.textPrimary,
     letterSpacing: 0.3,
   },
   waitlistPosition: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '800',
     color: colors.navy,
   },
   rowActions: {
     flexDirection: 'row',
-    marginTop: 12,
+    marginTop: 14,
     gap: 10,
   },
   actionButton: {
     flex: 1,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 14,
+    minHeight: 48,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   actionButtonPressed: {
@@ -888,7 +928,7 @@ const styles = StyleSheet.create({
   },
   approveButtonText: {
     color: colors.white,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
   },
   denyButton: {
@@ -898,15 +938,15 @@ const styles = StyleSheet.create({
   },
   denyButtonText: {
     color: colors.red,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
   },
   offerButton: {
-    backgroundColor: colors.red,
+    backgroundColor: colors.brass,
   },
   offerButtonText: {
-    color: colors.white,
-    fontSize: 14,
+    color: colors.textPrimary,
+    fontSize: 16,
     fontWeight: '700',
   },
 });
