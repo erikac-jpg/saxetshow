@@ -13,6 +13,7 @@ import {
 import { getUpcomingEvents } from '../db/supabase/events';
 import type { Event } from '../db/types';
 import SaxetPatch from '../components/SaxetPatch';
+import TopoBackground from '../components/TopoBackground';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
 
@@ -103,6 +104,7 @@ export default function EventsHomeScreen({
       </View>
 
       <View style={styles.body}>
+        <TopoBackground />
         {events === null ? (
           <View style={styles.centered}>
             <ActivityIndicator color={colors.navy} size="large" />
