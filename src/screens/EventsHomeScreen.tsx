@@ -128,11 +128,11 @@ export default function EventsHomeScreen({
 
       <View style={styles.footer}>
         <View style={styles.footerLinkRow}>
-          <Pressable onPress={onOpenPrivacyPolicy} hitSlop={8}>
+          <Pressable onPress={onOpenPrivacyPolicy} hitSlop={12}>
             <Text style={styles.footerLink}>Privacy Policy</Text>
           </Pressable>
           <Text style={styles.footerLinkDivider}>·</Text>
-          <Pressable onPress={onOpenTermsAndConditions} hitSlop={8}>
+          <Pressable onPress={onOpenTermsAndConditions} hitSlop={12}>
             <Text style={styles.footerLink}>Terms & Conditions</Text>
           </Pressable>
         </View>
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     paddingBottom: 22,
     paddingHorizontal: 20,
     borderBottomWidth: 4,
-    borderBottomColor: colors.red,
+    borderBottomColor: colors.brass,
   },
   headerTitle: {
     fontFamily: displayFont,
@@ -162,8 +162,8 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     color: colors.headerSubtitle,
-    fontSize: 13,
-    marginTop: 2,
+    fontSize: 14,
+    marginTop: 4,
     letterSpacing: 1.5,
     fontWeight: '600',
   },
@@ -174,7 +174,11 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   footer: {
-    paddingVertical: 14,
+    paddingTop: 16,
+    // The Vendor/Staff floating buttons sit fixed at the bottom of the
+    // screen (see App.tsx) - this clears space so their bigger, more
+    // tappable footprint doesn't sit on top of these links.
+    paddingBottom: 92,
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: colors.divider,
@@ -183,15 +187,16 @@ const styles = StyleSheet.create({
   footerLinkRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   footerLink: {
-    fontSize: 13,
+    fontSize: 15,
+    lineHeight: 21,
     color: colors.textSecondary,
     textDecorationLine: 'underline',
   },
   footerLinkDivider: {
-    fontSize: 13,
+    fontSize: 15,
     color: colors.textSecondary,
   },
   card: {
@@ -200,8 +205,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: 'hidden',
     borderLeftWidth: 10,
-    borderLeftColor: colors.red,
-    marginBottom: 18,
+    borderLeftColor: colors.brass,
+    marginBottom: 22,
     shadowColor: '#000',
     shadowOpacity: 0.18,
     shadowRadius: 10,
@@ -230,20 +235,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 19,
+    lineHeight: 27,
     fontWeight: '800',
     color: colors.textPrimary,
   },
   cardDate: {
-    fontSize: 14,
-    color: colors.red,
+    fontSize: 16,
+    lineHeight: 23,
+    color: colors.navy,
     fontWeight: '700',
-    marginTop: 6,
+    marginTop: 8,
   },
   cardLocation: {
-    fontSize: 13,
+    fontSize: 15,
+    lineHeight: 21,
     color: colors.textSecondary,
-    marginTop: 4,
+    marginTop: 6,
   },
   centered: {
     flex: 1,
@@ -251,6 +259,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   errorText: {
+    fontSize: 16,
+    lineHeight: 23,
     color: colors.red,
     paddingHorizontal: 24,
     textAlign: 'center',
@@ -266,15 +276,17 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   emptyStateTitle: {
-    fontSize: 18,
+    fontSize: 19,
+    lineHeight: 27,
     fontWeight: '700',
     color: colors.textPrimary,
     textAlign: 'center',
   },
   emptyStateSubtitle: {
-    fontSize: 14,
+    fontSize: 16,
+    lineHeight: 23,
     color: colors.textSecondary,
     textAlign: 'center',
-    marginTop: 6,
+    marginTop: 8,
   },
 });

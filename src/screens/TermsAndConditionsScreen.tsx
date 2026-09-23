@@ -42,15 +42,16 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 20,
     borderBottomWidth: 4,
-    borderBottomColor: colors.red,
+    borderBottomColor: colors.brass,
   },
   backButton: {
     alignSelf: 'flex-start',
     marginBottom: 10,
+    paddingVertical: 6,
   },
   backButtonText: {
     color: colors.white,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
   },
   headerTitle: {
@@ -66,7 +67,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
     borderRadius: 14,
-    padding: 20,
+    padding: 22,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 6,
@@ -74,15 +75,16 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   policyTitle: {
-    fontSize: 18,
+    fontSize: 20,
+    lineHeight: 28,
     fontWeight: '800',
     color: colors.navy,
-    marginBottom: 14,
+    marginBottom: 16,
   },
   paragraph: {
-    fontSize: 14,
-    lineHeight: 21,
+    fontSize: 17,
+    lineHeight: 27,
     color: colors.textPrimary,
-    marginBottom: 12,
+    marginBottom: 16,
   },
 });
