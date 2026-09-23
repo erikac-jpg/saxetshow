@@ -12,6 +12,7 @@ import {
 
 import { getUpcomingEvents } from '../db/supabase/events';
 import type { Event } from '../db/types';
+import SaxetPatch from '../components/SaxetPatch';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
 
@@ -96,6 +97,7 @@ export default function EventsHomeScreen({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <SaxetPatch size={44} style={styles.headerPatch} />
         <Text style={styles.headerTitle}>Saxet Gun Show</Text>
         <Text style={styles.headerSubtitle}>UPCOMING GUN SHOWS</Text>
       </View>
@@ -153,6 +155,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomWidth: 4,
     borderBottomColor: colors.brass,
+  },
+  headerPatch: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
   },
   headerTitle: {
     fontFamily: displayFont,
