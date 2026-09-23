@@ -99,8 +99,10 @@ export default function EventsHomeScreen({
     <View style={styles.container}>
       <View style={styles.header}>
         <SaxetPatch size={44} style={styles.headerPatch} />
-        <Text style={styles.headerTitle}>Saxet Gun Show</Text>
-        <Text style={styles.headerSubtitle}>UPCOMING GUN SHOWS</Text>
+        <View style={styles.headerTextBlock}>
+          <Text style={styles.headerTitle}>Saxet Gun Show</Text>
+          <Text style={styles.headerSubtitle}>UPCOMING GUN SHOWS</Text>
+        </View>
       </View>
 
       <View style={styles.body}>
@@ -162,6 +164,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     right: 16,
+  },
+  // Reserves room so the title never runs under the corner patch on
+  // narrower phones - it wraps to a second line instead.
+  headerTextBlock: {
+    paddingRight: 60,
   },
   headerTitle: {
     fontFamily: displayFont,
