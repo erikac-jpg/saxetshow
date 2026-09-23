@@ -63,9 +63,11 @@ function EmptyState() {
 export default function EventsHomeScreen({
   onSelectEvent,
   onOpenPrivacyPolicy,
+  onOpenTermsAndConditions,
 }: {
   onSelectEvent: (event: Event) => void;
   onOpenPrivacyPolicy: () => void;
+  onOpenTermsAndConditions: () => void;
 }) {
   const [events, setEvents] = useState<Event[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -125,9 +127,15 @@ export default function EventsHomeScreen({
       </View>
 
       <View style={styles.footer}>
-        <Pressable onPress={onOpenPrivacyPolicy} hitSlop={8}>
-          <Text style={styles.footerLink}>Privacy Policy</Text>
-        </Pressable>
+        <View style={styles.footerLinkRow}>
+          <Pressable onPress={onOpenPrivacyPolicy} hitSlop={8}>
+            <Text style={styles.footerLink}>Privacy Policy</Text>
+          </Pressable>
+          <Text style={styles.footerLinkDivider}>·</Text>
+          <Pressable onPress={onOpenTermsAndConditions} hitSlop={8}>
+            <Text style={styles.footerLink}>Terms & Conditions</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -172,10 +180,19 @@ const styles = StyleSheet.create({
     borderTopColor: colors.divider,
     backgroundColor: colors.cream,
   },
+  footerLinkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
   footerLink: {
     fontSize: 13,
     color: colors.textSecondary,
     textDecorationLine: 'underline',
+  },
+  footerLinkDivider: {
+    fontSize: 13,
+    color: colors.textSecondary,
   },
   card: {
     flexDirection: 'row',

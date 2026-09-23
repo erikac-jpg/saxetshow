@@ -175,9 +175,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
-    setAppUser(null);
-    setVendor(null);
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      // Signing out after account deletion hits a session whose user no
+      // longer exists server-side - that's expected, not a real failure,
+      // and local state should clear either way.
+      console.error('Sign out request failed:', err);
+    } finally {
+      setSession(null);
+      setAppUser(null);
+      setVendor(null);
+    }
   }, []);
 
   const applyVendor = useCallback((next: Vendor) => {

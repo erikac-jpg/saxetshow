@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { getRequestHistoryForVendor, type VendorRequestHistoryEntry } from '../db/supabase/tableRequests';
+import { deleteMyAccount } from '../db/supabase/users';
 import { createVendor, getVendorById, updateVendor } from '../db/supabase/vendors';
 import type { TableRequestStatus, Vendor } from '../db/types';
 import VendorQrCode from '../components/VendorQrCode';
@@ -107,7 +108,7 @@ export default function VendorProfileScreen({
   vendorId: number | null;
   onBack: () => void;
   onSaved?: (vendor: Vendor) => void;
-  onSignOut?: () => void;
+  onSignOut?: () => void | Promise<void>;
   subtitle?: string;
   isStaffView?: boolean;
   /** When creating a brand-new profile, link it to this signed-in account. */
@@ -116,6 +117,7 @@ export default function VendorProfileScreen({
   const [vendor, setVendor] = useState<Vendor | null | undefined>(undefined);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [history, setHistory] = useState<VendorRequestHistoryEntry[] | null>(null);
 
   const load = useCallback(async () => {
@@ -193,6 +195,34 @@ export default function VendorProfileScreen({
       setSaving(false);
     }
   }, [form, vendor, onSaved, isStaffView, linkUserId]);
+
+  const handleDeleteAccount = useCallback(() => {
+    Alert.alert(
+      'Delete Account',
+      'This permanently deletes your account and personal information. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              await deleteMyAccount();
+              await onSignOut?.();
+            } catch (err) {
+              Alert.alert(
+                'Something went wrong',
+                err instanceof Error ? err.message : 'Please try again.'
+              );
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  }, [onSignOut]);
 
   if (vendor === undefined) {
     return (
@@ -410,6 +440,24 @@ export default function VendorProfileScreen({
               ))
             )}
           </>
+        )}
+
+        {onSignOut && (
+          <View style={styles.dangerZone}>
+            <Text style={styles.sectionLabel}>DELETE ACCOUNT</Text>
+            <Text style={styles.dangerHint}>
+              Permanently deletes your login and personal information. This cannot be undone.
+            </Text>
+            <Pressable
+              style={({ pressed }) => [styles.deleteButton, pressed && styles.deleteButtonPressed]}
+              onPress={handleDeleteAccount}
+              disabled={deleting}
+            >
+              <Text style={styles.deleteButtonText}>
+                {deleting ? 'Deleting…' : 'Delete My Account'}
+              </Text>
+            </Pressable>
+          </View>
         )}
       </View>
     </ScrollView>
@@ -664,6 +712,32 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 14,
+  },
+  dangerZone: {
+    marginTop: 32,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+  },
+  dangerHint: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginBottom: 12,
+  },
+  deleteButton: {
+    borderWidth: 1,
+    borderColor: colors.red,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  deleteButtonPressed: {
+    opacity: 0.7,
+  },
+  deleteButtonText: {
+    color: colors.red,
+    fontSize: 14,
+    fontWeight: '800',
   },
   historyRow: {
     backgroundColor: colors.white,

@@ -16,6 +16,6 @@ export const PRIVACY_POLICY_PARAGRAPHS: string[] = [
   'How We Use Information. We use the information we collect to manage event registrations, table requests, vendor agreements, and to communicate with you about upcoming shows.',
   'Information Sharing. We do not sell your personal information. We may share information with show staff and venue partners as needed to operate an event.',
   'Data Retention. We retain vendor and event information for as long as needed to manage current and future shows, or as required by law.',
-  'Your Choices. You may contact us at any time to review, update, or request deletion of your information.',
+  'Your Choices. You may update your information at any time from your vendor profile. You may also delete your account and personal information at any time from your vendor profile - this cannot be undone.',
   'Contact Us. If you have questions about this Privacy Policy, please contact show staff.',
 ];

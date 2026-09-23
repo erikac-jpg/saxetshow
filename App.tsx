@@ -12,6 +12,7 @@ import EventsHomeScreen from './src/screens/EventsHomeScreen';
 import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
 import QrCheckInScreen from './src/screens/QrCheckInScreen';
 import StaffDashboardScreen from './src/screens/StaffDashboardScreen';
+import TermsAndConditionsScreen from './src/screens/TermsAndConditionsScreen';
 import VendorProfileScreen from './src/screens/VendorProfileScreen';
 import { colors } from './src/theme/colors';
 
@@ -19,6 +20,7 @@ type Route =
   | { screen: 'home' }
   | { screen: 'detail'; event: Event }
   | { screen: 'privacyPolicy' }
+  | { screen: 'termsAndConditions' }
   | { screen: 'auth'; intent: 'vendor' | 'staff' }
   | { screen: 'staff' }
   | { screen: 'vendorProfile'; vendorId: number }
@@ -90,11 +92,14 @@ function AppShell() {
         <EventsHomeScreen
           onSelectEvent={(event) => setRoute({ screen: 'detail', event })}
           onOpenPrivacyPolicy={() => setRoute({ screen: 'privacyPolicy' })}
+          onOpenTermsAndConditions={() => setRoute({ screen: 'termsAndConditions' })}
         />
       ) : route.screen === 'detail' ? (
         <EventDetailScreen event={route.event} onBack={backToHome} />
       ) : route.screen === 'privacyPolicy' ? (
         <PrivacyPolicyScreen onBack={backToHome} />
+      ) : route.screen === 'termsAndConditions' ? (
+        <TermsAndConditionsScreen onBack={backToHome} />
       ) : route.screen === 'auth' ? (
         <AuthScreen
           intent={route.intent}

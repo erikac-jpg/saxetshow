@@ -38,3 +38,15 @@ export async function createUserProfile(input: CreateUserProfileInput): Promise<
   if (error) throw error;
   return data as unknown as User;
 }
+
+/**
+ * Permanently deletes the signed-in account: the Supabase Auth login,
+ * the linked `users` profile row (cascades automatically), and personal
+ * fields on any linked vendor profile. See migration 0005 - this calls
+ * a SECURITY DEFINER function since deleting an auth.users row needs
+ * privileges the anon/authenticated role doesn't otherwise have.
+ */
+export async function deleteMyAccount(): Promise<void> {
+  const { error } = await supabase.rpc('delete_my_account');
+  if (error) throw error;
+}
