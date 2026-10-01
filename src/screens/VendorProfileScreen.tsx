@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 20,
     borderBottomWidth: 4,
-    borderBottomColor: colors.brass,
+    borderBottomColor: colors.flagRed,
   },
   headerTopRow: {
     flexDirection: 'row',
@@ -656,8 +656,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   tagChipActive: {
-    backgroundColor: colors.brass,
-    borderColor: colors.brass,
+    backgroundColor: colors.flagRed,
+    borderColor: colors.flagRed,
   },
   tagChipText: {
     fontSize: 15,
@@ -665,7 +665,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   tagChipTextActive: {
-    color: colors.textPrimary,
+    color: colors.white,
   },
   saveButton: {
     backgroundColor: colors.navy,

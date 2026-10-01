@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 
 import type { Event } from '../db/types';
+import FlagWatermark from '../components/FlagWatermark';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
 
@@ -48,7 +49,10 @@ export default function EventDetailScreen({
         {event.image ? (
           <Image source={{ uri: event.image }} style={StyleSheet.absoluteFill} resizeMode="cover" />
         ) : (
-          <Text style={styles.promoStar}>★</Text>
+          <>
+            <FlagWatermark />
+            <Text style={styles.promoStar}>★</Text>
+          </>
         )}
       </View>
 
@@ -111,7 +115,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderBottomWidth: 6,
-    borderBottomColor: colors.brass,
+    borderBottomColor: colors.flagRed,
     overflow: 'hidden',
   },
   promoStar: {
@@ -180,7 +184,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   ctaButton: {
-    backgroundColor: colors.brass,
+    backgroundColor: colors.flagRed,
     borderRadius: 12,
     paddingVertical: 20,
     alignItems: 'center',
@@ -194,7 +198,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   ctaButtonText: {
-    color: colors.textPrimary,
+    color: colors.white,
     fontSize: 17,
     fontWeight: '800',
     letterSpacing: 0.3,

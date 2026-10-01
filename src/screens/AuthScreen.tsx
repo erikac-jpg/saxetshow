@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 20,
     borderBottomWidth: 4,
-    borderBottomColor: colors.brass,
+    borderBottomColor: colors.flagRed,
   },
   backButton: {
     alignSelf: 'flex-start',

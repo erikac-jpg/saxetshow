@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 20,
     borderBottomWidth: 4,
-    borderBottomColor: colors.brass,
+    borderBottomColor: colors.flagRed,
   },
   backButton: {
     alignSelf: 'flex-start',
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     right: '15%',
     bottom: '40%',
     borderWidth: 3,
-    borderColor: colors.brass,
+    borderColor: colors.flagRed,
     borderRadius: 16,
   },
   scanHint: {

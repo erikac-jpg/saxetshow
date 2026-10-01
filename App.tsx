@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     bottom: 16,
-    backgroundColor: colors.brass,
+    backgroundColor: colors.flagRed,
     paddingVertical: 16,
     paddingHorizontal: 22,
     minHeight: 52,
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   vendorFabText: {
-    color: colors.textPrimary,
+    color: colors.white,
     fontSize: 16,
     fontWeight: '800',
     letterSpacing: 0.5,

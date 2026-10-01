@@ -590,7 +590,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 20,
     borderBottomWidth: 4,
-    borderBottomColor: colors.brass,
+    borderBottomColor: colors.flagRed,
   },
   headerTopRow: {
     flexDirection: 'row',
@@ -679,7 +679,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     marginBottom: 12,
     borderLeftWidth: 6,
-    borderLeftColor: colors.brass,
+    borderLeftColor: colors.flagRed,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 6,
@@ -701,7 +701,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   scanButton: {
-    backgroundColor: colors.brass,
+    backgroundColor: colors.flagRed,
     borderRadius: 14,
     paddingVertical: 18,
     minHeight: 56,
@@ -715,7 +715,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   scanButtonText: {
-    color: colors.textPrimary,
+    color: colors.white,
     fontSize: 17,
     fontWeight: '800',
     letterSpacing: 0.3,
@@ -942,10 +942,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   offerButton: {
-    backgroundColor: colors.brass,
+    backgroundColor: colors.flagRed,
   },
   offerButtonText: {
-    color: colors.textPrimary,
+    color: colors.white,
     fontSize: 16,
     fontWeight: '700',
   },
