@@ -49,6 +49,8 @@ export interface Event {
   id: number;
   name: string;
   date: string;
+  /** Last day of a multi-day show; used to keep it listed until it's actually over. */
+  endDate?: string | null;
   location: string | null;
   description: string | null;
   image: string | null;
