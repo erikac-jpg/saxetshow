@@ -1,19 +1,26 @@
 -- ============================================================
--- Saxetshow — demo events seed
+-- Add an explicit end date for multi-day shows, and seed the 2027
+-- Saxet Gun Show schedule for both venues.
 -- ------------------------------------------------------------
--- The real Saxet Gun Show schedule for the McAllen and Corpus Christi
--- venues (2026-2027), so the home screen has something to show on a
--- fresh dev database. Safe to re-run - only inserts if the events
--- table is currently empty.
+-- `date` has always meant "the show's first day" (see seed.sql), so
+-- the homepage's upcoming-events filter was comparing today against
+-- a show's *start* day only - a two-day show dropped off the list on
+-- its own second day, while it was still running. end_date fixes
+-- that: getUpcomingEvents now keeps a show listed (and reachable from
+-- the vendor "Request Tables" flow, which only lists upcoming shows)
+-- until its actual last day has passed.
 -- ============================================================
 
+alter table events add column end_date date;
+
+-- Every show on the books so far runs exactly two days.
+update events set end_date = date + 1 where end_date is null;
+
+alter table events alter column end_date set not null;
+
 insert into events (name, date, end_date, location, description, total_tables)
-select * from (values
-  ('McAllen Gun Show', date '2026-09-19', date '2026-09-20', 'McAllen Convention Center, McAllen, TX', 'Sep 19 & 20, 2026', 40),
-  ('Corpus Christi Gun Show', date '2026-10-17', date '2026-10-18', 'Richard M. Borchard Fairgrounds, Corpus Christi, TX', 'Oct 17 & 18, 2026', 60),
-  ('McAllen Gun Show', date '2026-10-24', date '2026-10-25', 'McAllen Convention Center, McAllen, TX', 'Oct 24 & 25, 2026', 40),
-  ('Corpus Christi Gun Show', date '2026-11-21', date '2026-11-22', 'Richard M. Borchard Fairgrounds, Corpus Christi, TX', 'Nov 21 & 22, 2026', 60),
-  ('Corpus Christi Gun Show', date '2026-12-12', date '2026-12-13', 'Richard M. Borchard Fairgrounds, Corpus Christi, TX', 'Dec 12 & 13, 2026', 60),
+select v.name, v.date, v.end_date, v.location, v.description, v.total_tables
+from (values
   ('McAllen Gun Show', date '2027-01-23', date '2027-01-24', 'McAllen Convention Center, McAllen, TX', 'Jan 23 & 24, 2027', 40),
   ('Corpus Christi Gun Show', date '2027-01-30', date '2027-01-31', 'Richard M. Borchard Fairgrounds, Corpus Christi, TX', 'Jan 30 & 31, 2027', 60),
   ('Corpus Christi Gun Show', date '2027-02-20', date '2027-02-21', 'Richard M. Borchard Fairgrounds, Corpus Christi, TX', 'Feb 20 & 21, 2027', 60),
@@ -29,5 +36,7 @@ select * from (values
   ('McAllen Gun Show', date '2027-11-13', date '2027-11-14', 'McAllen Convention Center, McAllen, TX', 'Nov 13 & 14, 2027', 40),
   ('Corpus Christi Gun Show', date '2027-11-20', date '2027-11-21', 'Richard M. Borchard Fairgrounds, Corpus Christi, TX', 'Nov 20 & 21, 2027', 60),
   ('Corpus Christi Gun Show', date '2027-12-18', date '2027-12-19', 'Richard M. Borchard Fairgrounds, Corpus Christi, TX', 'Dec 18 & 19, 2027', 60)
-) as sample_events(name, date, end_date, location, description, total_tables)
-where not exists (select 1 from events limit 1);
+) as v(name, date, end_date, location, description, total_tables)
+where not exists (
+  select 1 from events e where e.name = v.name and e.date = v.date
+);

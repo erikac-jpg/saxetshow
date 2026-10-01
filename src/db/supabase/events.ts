@@ -8,7 +8,7 @@ import type { Event } from '../types';
  * SQLite version in ../repositories/events.ts).
  */
 const EVENT_SELECT =
-  'id, name, date, location, description, image, visible, totalTables:total_tables, createdAt:created_at, updatedAt:updated_at';
+  'id, name, date, endDate:end_date, location, description, image, visible, totalTables:total_tables, createdAt:created_at, updatedAt:updated_at';
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -17,6 +17,8 @@ function todayIso(): string {
 export interface CreateEventInput {
   name: string;
   date: string;
+  /** Last day of the show; defaults to `date` for a single-day event. */
+  endDate?: string;
   location?: string | null;
   description?: string | null;
   image?: string | null;
@@ -45,13 +47,13 @@ export async function getVisibleEvents(): Promise<Event[]> {
   return (data ?? []) as unknown as Event[];
 }
 
-/** Visible events on or after `referenceDate` (defaults to today), soonest first. */
+/** Visible events whose run hasn't ended as of `referenceDate` (defaults to today), soonest first. */
 export async function getUpcomingEvents(referenceDate: string = todayIso()): Promise<Event[]> {
   const { data, error } = await supabase
     .from('events')
     .select(EVENT_SELECT)
     .eq('visible', true)
-    .gte('date', referenceDate)
+    .gte('end_date', referenceDate)
     .order('date', { ascending: true });
   if (error) throw error;
   return (data ?? []) as unknown as Event[];
@@ -73,6 +75,7 @@ export async function createEvent(input: CreateEventInput): Promise<Event> {
     .insert({
       name: input.name,
       date: input.date,
+      end_date: input.endDate ?? input.date,
       location: input.location ?? null,
       description: input.description ?? null,
       image: input.image ?? null,
@@ -89,6 +92,7 @@ export async function updateEvent(id: number, input: UpdateEventInput): Promise<
   const patch: Record<string, unknown> = {};
   if (input.name !== undefined) patch.name = input.name;
   if (input.date !== undefined) patch.date = input.date;
+  if (input.endDate !== undefined) patch.end_date = input.endDate;
   if (input.location !== undefined) patch.location = input.location;
   if (input.description !== undefined) patch.description = input.description;
   if (input.image !== undefined) patch.image = input.image;

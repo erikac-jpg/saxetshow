@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -54,6 +54,38 @@ function EventCard({ event, onPress }: { event: Event; onPress: () => void }) {
   );
 }
 
+function eventYear(event: Event): number {
+  return Number(event.date.slice(0, 4));
+}
+
+function YearTabs({
+  years,
+  selectedYear,
+  onSelectYear,
+}: {
+  years: number[];
+  selectedYear: number | null;
+  onSelectYear: (year: number) => void;
+}) {
+  if (years.length < 2) return null;
+  return (
+    <View style={styles.yearTabRow}>
+      {years.map((year) => {
+        const active = year === selectedYear;
+        return (
+          <Pressable
+            key={year}
+            onPress={() => onSelectYear(year)}
+            style={[styles.yearTab, active && styles.yearTabActive]}
+          >
+            <Text style={[styles.yearTabText, active && styles.yearTabTextActive]}>{year}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 function EmptyState() {
   return (
     <View style={styles.emptyState}>
@@ -76,12 +108,17 @@ export default function EventsHomeScreen({
   const [events, setEvents] = useState<Event[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
 
   const loadEvents = useCallback(async () => {
     try {
       const upcoming = await getUpcomingEvents();
       setEvents(upcoming);
       setError(null);
+      setSelectedYear((current) => {
+        const years = Array.from(new Set(upcoming.map(eventYear))).sort((a, b) => a - b);
+        return current !== null && years.includes(current) ? current : years[0] ?? null;
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong loading events.');
     }
@@ -97,6 +134,15 @@ export default function EventsHomeScreen({
     setRefreshing(false);
   }, [loadEvents]);
 
+  const years = useMemo(
+    () => Array.from(new Set((events ?? []).map(eventYear))).sort((a, b) => a - b),
+    [events]
+  );
+  const visibleEvents = useMemo(() => {
+    if (!events) return [];
+    return selectedYear === null ? events : events.filter((e) => eventYear(e) === selectedYear);
+  }, [events, selectedYear]);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -110,6 +156,7 @@ export default function EventsHomeScreen({
 
       <View style={styles.body}>
         <TopoBackground />
+        <YearTabs years={years} selectedYear={selectedYear} onSelectYear={setSelectedYear} />
         {events === null ? (
           <View style={styles.centered}>
             <ActivityIndicator color={colors.navy} size="large" />
@@ -122,7 +169,8 @@ export default function EventsHomeScreen({
           <EmptyState />
         ) : (
           <FlatList
-            data={events}
+            key={selectedYear}
+            data={visibleEvents}
             keyExtractor={(item) => String(item.id)}
             renderItem={({ item }) => (
               <EventCard event={item} onPress={() => onSelectEvent(item)} />
@@ -189,6 +237,31 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
+  },
+  yearTabRow: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  yearTab: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: colors.navy,
+    backgroundColor: colors.white,
+  },
+  yearTabActive: {
+    backgroundColor: colors.navy,
+  },
+  yearTabText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.navy,
+  },
+  yearTabTextActive: {
+    color: colors.white,
   },
   listContent: {
     padding: 16,
