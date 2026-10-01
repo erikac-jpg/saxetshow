@@ -28,9 +28,7 @@ interface FormState {
   email: string;
   website: string;
   address: string;
-  productsTheyBring: string;
   boothNotes: string;
-  fflLicenseNumber: string;
   fflExpirationDate: string;
   vendorCategory: string;
   preferredTableLocation: string;
@@ -47,9 +45,7 @@ const EMPTY_FORM: FormState = {
   email: '',
   website: '',
   address: '',
-  productsTheyBring: '',
   boothNotes: '',
-  fflLicenseNumber: '',
   fflExpirationDate: '',
   vendorCategory: '',
   preferredTableLocation: '',
@@ -67,9 +63,7 @@ function formFromVendor(vendor: Vendor): FormState {
     email: vendor.email ?? '',
     website: vendor.website ?? '',
     address: vendor.address ?? '',
-    productsTheyBring: vendor.productsTheyBring ?? '',
     boothNotes: vendor.boothNotes ?? '',
-    fflLicenseNumber: vendor.fflLicenseNumber ?? '',
     fflExpirationDate: vendor.fflExpirationDate ?? '',
     vendorCategory: vendor.vendorCategory ?? '',
     preferredTableLocation: vendor.preferredTableLocation ?? '',
@@ -168,14 +162,12 @@ export default function VendorProfileScreen({
         email: form.email.trim() || null,
         website: form.website.trim() || null,
         address: form.address.trim() || null,
-        productsTheyBring: form.productsTheyBring.trim() || null,
-        boothNotes: form.boothNotes.trim() || null,
-        fflLicenseNumber: form.fflLicenseNumber.trim() || null,
         fflExpirationDate: form.fflExpirationDate.trim() || null,
         vendorCategory: form.vendorCategory.trim() || null,
         preferredTableLocation: form.preferredTableLocation.trim() || null,
         ...(isStaffView
           ? {
+              boothNotes: form.boothNotes.trim() || null,
               staffNotes: form.staffNotes.trim() || null,
               insuranceOnFile: form.insuranceOnFile,
               insuranceExpirationDate: form.insuranceExpirationDate.trim() || null,
@@ -302,11 +294,6 @@ export default function VendorProfileScreen({
 
         <Text style={styles.sectionLabel}>VENDOR DETAILS</Text>
         <Field
-          label="FFL License Number"
-          value={form.fflLicenseNumber}
-          onChangeText={updateField('fflLicenseNumber')}
-        />
-        <Field
           label="FFL Expiration Date (YYYY-MM-DD)"
           value={form.fflExpirationDate}
           onChangeText={updateField('fflExpirationDate')}
@@ -323,22 +310,16 @@ export default function VendorProfileScreen({
           onChangeText={updateField('preferredTableLocation')}
           placeholder="Corner, near entrance, near power…"
         />
-        <Field
-          label="Products They Bring"
-          value={form.productsTheyBring}
-          onChangeText={updateField('productsTheyBring')}
-          multiline
-        />
-        <Field
-          label="Booth Notes"
-          value={form.boothNotes}
-          onChangeText={updateField('boothNotes')}
-          multiline
-        />
 
         {isStaffView && (
           <>
             <Text style={styles.sectionLabel}>STAFF ONLY</Text>
+            <Field
+              label="Booth Notes (private)"
+              value={form.boothNotes}
+              onChangeText={updateField('boothNotes')}
+              multiline
+            />
             <Field
               label="Staff Notes (private)"
               value={form.staffNotes}
