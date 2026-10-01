@@ -4,6 +4,7 @@ import {
   PRIVACY_POLICY_PARAGRAPHS,
   PRIVACY_POLICY_TITLE,
 } from '../content/privacyPolicyTemplate';
+import FlagWatermark from '../components/FlagWatermark';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
 
@@ -11,6 +12,7 @@ export default function PrivacyPolicyScreen({ onBack }: { onBack: () => void }) 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <FlagWatermark />
         <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
           <Text style={styles.backButtonText}>‹ Back</Text>
         </Pressable>
@@ -43,6 +45,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomWidth: 4,
     borderBottomColor: colors.flagRed,
+    overflow: 'hidden',
   },
   backButton: {
     alignSelf: 'flex-start',

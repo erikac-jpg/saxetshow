@@ -14,6 +14,7 @@ import { getRequestHistoryForVendor, type VendorRequestHistoryEntry } from '../d
 import { deleteMyAccount } from '../db/supabase/users';
 import { createVendor, getVendorById, updateVendor } from '../db/supabase/vendors';
 import type { TableRequestStatus, Vendor } from '../db/types';
+import FlagWatermark from '../components/FlagWatermark';
 import VendorQrCode from '../components/VendorQrCode';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
@@ -233,6 +234,7 @@ export default function VendorProfileScreen({
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
+        <FlagWatermark />
         <View style={styles.headerTopRow}>
           <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
             <Text style={styles.backButtonText}>‹ Back</Text>
@@ -521,6 +523,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomWidth: 4,
     borderBottomColor: colors.flagRed,
+    overflow: 'hidden',
   },
   headerTopRow: {
     flexDirection: 'row',

@@ -21,6 +21,7 @@ import {
 import { getAllVendors } from '../db/supabase/vendors';
 import { getWaitlistForEvent, removeFromWaitlist } from '../db/supabase/waitlist';
 import type { Agreement, Event, PaymentStatus, TableRequest, Vendor, WaitlistEntry } from '../db/types';
+import FlagWatermark from '../components/FlagWatermark';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
 
@@ -222,6 +223,7 @@ export default function StaffDashboardScreen({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <FlagWatermark />
         <View style={styles.headerTopRow}>
           <Pressable onPress={onExit} style={styles.exitButton} hitSlop={12}>
             <Text style={styles.exitButtonText}>‹ Exit</Text>
@@ -591,6 +593,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomWidth: 4,
     borderBottomColor: colors.flagRed,
+    overflow: 'hidden',
   },
   headerTopRow: {
     flexDirection: 'row',
