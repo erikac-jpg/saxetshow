@@ -14,6 +14,7 @@ import { getRequestHistoryForVendor, type VendorRequestHistoryEntry } from '../d
 import { deleteMyAccount } from '../db/supabase/users';
 import { createVendor, getVendorById, updateVendor } from '../db/supabase/vendors';
 import type { TableRequestStatus, Vendor } from '../db/types';
+import FlagWatermark from '../components/FlagWatermark';
 import VendorQrCode from '../components/VendorQrCode';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
@@ -28,9 +29,7 @@ interface FormState {
   email: string;
   website: string;
   address: string;
-  productsTheyBring: string;
   boothNotes: string;
-  fflLicenseNumber: string;
   fflExpirationDate: string;
   vendorCategory: string;
   preferredTableLocation: string;
@@ -47,9 +46,7 @@ const EMPTY_FORM: FormState = {
   email: '',
   website: '',
   address: '',
-  productsTheyBring: '',
   boothNotes: '',
-  fflLicenseNumber: '',
   fflExpirationDate: '',
   vendorCategory: '',
   preferredTableLocation: '',
@@ -67,9 +64,7 @@ function formFromVendor(vendor: Vendor): FormState {
     email: vendor.email ?? '',
     website: vendor.website ?? '',
     address: vendor.address ?? '',
-    productsTheyBring: vendor.productsTheyBring ?? '',
     boothNotes: vendor.boothNotes ?? '',
-    fflLicenseNumber: vendor.fflLicenseNumber ?? '',
     fflExpirationDate: vendor.fflExpirationDate ?? '',
     vendorCategory: vendor.vendorCategory ?? '',
     preferredTableLocation: vendor.preferredTableLocation ?? '',
@@ -168,14 +163,12 @@ export default function VendorProfileScreen({
         email: form.email.trim() || null,
         website: form.website.trim() || null,
         address: form.address.trim() || null,
-        productsTheyBring: form.productsTheyBring.trim() || null,
-        boothNotes: form.boothNotes.trim() || null,
-        fflLicenseNumber: form.fflLicenseNumber.trim() || null,
         fflExpirationDate: form.fflExpirationDate.trim() || null,
         vendorCategory: form.vendorCategory.trim() || null,
         preferredTableLocation: form.preferredTableLocation.trim() || null,
         ...(isStaffView
           ? {
+              boothNotes: form.boothNotes.trim() || null,
               staffNotes: form.staffNotes.trim() || null,
               insuranceOnFile: form.insuranceOnFile,
               insuranceExpirationDate: form.insuranceExpirationDate.trim() || null,
@@ -241,6 +234,7 @@ export default function VendorProfileScreen({
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
+        <FlagWatermark />
         <View style={styles.headerTopRow}>
           <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
             <Text style={styles.backButtonText}>‹ Back</Text>
@@ -302,11 +296,6 @@ export default function VendorProfileScreen({
 
         <Text style={styles.sectionLabel}>VENDOR DETAILS</Text>
         <Field
-          label="FFL License Number"
-          value={form.fflLicenseNumber}
-          onChangeText={updateField('fflLicenseNumber')}
-        />
-        <Field
           label="FFL Expiration Date (YYYY-MM-DD)"
           value={form.fflExpirationDate}
           onChangeText={updateField('fflExpirationDate')}
@@ -323,22 +312,16 @@ export default function VendorProfileScreen({
           onChangeText={updateField('preferredTableLocation')}
           placeholder="Corner, near entrance, near power…"
         />
-        <Field
-          label="Products They Bring"
-          value={form.productsTheyBring}
-          onChangeText={updateField('productsTheyBring')}
-          multiline
-        />
-        <Field
-          label="Booth Notes"
-          value={form.boothNotes}
-          onChangeText={updateField('boothNotes')}
-          multiline
-        />
 
         {isStaffView && (
           <>
             <Text style={styles.sectionLabel}>STAFF ONLY</Text>
+            <Field
+              label="Booth Notes (private)"
+              value={form.boothNotes}
+              onChangeText={updateField('boothNotes')}
+              multiline
+            />
             <Field
               label="Staff Notes (private)"
               value={form.staffNotes}
@@ -539,7 +522,8 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 20,
     borderBottomWidth: 4,
-    borderBottomColor: colors.brass,
+    borderBottomColor: colors.flagRed,
+    overflow: 'hidden',
   },
   headerTopRow: {
     flexDirection: 'row',
@@ -675,8 +659,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   tagChipActive: {
-    backgroundColor: colors.brass,
-    borderColor: colors.brass,
+    backgroundColor: colors.flagRed,
+    borderColor: colors.flagRed,
   },
   tagChipText: {
     fontSize: 15,
@@ -684,7 +668,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   tagChipTextActive: {
-    color: colors.textPrimary,
+    color: colors.white,
   },
   saveButton: {
     backgroundColor: colors.navy,

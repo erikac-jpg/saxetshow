@@ -12,6 +12,7 @@ import {
 } from '../db/supabase/tableRequests';
 import { getVendorById } from '../db/supabase/vendors';
 import type { TableRequest, Vendor } from '../db/types';
+import FlagWatermark from '../components/FlagWatermark';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
 import { expirationWarning } from '../util/expiration';
@@ -118,6 +119,7 @@ export default function QrCheckInScreen({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <FlagWatermark />
         <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
           <Text style={styles.backButtonText}>‹ Back</Text>
         </Pressable>
@@ -267,7 +269,8 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 20,
     borderBottomWidth: 4,
-    borderBottomColor: colors.brass,
+    borderBottomColor: colors.flagRed,
+    overflow: 'hidden',
   },
   backButton: {
     alignSelf: 'flex-start',
@@ -322,7 +325,7 @@ const styles = StyleSheet.create({
     right: '15%',
     bottom: '40%',
     borderWidth: 3,
-    borderColor: colors.brass,
+    borderColor: colors.flagRed,
     borderRadius: 16,
   },
   scanHint: {

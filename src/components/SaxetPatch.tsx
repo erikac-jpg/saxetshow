@@ -33,7 +33,7 @@ export default function SaxetPatch({
           cy={size / 2}
           r={size / 2 - borderWidth / 2}
           fill={colors.navy}
-          stroke={colors.brass}
+          stroke={colors.flagRed}
           strokeWidth={borderWidth}
         />
         <Circle
@@ -41,7 +41,7 @@ export default function SaxetPatch({
           cy={size / 2}
           r={size / 2 - ringInset}
           fill="none"
-          stroke={colors.brass}
+          stroke={colors.flagRed}
           strokeWidth={ringStrokeWidth}
           strokeDasharray={`${size * (2.4 / 52)} ${size * (3.2 / 52)}`}
           opacity={0.85}
@@ -68,7 +68,7 @@ export default function SaxetPatch({
           top: bandTop,
           height: bandHeight,
           borderRadius: bandRadius,
-          backgroundColor: colors.brass,
+          backgroundColor: colors.flagRed,
           alignItems: 'center',
           justifyContent: 'center',
         }}
@@ -76,7 +76,7 @@ export default function SaxetPatch({
         <Text
           style={{
             fontFamily: displayFont,
-            color: colors.navy,
+            color: colors.white,
             fontSize,
             letterSpacing: 0.5,
           }}

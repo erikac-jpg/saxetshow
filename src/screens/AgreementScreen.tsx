@@ -13,6 +13,7 @@ import {
   VENDOR_AGREEMENT_PARAGRAPHS,
   VENDOR_AGREEMENT_TITLE,
 } from '../content/vendorAgreementTemplate';
+import FlagWatermark from '../components/FlagWatermark';
 import { colors } from '../theme/colors';
 import { displayFont } from '../theme/fonts';
 
@@ -80,6 +81,7 @@ export default function AgreementScreen({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <FlagWatermark />
         <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
           <Text style={styles.backButtonText}>‹ Back</Text>
         </Pressable>
@@ -145,7 +147,8 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 20,
     borderBottomWidth: 4,
-    borderBottomColor: colors.brass,
+    borderBottomColor: colors.flagRed,
+    overflow: 'hidden',
   },
   backButton: {
     alignSelf: 'flex-start',
@@ -217,7 +220,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   signButton: {
-    backgroundColor: colors.brass,
+    backgroundColor: colors.flagRed,
     borderRadius: 12,
     paddingVertical: 20,
     minHeight: 56,
@@ -238,7 +241,7 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   signButtonText: {
-    color: colors.textPrimary,
+    color: colors.white,
     fontSize: 17,
     fontWeight: '800',
     letterSpacing: 0.3,

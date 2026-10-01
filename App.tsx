@@ -36,17 +36,34 @@ const NOT_STAFF_MESSAGE =
 function AppShell() {
   const [fontsLoaded] = useFonts({ Rye_400Regular });
   const [route, setRoute] = useState<Route>({ screen: 'home' });
+  const [pendingRequestEvent, setPendingRequestEvent] = useState<Event | null>(null);
   const { loading: authLoading, session, appUser, vendor, isStaff, signOut, applyVendor } = useAuth();
 
-  const backToHome = () => setRoute({ screen: 'home' });
+  const backToHome = () => {
+    setPendingRequestEvent(null);
+    setRoute({ screen: 'home' });
+  };
   const backToStaff = () => setRoute({ screen: 'staff' });
 
   const openVendorTab = () => {
+    setPendingRequestEvent(null);
     if (!session) {
       setRoute({ screen: 'auth', intent: 'vendor' });
       return;
     }
     setRoute({ screen: 'myVendorProfile' });
+  };
+
+  // Reached when a visitor taps "Request Tables" on an event without a vendor
+  // account yet - remembers which event they wanted so sign-in/profile
+  // creation can drop them back there instead of their own vendor profile.
+  const handleNeedVendorAccount = (event: Event) => {
+    setPendingRequestEvent(event);
+    if (!session) {
+      setRoute({ screen: 'auth', intent: 'vendor' });
+    } else {
+      setRoute({ screen: 'myVendorProfile' });
+    }
   };
 
   const openStaffTab = () => {
@@ -69,6 +86,10 @@ function AppShell() {
         setRoute({ screen: 'home' });
         Alert.alert('Signed In', NOT_STAFF_MESSAGE);
       }
+    } else if (pendingRequestEvent) {
+      const returnToEvent = pendingRequestEvent;
+      setPendingRequestEvent(null);
+      setRoute({ screen: 'detail', event: returnToEvent });
     } else {
       setRoute({ screen: 'myVendorProfile' });
     }
@@ -95,7 +116,11 @@ function AppShell() {
           onOpenTermsAndConditions={() => setRoute({ screen: 'termsAndConditions' })}
         />
       ) : route.screen === 'detail' ? (
-        <EventDetailScreen event={route.event} onBack={backToHome} />
+        <EventDetailScreen
+          event={route.event}
+          onBack={backToHome}
+          onNeedVendorAccount={handleNeedVendorAccount}
+        />
       ) : route.screen === 'privacyPolicy' ? (
         <PrivacyPolicyScreen onBack={backToHome} />
       ) : route.screen === 'termsAndConditions' ? (
@@ -113,7 +138,14 @@ function AppShell() {
           vendorId={vendor?.id ?? null}
           linkUserId={appUser?.id ?? null}
           onBack={backToHome}
-          onSaved={applyVendor}
+          onSaved={(savedVendor) => {
+            applyVendor(savedVendor);
+            if (pendingRequestEvent) {
+              const returnToEvent = pendingRequestEvent;
+              setPendingRequestEvent(null);
+              setRoute({ screen: 'detail', event: returnToEvent });
+            }
+          }}
           onSignOut={handleSignOut}
           subtitle="MY PROFILE"
         />
@@ -191,7 +223,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     bottom: 16,
-    backgroundColor: colors.brass,
+    backgroundColor: colors.flagRed,
     paddingVertical: 16,
     paddingHorizontal: 22,
     minHeight: 52,
@@ -204,7 +236,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   vendorFabText: {
-    color: colors.textPrimary,
+    color: colors.white,
     fontSize: 16,
     fontWeight: '800',
     letterSpacing: 0.5,

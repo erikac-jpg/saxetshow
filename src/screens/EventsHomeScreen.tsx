@@ -12,6 +12,7 @@ import {
 
 import { getUpcomingEvents } from '../db/supabase/events';
 import type { Event } from '../db/types';
+import FlagWatermark from '../components/FlagWatermark';
 import SaxetPatch from '../components/SaxetPatch';
 import TopoBackground from '../components/TopoBackground';
 import { colors } from '../theme/colors';
@@ -40,6 +41,7 @@ function EventCard({ event, onPress }: { event: Event; onPress: () => void }) {
         <Image source={{ uri: event.image }} style={styles.cardImage} />
       ) : (
         <View style={[styles.cardImage, styles.cardImagePlaceholder]}>
+          <FlagWatermark />
           <Text style={styles.cardImagePlaceholderText}>★</Text>
         </View>
       )}
@@ -98,6 +100,7 @@ export default function EventsHomeScreen({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <FlagWatermark />
         <SaxetPatch size={44} style={styles.headerPatch} />
         <View style={styles.headerTextBlock}>
           <Text style={styles.headerTitle}>Saxet Gun Show</Text>
@@ -158,7 +161,8 @@ const styles = StyleSheet.create({
     paddingBottom: 22,
     paddingHorizontal: 20,
     borderBottomWidth: 4,
-    borderBottomColor: colors.brass,
+    borderBottomColor: colors.flagRed,
+    overflow: 'hidden',
   },
   headerPatch: {
     position: 'absolute',
@@ -221,7 +225,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: 'hidden',
     borderLeftWidth: 10,
-    borderLeftColor: colors.brass,
+    borderLeftColor: colors.flagRed,
     marginBottom: 22,
     shadowColor: '#000',
     shadowOpacity: 0.18,
@@ -240,6 +244,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.navy,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   cardImagePlaceholderText: {
     fontSize: 36,
