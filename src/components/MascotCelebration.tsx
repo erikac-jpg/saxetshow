@@ -9,7 +9,7 @@ const SEASON_GREETING: Record<ReturnType<typeof getCurrentSeason>, string> = {
   deer: 'Good luck out there this deer season.',
   turkey: 'Good luck out there this spring turkey season.',
   hog: 'Good luck out there this hog season.',
-  dove: 'Good luck out there this dove season.',
+  duck: 'Good luck out there this duck season.',
 };
 
 export default function MascotCelebration({
