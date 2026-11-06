@@ -12,6 +12,7 @@ import {
 
 import { getUpcomingEvents } from '../db/supabase/events';
 import type { Event } from '../db/types';
+import AppIcon from '../components/AppIcon';
 import FlagWatermark from '../components/FlagWatermark';
 import SaxetPatch from '../components/SaxetPatch';
 import TopoBackground from '../components/TopoBackground';
@@ -42,7 +43,7 @@ function EventCard({ event, onPress }: { event: Event; onPress: () => void }) {
       ) : (
         <View style={[styles.cardImage, styles.cardImagePlaceholder]}>
           <FlagWatermark />
-          <Text style={styles.cardImagePlaceholderText}>★</Text>
+          <AppIcon name="star" size={36} color={colors.white} />
         </View>
       )}
       <View style={styles.cardBody}>
@@ -89,7 +90,13 @@ function YearTabs({
 function EmptyState() {
   return (
     <View style={styles.emptyState}>
-      <Text style={styles.emptyStateEmoji}>🎪</Text>
+      <AppIcon
+        name="calendar"
+        size={48}
+        color={colors.textSecondary}
+        strokeWidth={1.4}
+        style={styles.emptyStateIcon}
+      />
       <Text style={styles.emptyStateTitle}>No shows on the calendar yet</Text>
       <Text style={styles.emptyStateSubtitle}>Add your first event and it’ll show up here.</Text>
     </View>
@@ -321,10 +328,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  cardImagePlaceholderText: {
-    fontSize: 36,
-    color: colors.white,
-  },
   cardBody: {
     flex: 1,
     padding: 18,
@@ -369,8 +372,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 32,
   },
-  emptyStateEmoji: {
-    fontSize: 48,
+  emptyStateIcon: {
     marginBottom: 12,
   },
   emptyStateTitle: {

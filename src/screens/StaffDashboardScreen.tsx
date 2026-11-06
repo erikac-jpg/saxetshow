@@ -21,6 +21,7 @@ import {
 import { getAllVendors } from '../db/supabase/vendors';
 import { getWaitlistForEvent, removeFromWaitlist } from '../db/supabase/waitlist';
 import type { Agreement, Event, PaymentStatus, TableRequest, Vendor, WaitlistEntry } from '../db/types';
+import AppIcon from '../components/AppIcon';
 import FlagWatermark from '../components/FlagWatermark';
 import { colors } from '../theme/colors';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
@@ -293,7 +294,10 @@ export default function StaffDashboardScreen({
                 style={({ pressed }) => [styles.scanButton, pressed && styles.actionButtonPressed]}
                 onPress={() => onOpenQrCheckIn(selectedEvent.id)}
               >
-                <Text style={styles.scanButtonText}>📷 Scan Check-In</Text>
+                <View style={styles.scanButtonRow}>
+                  <AppIcon name="camera" size={20} color={colors.white} strokeWidth={1.8} />
+                  <Text style={styles.scanButtonText}>Scan Check-In</Text>
+                </View>
               </Pressable>
 
               <View style={styles.card}>
@@ -719,6 +723,11 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 3,
+  },
+  scanButtonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   scanButtonText: {
     color: colors.white,

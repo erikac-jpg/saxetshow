@@ -13,6 +13,7 @@ import {
 import { useAuth } from '../auth/AuthContext';
 import { createTableRequest, getTableRequestsForVendor } from '../db/supabase/tableRequests';
 import type { Event, TableRequest } from '../db/types';
+import AppIcon from '../components/AppIcon';
 import EngravedRule from '../components/EngravedRule';
 import FlagWatermark from '../components/FlagWatermark';
 import MascotCelebration from '../components/MascotCelebration';
@@ -116,7 +117,7 @@ export default function EventDetailScreen({
         ) : (
           <>
             <FlagWatermark />
-            <Text style={styles.promoStar}>★</Text>
+            <AppIcon name="star" size={96} color={colors.white} />
           </>
         )}
       </View>
@@ -124,7 +125,12 @@ export default function EventDetailScreen({
       <View style={styles.content}>
         <Text style={styles.title}>{event.name}</Text>
         <Text style={styles.date}>{formatEventDate(event.date)}</Text>
-        {event.location ? <Text style={styles.location}>📍 {event.location}</Text> : null}
+        {event.location ? (
+          <View style={styles.locationRow}>
+            <AppIcon name="locationPin" size={16} color={colors.textSecondary} style={styles.locationIcon} />
+            <Text style={styles.location}>{event.location}</Text>
+          </View>
+        ) : null}
         {event.description ? <Text style={styles.description}>{event.description}</Text> : null}
 
         <EngravedRule ornament />
@@ -236,10 +242,6 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.flagRed,
     overflow: 'hidden',
   },
-  promoStar: {
-    fontSize: 96,
-    color: colors.white,
-  },
   backButton: {
     position: 'absolute',
     top: 16,
@@ -271,12 +273,21 @@ const styles = StyleSheet.create({
     color: colors.navy,
     marginBottom: 8,
   },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  locationIcon: {
+    marginTop: 4,
+    marginRight: 6,
+  },
   location: {
+    flex: 1,
     fontSize: 17,
     lineHeight: 25,
     fontFamily: bodyFont,
     color: colors.textSecondary,
-    marginBottom: 16,
   },
   description: {
     fontSize: 17,
