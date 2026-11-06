@@ -48,7 +48,7 @@ export default function MascotCelebration({
 const styles = StyleSheet.create({
   scrim: {
     flex: 1,
-    backgroundColor: 'rgba(12,45,87,0.55)',
+    backgroundColor: 'rgba(27,42,65,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
