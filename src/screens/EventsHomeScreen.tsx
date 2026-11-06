@@ -16,7 +16,7 @@ import FlagWatermark from '../components/FlagWatermark';
 import SaxetPatch from '../components/SaxetPatch';
 import TopoBackground from '../components/TopoBackground';
 import { colors } from '../theme/colors';
-import { displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 
 function formatEventDate(dateString: string): string {
   const date = new Date(`${dateString}T00:00:00`);
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
     letterSpacing: 1.5,
-    fontWeight: '600',
+    fontFamily: bodyFontSemiBold,
   },
   body: {
     flex: 1,
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   },
   yearTabText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.navy,
   },
   yearTabTextActive: {
@@ -285,11 +285,13 @@ const styles = StyleSheet.create({
   footerLink: {
     fontSize: 15,
     lineHeight: 21,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     textDecorationLine: 'underline',
   },
   footerLinkDivider: {
     fontSize: 15,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
   },
   card: {
@@ -331,19 +333,20 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 19,
     lineHeight: 27,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.textPrimary,
   },
   cardDate: {
     fontSize: 16,
     lineHeight: 23,
     color: colors.navy,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     marginTop: 8,
   },
   cardLocation: {
     fontSize: 15,
     lineHeight: 21,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     marginTop: 6,
   },
@@ -355,6 +358,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     lineHeight: 23,
+    fontFamily: bodyFont,
     color: colors.red,
     paddingHorizontal: 24,
     textAlign: 'center',
@@ -372,13 +376,14 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: 19,
     lineHeight: 27,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textPrimary,
     textAlign: 'center',
   },
   emptyStateSubtitle: {
     fontSize: 16,
     lineHeight: 23,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 8,

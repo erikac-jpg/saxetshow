@@ -1,7 +1,7 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '../theme/colors';
-import { displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontExtraBold, displayFont } from '../theme/fonts';
 import { getCurrentSeason, SEASON_LABEL } from '../util/season';
 import MascotIcon from './mascots/MascotIcon';
 
@@ -99,6 +99,7 @@ const styles = StyleSheet.create({
   body: {
     fontSize: 16,
     lineHeight: 23,
+    fontFamily: bodyFont,
     color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: 8,
@@ -106,6 +107,7 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 15,
     lineHeight: 22,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 22,
@@ -124,7 +126,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     letterSpacing: 0.3,
   },
 });

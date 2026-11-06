@@ -17,7 +17,7 @@ import EngravedRule from '../components/EngravedRule';
 import FlagWatermark from '../components/FlagWatermark';
 import MascotCelebration from '../components/MascotCelebration';
 import { colors } from '../theme/colors';
-import { displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 
 function formatEventDate(dateString: string): string {
   const date = new Date(`${dateString}T00:00:00`);
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   content: {
     padding: 24,
@@ -267,25 +267,27 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 17,
     lineHeight: 25,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.navy,
     marginBottom: 8,
   },
   location: {
     fontSize: 17,
     lineHeight: 25,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     marginBottom: 16,
   },
   description: {
     fontSize: 17,
     lineHeight: 26,
+    fontFamily: bodyFont,
     color: colors.textPrimary,
     marginBottom: 8,
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.navy,
     letterSpacing: 1.5,
     marginBottom: 12,
@@ -293,6 +295,7 @@ const styles = StyleSheet.create({
   sectionBody: {
     fontSize: 17,
     lineHeight: 26,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     marginBottom: 24,
   },
@@ -313,7 +316,7 @@ const styles = StyleSheet.create({
   ctaButtonText: {
     color: colors.white,
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     letterSpacing: 0.3,
   },
   requestStatusCard: {
@@ -330,7 +333,7 @@ const styles = StyleSheet.create({
   },
   requestStatusTitle: {
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.textPrimary,
     marginBottom: 4,
   },
@@ -338,7 +341,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 23,
     color: colors.navy,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   requestForm: {
     backgroundColor: colors.white,
@@ -352,7 +355,7 @@ const styles = StyleSheet.create({
   },
   requestFormLabel: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textPrimary,
     marginBottom: 14,
     textAlign: 'center',
@@ -376,12 +379,12 @@ const styles = StyleSheet.create({
   },
   stepperButtonText: {
     fontSize: 26,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.navy,
   },
   stepperValue: {
     fontSize: 28,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.textPrimary,
     minWidth: 40,
     textAlign: 'center',
@@ -393,6 +396,7 @@ const styles = StyleSheet.create({
   },
   cancelLinkText: {
     fontSize: 15,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     textDecorationLine: 'underline',
   },
@@ -416,13 +420,13 @@ const styles = StyleSheet.create({
   stepNumberText: {
     color: colors.white,
     fontSize: 15,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
   },
   stepLabel: {
     flex: 1,
     fontSize: 18,
     lineHeight: 25,
-    fontWeight: '600',
+    fontFamily: bodyFontSemiBold,
     color: colors.textPrimary,
   },
 });

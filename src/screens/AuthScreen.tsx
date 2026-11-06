@@ -14,7 +14,7 @@ import {
 import { useAuth, type AuthActionResult } from '../auth/AuthContext';
 import FlagWatermark from '../components/FlagWatermark';
 import { colors } from '../theme/colors';
-import { displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 
 type Mode = 'signIn' | 'signUp';
 
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   headerTitle: {
     fontFamily: displayFont,
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
     letterSpacing: 1.5,
-    fontWeight: '600',
+    fontFamily: bodyFontSemiBold,
   },
   content: {
     padding: 20,
@@ -233,6 +233,7 @@ const styles = StyleSheet.create({
   noticeText: {
     fontSize: 16,
     lineHeight: 23,
+    fontFamily: bodyFont,
     color: colors.textPrimary,
   },
   errorNotice: {
@@ -244,7 +245,7 @@ const styles = StyleSheet.create({
   errorNoticeText: {
     fontSize: 16,
     lineHeight: 23,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.red,
   },
   field: {
@@ -252,7 +253,7 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textSecondary,
     marginBottom: 8,
   },
@@ -264,6 +265,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     minHeight: 52,
     fontSize: 17,
+    fontFamily: bodyFont,
     color: colors.textPrimary,
     backgroundColor: colors.white,
   },
@@ -287,7 +289,7 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: colors.white,
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     letterSpacing: 0.3,
   },
   switchModeButton: {
@@ -298,7 +300,7 @@ const styles = StyleSheet.create({
   switchModeText: {
     fontSize: 16,
     lineHeight: 23,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.navy,
   },
 });

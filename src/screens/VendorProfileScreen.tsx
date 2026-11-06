@@ -19,7 +19,7 @@ import EngravedRule from '../components/EngravedRule';
 import FlagWatermark from '../components/FlagWatermark';
 import VendorQrCode from '../components/VendorQrCode';
 import { colors } from '../theme/colors';
-import { displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 import { daysUntil, expirationWarning } from '../util/expiration';
 
 const STAFF_TAG_OPTIONS = ['Reliable', 'New Vendor', 'VIP', 'Do Not Rebook'] as const;
@@ -641,12 +641,12 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   signOutText: {
     color: colors.headerSubtitle,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   headerTitle: {
     fontFamily: displayFont,
@@ -659,7 +659,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
     letterSpacing: 1.5,
-    fontWeight: '600',
+    fontFamily: bodyFontSemiBold,
   },
   content: {
     padding: 20,
@@ -673,6 +673,7 @@ const styles = StyleSheet.create({
   noticeText: {
     fontSize: 16,
     lineHeight: 23,
+    fontFamily: bodyFont,
     color: colors.textPrimary,
   },
   warningNotice: {
@@ -684,12 +685,12 @@ const styles = StyleSheet.create({
   warningNoticeText: {
     fontSize: 16,
     lineHeight: 23,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.red,
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.navy,
     letterSpacing: 1.5,
     marginTop: 10,
@@ -700,7 +701,7 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textSecondary,
     marginBottom: 8,
   },
@@ -712,6 +713,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     minHeight: 52,
     fontSize: 17,
+    fontFamily: bodyFont,
     color: colors.textPrimary,
     backgroundColor: colors.white,
   },
@@ -733,6 +735,7 @@ const styles = StyleSheet.create({
   },
   categoryTriggerText: {
     fontSize: 17,
+    fontFamily: bodyFont,
     color: colors.textPrimary,
   },
   categoryTriggerPlaceholder: {
@@ -761,7 +764,7 @@ const styles = StyleSheet.create({
   },
   categoryModalTitle: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.navy,
     letterSpacing: 1.5,
     paddingVertical: 10,
@@ -779,12 +782,12 @@ const styles = StyleSheet.create({
   },
   categoryOptionText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: bodyFontSemiBold,
     color: colors.textPrimary,
   },
   categoryOptionTextActive: {
     color: colors.white,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
   },
   toggleRow: {
     flexDirection: 'row',
@@ -807,7 +810,7 @@ const styles = StyleSheet.create({
   },
   toggleOptionText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textPrimary,
   },
   toggleOptionTextActive: {
@@ -834,7 +837,7 @@ const styles = StyleSheet.create({
   },
   tagChipText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textPrimary,
   },
   tagChipTextActive: {
@@ -860,12 +863,13 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: colors.white,
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     letterSpacing: 0.3,
   },
   emptyHistoryText: {
     fontSize: 16,
     lineHeight: 23,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
   },
   qrSection: {
@@ -874,6 +878,7 @@ const styles = StyleSheet.create({
   qrHint: {
     fontSize: 15,
     lineHeight: 21,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 16,
@@ -887,6 +892,7 @@ const styles = StyleSheet.create({
   dangerHint: {
     fontSize: 15,
     lineHeight: 21,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     marginBottom: 14,
   },
@@ -905,7 +911,7 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     color: colors.red,
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
   },
   historyRow: {
     backgroundColor: colors.white,
@@ -917,12 +923,13 @@ const styles = StyleSheet.create({
   },
   historyEventName: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textPrimary,
   },
   historyMeta: {
     fontSize: 14,
     lineHeight: 20,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     marginTop: 3,
   },
