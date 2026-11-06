@@ -12,11 +12,12 @@ import {
 
 import { getUpcomingEvents } from '../db/supabase/events';
 import type { Event } from '../db/types';
+import AppIcon from '../components/AppIcon';
 import FlagWatermark from '../components/FlagWatermark';
 import SaxetPatch from '../components/SaxetPatch';
 import TopoBackground from '../components/TopoBackground';
 import { colors } from '../theme/colors';
-import { displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 
 function formatEventDate(dateString: string): string {
   const date = new Date(`${dateString}T00:00:00`);
@@ -42,7 +43,7 @@ function EventCard({ event, onPress }: { event: Event; onPress: () => void }) {
       ) : (
         <View style={[styles.cardImage, styles.cardImagePlaceholder]}>
           <FlagWatermark />
-          <Text style={styles.cardImagePlaceholderText}>★</Text>
+          <AppIcon name="star" size={36} color={colors.white} />
         </View>
       )}
       <View style={styles.cardBody}>
@@ -89,7 +90,13 @@ function YearTabs({
 function EmptyState() {
   return (
     <View style={styles.emptyState}>
-      <Text style={styles.emptyStateEmoji}>🎪</Text>
+      <AppIcon
+        name="calendar"
+        size={48}
+        color={colors.textSecondary}
+        strokeWidth={1.4}
+        style={styles.emptyStateIcon}
+      />
       <Text style={styles.emptyStateTitle}>No shows on the calendar yet</Text>
       <Text style={styles.emptyStateSubtitle}>Add your first event and it’ll show up here.</Text>
     </View>
@@ -233,7 +240,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
     letterSpacing: 1.5,
-    fontWeight: '600',
+    fontFamily: bodyFontSemiBold,
   },
   body: {
     flex: 1,
@@ -257,7 +264,7 @@ const styles = StyleSheet.create({
   },
   yearTabText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.navy,
   },
   yearTabTextActive: {
@@ -285,17 +292,19 @@ const styles = StyleSheet.create({
   footerLink: {
     fontSize: 15,
     lineHeight: 21,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     textDecorationLine: 'underline',
   },
   footerLinkDivider: {
     fontSize: 15,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
   },
   card: {
     flexDirection: 'row',
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: 4,
     overflow: 'hidden',
     borderLeftWidth: 10,
     borderLeftColor: colors.flagRed,
@@ -319,10 +328,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  cardImagePlaceholderText: {
-    fontSize: 36,
-    color: colors.white,
-  },
   cardBody: {
     flex: 1,
     padding: 18,
@@ -331,19 +336,20 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 19,
     lineHeight: 27,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.textPrimary,
   },
   cardDate: {
     fontSize: 16,
     lineHeight: 23,
     color: colors.navy,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     marginTop: 8,
   },
   cardLocation: {
     fontSize: 15,
     lineHeight: 21,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     marginTop: 6,
   },
@@ -355,6 +361,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     lineHeight: 23,
+    fontFamily: bodyFont,
     color: colors.red,
     paddingHorizontal: 24,
     textAlign: 'center',
@@ -365,20 +372,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 32,
   },
-  emptyStateEmoji: {
-    fontSize: 48,
+  emptyStateIcon: {
     marginBottom: 12,
   },
   emptyStateTitle: {
     fontSize: 19,
     lineHeight: 27,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textPrimary,
     textAlign: 'center',
   },
   emptyStateSubtitle: {
     fontSize: 16,
     lineHeight: 23,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 8,

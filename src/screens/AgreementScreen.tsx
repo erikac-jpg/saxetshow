@@ -15,7 +15,7 @@ import {
 } from '../content/vendorAgreementTemplate';
 import FlagWatermark from '../components/FlagWatermark';
 import { colors } from '../theme/colors';
-import { displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 
 export default function AgreementScreen({
   vendorId,
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   headerTitle: {
     fontFamily: displayFont,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 5,
     letterSpacing: 1,
-    fontWeight: '600',
+    fontFamily: bodyFontSemiBold,
   },
   scrollContent: {
     padding: 20,
@@ -192,12 +192,12 @@ const styles = StyleSheet.create({
   },
   statusPillText: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.textPrimary,
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: 4,
     padding: 22,
     marginBottom: 26,
     shadowColor: '#000',
@@ -209,19 +209,20 @@ const styles = StyleSheet.create({
   agreementTitle: {
     fontSize: 20,
     lineHeight: 28,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.navy,
     marginBottom: 16,
   },
   paragraph: {
     fontSize: 17,
     lineHeight: 27,
+    fontFamily: bodyFont,
     color: colors.textPrimary,
     marginBottom: 16,
   },
   signButton: {
     backgroundColor: colors.flagRed,
-    borderRadius: 12,
+    borderRadius: 999,
     paddingVertical: 20,
     minHeight: 56,
     justifyContent: 'center',
@@ -243,7 +244,7 @@ const styles = StyleSheet.create({
   signButtonText: {
     color: colors.white,
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     letterSpacing: 0.3,
   },
   signButtonTextSigned: {

@@ -14,7 +14,7 @@ import { getVendorById } from '../db/supabase/vendors';
 import type { TableRequest, Vendor } from '../db/types';
 import FlagWatermark from '../components/FlagWatermark';
 import { colors } from '../theme/colors';
-import { displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 import { expirationWarning } from '../util/expiration';
 
 type ScanResult =
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   headerTitle: {
     fontFamily: displayFont,
@@ -293,17 +293,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
     letterSpacing: 1.5,
-    fontWeight: '600',
+    fontFamily: bodyFontSemiBold,
   },
   permissionText: {
     fontSize: 17,
     lineHeight: 25,
+    fontFamily: bodyFont,
     color: colors.textPrimary,
     textAlign: 'center',
   },
   permissionButton: {
     backgroundColor: colors.navy,
-    borderRadius: 10,
+    borderRadius: 999,
     paddingVertical: 16,
     paddingHorizontal: 28,
     minHeight: 52,
@@ -312,7 +313,7 @@ const styles = StyleSheet.create({
   permissionButtonText: {
     color: colors.white,
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   cameraWrap: {
     flex: 1,
@@ -336,7 +337,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: colors.white,
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: bodyFontSemiBold,
   },
   resultWrap: {
     flex: 1,
@@ -344,7 +345,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: 4,
     padding: 22,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -358,7 +359,7 @@ const styles = StyleSheet.create({
   cardErrorText: {
     fontSize: 17,
     lineHeight: 25,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.red,
     textAlign: 'center',
   },
@@ -366,35 +367,37 @@ const styles = StyleSheet.create({
     // Deliberately not the decorative display font - staff need to
     // read this fast and correctly to catch a wrong-person scan.
     fontSize: 24,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.navy,
   },
   vendorMeta: {
     fontSize: 16,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     marginTop: 5,
   },
   warningNotice: {
     backgroundColor: '#F1DCD3',
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 14,
     marginTop: 16,
   },
   warningNoticeText: {
     fontSize: 16,
     lineHeight: 23,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.red,
   },
   noticeBox: {
     backgroundColor: '#EDE0C6',
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 14,
     marginTop: 16,
   },
   noticeBoxText: {
     fontSize: 16,
     lineHeight: 23,
+    fontFamily: bodyFont,
     color: colors.textPrimary,
   },
   amountRow: {
@@ -410,14 +413,14 @@ const styles = StyleSheet.create({
   },
   amountLabel: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textSecondary,
   },
   amountValue: {
     // Same reasoning as vendorName - this is the dollar figure staff
     // collect in cash, it needs to be unambiguous, not stylized.
     fontSize: 28,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.navy,
   },
   actionRow: {
@@ -429,7 +432,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: colors.navy,
-    borderRadius: 12,
+    borderRadius: 999,
     paddingVertical: 16,
     minHeight: 52,
     justifyContent: 'center',
@@ -441,7 +444,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     fontSize: 15,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.navy,
   },
   actionButtonTextActive: {
@@ -450,7 +453,7 @@ const styles = StyleSheet.create({
   scanNextButton: {
     marginTop: 22,
     backgroundColor: colors.navy,
-    borderRadius: 12,
+    borderRadius: 999,
     paddingVertical: 16,
     minHeight: 52,
     justifyContent: 'center',
@@ -459,7 +462,7 @@ const styles = StyleSheet.create({
   scanNextButtonText: {
     color: colors.white,
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     letterSpacing: 0.3,
   },
 });

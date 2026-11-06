@@ -6,7 +6,7 @@ import {
 } from '../content/termsAndConditionsTemplate';
 import FlagWatermark from '../components/FlagWatermark';
 import { colors } from '../theme/colors';
-import { displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontBold, bodyFontExtraBold, displayFont } from '../theme/fonts';
 
 export default function TermsAndConditionsScreen({ onBack }: { onBack: () => void }) {
   return (
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   headerTitle: {
     fontFamily: displayFont,
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: 4,
     padding: 22,
     shadowColor: '#000',
     shadowOpacity: 0.08,
@@ -80,13 +80,14 @@ const styles = StyleSheet.create({
   policyTitle: {
     fontSize: 20,
     lineHeight: 28,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.navy,
     marginBottom: 16,
   },
   paragraph: {
     fontSize: 17,
     lineHeight: 27,
+    fontFamily: bodyFont,
     color: colors.textPrimary,
     marginBottom: 16,
   },

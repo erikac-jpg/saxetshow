@@ -13,10 +13,12 @@ import {
 import { useAuth } from '../auth/AuthContext';
 import { createTableRequest, getTableRequestsForVendor } from '../db/supabase/tableRequests';
 import type { Event, TableRequest } from '../db/types';
+import AppIcon from '../components/AppIcon';
+import EngravedRule from '../components/EngravedRule';
 import FlagWatermark from '../components/FlagWatermark';
 import MascotCelebration from '../components/MascotCelebration';
 import { colors } from '../theme/colors';
-import { displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 
 function formatEventDate(dateString: string): string {
   const date = new Date(`${dateString}T00:00:00`);
@@ -115,7 +117,7 @@ export default function EventDetailScreen({
         ) : (
           <>
             <FlagWatermark />
-            <Text style={styles.promoStar}>★</Text>
+            <AppIcon name="star" size={96} color={colors.white} />
           </>
         )}
       </View>
@@ -123,10 +125,15 @@ export default function EventDetailScreen({
       <View style={styles.content}>
         <Text style={styles.title}>{event.name}</Text>
         <Text style={styles.date}>{formatEventDate(event.date)}</Text>
-        {event.location ? <Text style={styles.location}>📍 {event.location}</Text> : null}
+        {event.location ? (
+          <View style={styles.locationRow}>
+            <AppIcon name="locationPin" size={16} color={colors.textSecondary} style={styles.locationIcon} />
+            <Text style={styles.location}>{event.location}</Text>
+          </View>
+        ) : null}
         {event.description ? <Text style={styles.description}>{event.description}</Text> : null}
 
-        <View style={styles.divider} />
+        <EngravedRule ornament />
 
         <Text style={styles.sectionLabel}>VENDOR INFO</Text>
         <Text style={styles.sectionBody}>
@@ -188,7 +195,7 @@ export default function EventDetailScreen({
           </Pressable>
         )}
 
-        <View style={styles.divider} />
+        <EngravedRule ornament />
 
         <Text style={styles.sectionLabel}>BECOME A VENDOR</Text>
         <View style={styles.stepsList}>
@@ -235,10 +242,6 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.flagRed,
     overflow: 'hidden',
   },
-  promoStar: {
-    fontSize: 96,
-    color: colors.white,
-  },
   backButton: {
     position: 'absolute',
     top: 16,
@@ -246,13 +249,13 @@ const styles = StyleSheet.create({
     zIndex: 10,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 20,
+    borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.16)',
   },
   backButtonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   content: {
     padding: 24,
@@ -266,30 +269,36 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 17,
     lineHeight: 25,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.navy,
     marginBottom: 8,
   },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  locationIcon: {
+    marginTop: 4,
+    marginRight: 6,
+  },
   location: {
+    flex: 1,
     fontSize: 17,
     lineHeight: 25,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
-    marginBottom: 16,
   },
   description: {
     fontSize: 17,
     lineHeight: 26,
+    fontFamily: bodyFont,
     color: colors.textPrimary,
     marginBottom: 8,
   },
-  divider: {
-    height: 2,
-    backgroundColor: colors.divider,
-    marginVertical: 26,
-  },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.navy,
     letterSpacing: 1.5,
     marginBottom: 12,
@@ -297,12 +306,13 @@ const styles = StyleSheet.create({
   sectionBody: {
     fontSize: 17,
     lineHeight: 26,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     marginBottom: 24,
   },
   ctaButton: {
     backgroundColor: colors.flagRed,
-    borderRadius: 12,
+    borderRadius: 999,
     paddingVertical: 20,
     alignItems: 'center',
     shadowColor: '#000',
@@ -317,12 +327,12 @@ const styles = StyleSheet.create({
   ctaButtonText: {
     color: colors.white,
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     letterSpacing: 0.3,
   },
   requestStatusCard: {
     backgroundColor: colors.white,
-    borderRadius: 12,
+    borderRadius: 4,
     borderLeftWidth: 6,
     borderLeftColor: colors.navy,
     padding: 18,
@@ -334,7 +344,7 @@ const styles = StyleSheet.create({
   },
   requestStatusTitle: {
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.textPrimary,
     marginBottom: 4,
   },
@@ -342,11 +352,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 23,
     color: colors.navy,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   requestForm: {
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: 4,
     padding: 20,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -356,7 +366,7 @@ const styles = StyleSheet.create({
   },
   requestFormLabel: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textPrimary,
     marginBottom: 14,
     textAlign: 'center',
@@ -380,12 +390,12 @@ const styles = StyleSheet.create({
   },
   stepperButtonText: {
     fontSize: 26,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.navy,
   },
   stepperValue: {
     fontSize: 28,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.textPrimary,
     minWidth: 40,
     textAlign: 'center',
@@ -397,6 +407,7 @@ const styles = StyleSheet.create({
   },
   cancelLinkText: {
     fontSize: 15,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     textDecorationLine: 'underline',
   },
@@ -420,13 +431,13 @@ const styles = StyleSheet.create({
   stepNumberText: {
     color: colors.white,
     fontSize: 15,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
   },
   stepLabel: {
     flex: 1,
     fontSize: 18,
     lineHeight: 25,
-    fontWeight: '600',
+    fontFamily: bodyFontSemiBold,
     color: colors.textPrimary,
   },
 });

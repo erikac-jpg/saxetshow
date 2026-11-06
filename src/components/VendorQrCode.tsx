@@ -29,7 +29,7 @@ export function parseVendorQrPayload(raw: string): number | null {
 
 export default function VendorQrCode({ vendorId, size = 200 }: { vendorId: number; size?: number }) {
   return (
-    <View style={{ padding: 12, backgroundColor: colors.white, borderRadius: 12 }}>
+    <View style={{ padding: 12, backgroundColor: colors.white, borderRadius: 4 }}>
       <QRCode value={buildVendorQrPayload(vendorId)} size={size} color={colors.navy} backgroundColor={colors.white} />
     </View>
   );

@@ -1,3 +1,9 @@
+import {
+  PublicSans_400Regular,
+  PublicSans_600SemiBold,
+  PublicSans_700Bold,
+  PublicSans_800ExtraBold,
+} from '@expo-google-fonts/public-sans';
 import { Rye_400Regular, useFonts } from '@expo-google-fonts/rye';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
@@ -15,6 +21,7 @@ import StaffDashboardScreen from './src/screens/StaffDashboardScreen';
 import TermsAndConditionsScreen from './src/screens/TermsAndConditionsScreen';
 import VendorProfileScreen from './src/screens/VendorProfileScreen';
 import { colors } from './src/theme/colors';
+import { bodyFontExtraBold } from './src/theme/fonts';
 
 type Route =
   | { screen: 'home' }
@@ -34,7 +41,13 @@ const NOT_STAFF_MESSAGE =
   "Your account isn't set up for staff access yet. Ask the show organizer to promote your account.";
 
 function AppShell() {
-  const [fontsLoaded] = useFonts({ Rye_400Regular });
+  const [fontsLoaded] = useFonts({
+    Rye_400Regular,
+    PublicSans_400Regular,
+    PublicSans_600SemiBold,
+    PublicSans_700Bold,
+    PublicSans_800ExtraBold,
+  });
   const [route, setRoute] = useState<Route>({ screen: 'home' });
   const [pendingRequestEvent, setPendingRequestEvent] = useState<Event | null>(null);
   const { loading: authLoading, session, appUser, vendor, isStaff, signOut, applyVendor } = useAuth();
@@ -104,7 +117,7 @@ function AppShell() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       {loading ? (
         <View style={styles.loading}>
           <ActivityIndicator color={colors.navy} size="large" />
@@ -216,7 +229,7 @@ const styles = StyleSheet.create({
   staffFabText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     letterSpacing: 0.5,
   },
   vendorFab: {
@@ -238,7 +251,7 @@ const styles = StyleSheet.create({
   vendorFabText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     letterSpacing: 0.5,
   },
 });

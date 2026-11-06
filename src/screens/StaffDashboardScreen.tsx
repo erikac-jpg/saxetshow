@@ -21,9 +21,10 @@ import {
 import { getAllVendors } from '../db/supabase/vendors';
 import { getWaitlistForEvent, removeFromWaitlist } from '../db/supabase/waitlist';
 import type { Agreement, Event, PaymentStatus, TableRequest, Vendor, WaitlistEntry } from '../db/types';
+import AppIcon from '../components/AppIcon';
 import FlagWatermark from '../components/FlagWatermark';
 import { colors } from '../theme/colors';
-import { displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 
 function daysUntil(dateString: string): number {
   const target = new Date(`${dateString}T00:00:00`);
@@ -293,7 +294,10 @@ export default function StaffDashboardScreen({
                 style={({ pressed }) => [styles.scanButton, pressed && styles.actionButtonPressed]}
                 onPress={() => onOpenQrCheckIn(selectedEvent.id)}
               >
-                <Text style={styles.scanButtonText}>📷 Scan Check-In</Text>
+                <View style={styles.scanButtonRow}>
+                  <AppIcon name="camera" size={20} color={colors.white} strokeWidth={1.8} />
+                  <Text style={styles.scanButtonText}>Scan Check-In</Text>
+                </View>
               </Pressable>
 
               <View style={styles.card}>
@@ -578,6 +582,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     lineHeight: 23,
+    fontFamily: bodyFont,
     color: colors.red,
     paddingHorizontal: 24,
     textAlign: 'center',
@@ -585,6 +590,7 @@ const styles = StyleSheet.create({
   emptyText: {
     color: colors.textSecondary,
     fontSize: 16,
+    fontFamily: bodyFont,
   },
   header: {
     backgroundColor: colors.navy,
@@ -608,12 +614,12 @@ const styles = StyleSheet.create({
   exitButtonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   signOutText: {
     color: colors.headerSubtitle,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   headerTitle: {
     fontFamily: displayFont,
@@ -626,7 +632,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
     letterSpacing: 1.5,
-    fontWeight: '600',
+    fontFamily: bodyFontSemiBold,
   },
   scrollContent: {
     padding: 16,
@@ -638,7 +644,7 @@ const styles = StyleSheet.create({
   },
   selectorPill: {
     backgroundColor: colors.white,
-    borderRadius: 12,
+    borderRadius: 999,
     paddingVertical: 14,
     paddingHorizontal: 18,
     marginRight: 10,
@@ -654,7 +660,7 @@ const styles = StyleSheet.create({
   },
   selectorPillTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textPrimary,
   },
   selectorPillTitleActive: {
@@ -662,6 +668,7 @@ const styles = StyleSheet.create({
   },
   selectorPillDate: {
     fontSize: 14,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     marginTop: 3,
   },
@@ -677,7 +684,7 @@ const styles = StyleSheet.create({
   statTile: {
     width: '48%',
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: 4,
     paddingVertical: 18,
     paddingHorizontal: 14,
     marginBottom: 12,
@@ -693,19 +700,19 @@ const styles = StyleSheet.create({
     // Deliberately not the decorative display font - these are numbers
     // staff need to read quickly and accurately, not a title.
     fontSize: 32,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.navy,
   },
   statLabel: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textSecondary,
     letterSpacing: 0.5,
     marginTop: 4,
   },
   scanButton: {
     backgroundColor: colors.flagRed,
-    borderRadius: 14,
+    borderRadius: 999,
     paddingVertical: 18,
     minHeight: 56,
     justifyContent: 'center',
@@ -717,15 +724,20 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 3,
   },
+  scanButtonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
   scanButtonText: {
     color: colors.white,
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     letterSpacing: 0.3,
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: 4,
     padding: 20,
     marginBottom: 18,
     shadowColor: '#000',
@@ -736,30 +748,32 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.navy,
     letterSpacing: 1.5,
     marginBottom: 14,
   },
   fieldLabel: {
     fontSize: 15,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     marginBottom: 10,
   },
   totalTablesInput: {
     borderWidth: 1,
     borderColor: colors.divider,
-    borderRadius: 10,
+    borderRadius: 4,
     paddingVertical: 14,
     paddingHorizontal: 16,
     minHeight: 52,
     fontSize: 19,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textPrimary,
   },
   emptySectionText: {
     fontSize: 16,
     lineHeight: 23,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
   },
   row: {
@@ -779,7 +793,7 @@ const styles = StyleSheet.create({
   rowTitle: {
     flex: 1,
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textPrimary,
     marginRight: 8,
     textDecorationLine: 'underline',
@@ -788,12 +802,13 @@ const styles = StyleSheet.create({
   rowSubtitle: {
     fontSize: 15,
     lineHeight: 21,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     marginTop: 5,
   },
   flagText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.red,
     marginTop: 8,
   },
@@ -803,7 +818,7 @@ const styles = StyleSheet.create({
   },
   agreementLinkText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.red,
   },
   agreementLinkTextSigned: {
@@ -814,7 +829,7 @@ const styles = StyleSheet.create({
   },
   paymentLabel: {
     fontSize: 12,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.textSecondary,
     letterSpacing: 0.5,
     marginBottom: 8,
@@ -828,9 +843,9 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: colors.divider,
-    borderRadius: 8,
+    borderRadius: 999,
     paddingVertical: 12,
-    minHeight: 44,
+    minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.white,
@@ -841,7 +856,7 @@ const styles = StyleSheet.create({
   },
   paymentPillText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textPrimary,
   },
   paymentPillTextActive: {
@@ -855,11 +870,12 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: colors.divider,
-    borderRadius: 8,
+    borderRadius: 4,
     paddingVertical: 12,
     paddingHorizontal: 12,
-    minHeight: 44,
+    minHeight: 48,
     fontSize: 15,
+    fontFamily: bodyFont,
     color: colors.textPrimary,
     backgroundColor: colors.white,
   },
@@ -867,7 +883,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     borderWidth: 1,
     borderColor: colors.navy,
-    borderRadius: 10,
+    borderRadius: 999,
     paddingVertical: 14,
     minHeight: 48,
     justifyContent: 'center',
@@ -879,7 +895,7 @@ const styles = StyleSheet.create({
   },
   checkInButtonText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.navy,
   },
   checkInButtonTextActive: {
@@ -901,13 +917,13 @@ const styles = StyleSheet.create({
   },
   statusPillText: {
     fontSize: 12,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.textPrimary,
     letterSpacing: 0.3,
   },
   waitlistPosition: {
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.navy,
   },
   rowActions: {
@@ -917,7 +933,7 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    borderRadius: 10,
+    borderRadius: 999,
     paddingVertical: 14,
     minHeight: 48,
     justifyContent: 'center',
@@ -932,7 +948,7 @@ const styles = StyleSheet.create({
   approveButtonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   denyButton: {
     backgroundColor: colors.cream,
@@ -942,7 +958,7 @@ const styles = StyleSheet.create({
   denyButtonText: {
     color: colors.red,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   offerButton: {
     backgroundColor: colors.flagRed,
@@ -950,6 +966,6 @@ const styles = StyleSheet.create({
   offerButtonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
 });

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,13 +15,24 @@ import { getRequestHistoryForVendor, type VendorRequestHistoryEntry } from '../d
 import { deleteMyAccount } from '../db/supabase/users';
 import { createVendor, getVendorById, updateVendor } from '../db/supabase/vendors';
 import type { TableRequestStatus, Vendor } from '../db/types';
+import EngravedRule from '../components/EngravedRule';
 import FlagWatermark from '../components/FlagWatermark';
 import VendorQrCode from '../components/VendorQrCode';
 import { colors } from '../theme/colors';
-import { displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 import { daysUntil, expirationWarning } from '../util/expiration';
 
 const STAFF_TAG_OPTIONS = ['Reliable', 'New Vendor', 'VIP', 'Do Not Rebook'] as const;
+
+const CATEGORY_OPTIONS = [
+  'Food and baked goods',
+  'Pet products',
+  'Crafts and handmade',
+  'Apparel and accessories',
+  'Outdoor and hunting gear',
+  'Collectibles',
+  'Services and organizations',
+] as const;
 
 interface FormState {
   businessName: string;
@@ -30,7 +42,6 @@ interface FormState {
   website: string;
   address: string;
   boothNotes: string;
-  fflExpirationDate: string;
   vendorCategory: string;
   preferredTableLocation: string;
   staffNotes: string;
@@ -47,7 +58,6 @@ const EMPTY_FORM: FormState = {
   website: '',
   address: '',
   boothNotes: '',
-  fflExpirationDate: '',
   vendorCategory: '',
   preferredTableLocation: '',
   staffNotes: '',
@@ -65,7 +75,6 @@ function formFromVendor(vendor: Vendor): FormState {
     website: vendor.website ?? '',
     address: vendor.address ?? '',
     boothNotes: vendor.boothNotes ?? '',
-    fflExpirationDate: vendor.fflExpirationDate ?? '',
     vendorCategory: vendor.vendorCategory ?? '',
     preferredTableLocation: vendor.preferredTableLocation ?? '',
     staffNotes: vendor.staffNotes ?? '',
@@ -73,6 +82,10 @@ function formFromVendor(vendor: Vendor): FormState {
     insuranceExpirationDate: vendor.insuranceExpirationDate ?? '',
     staffTags: vendor.staffTags,
   };
+}
+
+function isPresetCategory(category: string): boolean {
+  return (CATEGORY_OPTIONS as readonly string[]).includes(category);
 }
 
 function deriveAttendance(entry: VendorRequestHistoryEntry): string {
@@ -114,16 +127,22 @@ export default function VendorProfileScreen({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [history, setHistory] = useState<VendorRequestHistoryEntry[] | null>(null);
+  const [otherCategorySelected, setOtherCategorySelected] = useState(false);
 
   const load = useCallback(async () => {
     if (vendorId === null) {
       setVendor(null);
       setForm(EMPTY_FORM);
+      setOtherCategorySelected(false);
       return;
     }
     const found = await getVendorById(vendorId);
     setVendor(found);
-    setForm(found ? formFromVendor(found) : EMPTY_FORM);
+    const nextForm = found ? formFromVendor(found) : EMPTY_FORM;
+    setForm(nextForm);
+    setOtherCategorySelected(
+      nextForm.vendorCategory !== '' && !isPresetCategory(nextForm.vendorCategory)
+    );
   }, [vendorId]);
 
   useEffect(() => {
@@ -163,7 +182,6 @@ export default function VendorProfileScreen({
         email: form.email.trim() || null,
         website: form.website.trim() || null,
         address: form.address.trim() || null,
-        fflExpirationDate: form.fflExpirationDate.trim() || null,
         vendorCategory: form.vendorCategory.trim() || null,
         preferredTableLocation: form.preferredTableLocation.trim() || null,
         ...(isStaffView
@@ -226,7 +244,6 @@ export default function VendorProfileScreen({
   }
 
   const isNewProfile = vendor === null;
-  const fflWarning = expirationWarning('FFL license', form.fflExpirationDate);
   const insuranceWarning = isStaffView
     ? expirationWarning('Insurance', form.insuranceExpirationDate)
     : null;
@@ -255,11 +272,6 @@ export default function VendorProfileScreen({
             <Text style={styles.noticeText}>
               No profile yet — fill in what you know below to create one.
             </Text>
-          </View>
-        )}
-        {fflWarning && (
-          <View style={styles.warningNotice}>
-            <Text style={styles.warningNoticeText}>{fflWarning}</Text>
           </View>
         )}
         {insuranceWarning && (
@@ -294,17 +306,24 @@ export default function VendorProfileScreen({
         <Field label="Website" value={form.website} onChangeText={updateField('website')} />
         <Field label="Mailing Address" value={form.address} onChangeText={updateField('address')} />
 
+        <EngravedRule />
+
         <Text style={styles.sectionLabel}>VENDOR DETAILS</Text>
-        <Field
-          label="FFL Expiration Date (YYYY-MM-DD)"
-          value={form.fflExpirationDate}
-          onChangeText={updateField('fflExpirationDate')}
-        />
-        <Field
-          label="Vendor Category"
+        <CategoryField
           value={form.vendorCategory}
-          onChangeText={updateField('vendorCategory')}
-          placeholder="Firearms, Ammo, Accessories, Knives, Apparel…"
+          otherSelected={otherCategorySelected}
+          onSelectPreset={(category) => {
+            setOtherCategorySelected(false);
+            setForm((prev) => ({ ...prev, vendorCategory: category }));
+          }}
+          onSelectOther={() => {
+            setOtherCategorySelected(true);
+            setForm((prev) => ({
+              ...prev,
+              vendorCategory: isPresetCategory(prev.vendorCategory) ? '' : prev.vendorCategory,
+            }));
+          }}
+          onChangeOtherText={updateField('vendorCategory')}
         />
         <Field
           label="Preferred Table Location"
@@ -315,6 +334,8 @@ export default function VendorProfileScreen({
 
         {isStaffView && (
           <>
+            <EngravedRule />
+
             <Text style={styles.sectionLabel}>STAFF ONLY</Text>
             <Field
               label="Booth Notes (private)"
@@ -401,17 +422,21 @@ export default function VendorProfileScreen({
         </Pressable>
 
         {!isNewProfile && vendor && (
-          <View style={styles.qrSection}>
-            <Text style={styles.sectionLabel}>CHECK-IN QR CODE</Text>
-            <Text style={styles.qrHint}>
-              Show this to staff at the door — they'll scan it to check you in.
-            </Text>
-            <VendorQrCode vendorId={vendor.id} />
-          </View>
+          <>
+            <EngravedRule />
+            <View style={styles.qrSection}>
+              <Text style={styles.sectionLabel}>CHECK-IN QR CODE</Text>
+              <Text style={styles.qrHint}>
+                Show this to staff at the door — they'll scan it to check you in.
+              </Text>
+              <VendorQrCode vendorId={vendor.id} />
+            </View>
+          </>
         )}
 
         {isStaffView && !isNewProfile && (
           <>
+            <EngravedRule />
             <Text style={styles.sectionLabel}>VENDOR HISTORY</Text>
             {history === null ? (
               <ActivityIndicator color={colors.navy} />
@@ -427,6 +452,7 @@ export default function VendorProfileScreen({
 
         {onSignOut && (
           <View style={styles.dangerZone}>
+            <EngravedRule style={styles.dangerZoneRule} />
             <Text style={styles.sectionLabel}>DELETE ACCOUNT</Text>
             <Text style={styles.dangerHint}>
               Permanently deletes your login and personal information. This cannot be undone.
@@ -502,6 +528,83 @@ function Field({
   );
 }
 
+function CategoryField({
+  value,
+  otherSelected,
+  onSelectPreset,
+  onSelectOther,
+  onChangeOtherText,
+}: {
+  value: string;
+  otherSelected: boolean;
+  onSelectPreset: (category: string) => void;
+  onSelectOther: () => void;
+  onChangeOtherText: (text: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const triggerLabel = otherSelected ? 'Other' : value || 'Select a category';
+
+  return (
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>Vendor Category</Text>
+      <Pressable style={styles.categoryTrigger} onPress={() => setOpen(true)}>
+        <Text
+          style={[styles.categoryTriggerText, !otherSelected && !value && styles.categoryTriggerPlaceholder]}
+        >
+          {triggerLabel}
+        </Text>
+        <Text style={styles.categoryTriggerChevron}>▾</Text>
+      </Pressable>
+
+      {otherSelected && (
+        <TextInput
+          value={value}
+          onChangeText={onChangeOtherText}
+          style={[styles.fieldInput, styles.categoryOtherInput]}
+          placeholder="Describe your category"
+          placeholderTextColor={colors.textSecondary}
+        />
+      )}
+
+      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+        <Pressable style={styles.categoryModalScrim} onPress={() => setOpen(false)}>
+          <Pressable style={styles.categoryModalCard} onPress={() => {}}>
+            <Text style={styles.categoryModalTitle}>Vendor Category</Text>
+            {CATEGORY_OPTIONS.map((category) => {
+              const active = !otherSelected && value === category;
+              return (
+                <Pressable
+                  key={category}
+                  style={[styles.categoryOption, active && styles.categoryOptionActive]}
+                  onPress={() => {
+                    onSelectPreset(category);
+                    setOpen(false);
+                  }}
+                >
+                  <Text style={[styles.categoryOptionText, active && styles.categoryOptionTextActive]}>
+                    {category}
+                  </Text>
+                </Pressable>
+              );
+            })}
+            <Pressable
+              style={[styles.categoryOption, otherSelected && styles.categoryOptionActive]}
+              onPress={() => {
+                onSelectOther();
+                setOpen(false);
+              }}
+            >
+              <Text style={[styles.categoryOptionText, otherSelected && styles.categoryOptionTextActive]}>
+                Other (free text)
+              </Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -538,12 +641,12 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: colors.white,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   signOutText: {
     color: colors.headerSubtitle,
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
   },
   headerTitle: {
     fontFamily: displayFont,
@@ -556,37 +659,38 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
     letterSpacing: 1.5,
-    fontWeight: '600',
+    fontFamily: bodyFontSemiBold,
   },
   content: {
     padding: 20,
   },
   notice: {
     backgroundColor: '#EDE0C6',
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 16,
     marginBottom: 20,
   },
   noticeText: {
     fontSize: 16,
     lineHeight: 23,
+    fontFamily: bodyFont,
     color: colors.textPrimary,
   },
   warningNotice: {
     backgroundColor: '#F1DCD3',
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 16,
     marginBottom: 14,
   },
   warningNoticeText: {
     fontSize: 16,
     lineHeight: 23,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.red,
   },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     color: colors.navy,
     letterSpacing: 1.5,
     marginTop: 10,
@@ -597,24 +701,93 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textSecondary,
     marginBottom: 8,
   },
   fieldInput: {
     borderWidth: 1,
     borderColor: colors.divider,
-    borderRadius: 10,
+    borderRadius: 4,
     paddingVertical: 14,
     paddingHorizontal: 16,
     minHeight: 52,
     fontSize: 17,
+    fontFamily: bodyFont,
     color: colors.textPrimary,
     backgroundColor: colors.white,
   },
   fieldInputMultiline: {
     minHeight: 96,
     textAlignVertical: 'top',
+  },
+  categoryTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 4,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    minHeight: 52,
+    backgroundColor: colors.white,
+  },
+  categoryTriggerText: {
+    fontSize: 17,
+    fontFamily: bodyFont,
+    color: colors.textPrimary,
+  },
+  categoryTriggerPlaceholder: {
+    color: colors.textSecondary,
+  },
+  categoryTriggerChevron: {
+    fontSize: 15,
+    color: colors.textSecondary,
+  },
+  categoryOtherInput: {
+    marginTop: 10,
+  },
+  categoryModalScrim: {
+    flex: 1,
+    backgroundColor: 'rgba(27,42,65,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  categoryModalCard: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 10,
+  },
+  categoryModalTitle: {
+    fontSize: 14,
+    fontFamily: bodyFontExtraBold,
+    color: colors.navy,
+    letterSpacing: 1.5,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+  },
+  categoryOption: {
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    minHeight: 48,
+    justifyContent: 'center',
+  },
+  categoryOptionActive: {
+    backgroundColor: colors.navy,
+  },
+  categoryOptionText: {
+    fontSize: 16,
+    fontFamily: bodyFontSemiBold,
+    color: colors.textPrimary,
+  },
+  categoryOptionTextActive: {
+    color: colors.white,
+    fontFamily: bodyFontExtraBold,
   },
   toggleRow: {
     flexDirection: 'row',
@@ -624,7 +797,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: colors.divider,
-    borderRadius: 10,
+    borderRadius: 999,
     paddingVertical: 14,
     minHeight: 52,
     justifyContent: 'center',
@@ -637,7 +810,7 @@ const styles = StyleSheet.create({
   },
   toggleOptionText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textPrimary,
   },
   toggleOptionTextActive: {
@@ -654,7 +827,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    minHeight: 44,
+    minHeight: 48,
     justifyContent: 'center',
     backgroundColor: colors.white,
   },
@@ -664,7 +837,7 @@ const styles = StyleSheet.create({
   },
   tagChipText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textPrimary,
   },
   tagChipTextActive: {
@@ -672,7 +845,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: colors.navy,
-    borderRadius: 12,
+    borderRadius: 999,
     paddingVertical: 18,
     minHeight: 56,
     justifyContent: 'center',
@@ -690,41 +863,43 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: colors.white,
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
     letterSpacing: 0.3,
   },
   emptyHistoryText: {
     fontSize: 16,
     lineHeight: 23,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
   },
   qrSection: {
-    marginTop: 28,
     alignItems: 'center',
   },
   qrHint: {
     fontSize: 15,
     lineHeight: 21,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 16,
   },
   dangerZone: {
-    marginTop: 36,
-    paddingTop: 24,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
+    marginTop: 14,
+  },
+  dangerZoneRule: {
+    marginTop: 0,
   },
   dangerHint: {
     fontSize: 15,
     lineHeight: 21,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     marginBottom: 14,
   },
   deleteButton: {
     borderWidth: 1,
     borderColor: colors.red,
-    borderRadius: 12,
+    borderRadius: 999,
     paddingVertical: 16,
     minHeight: 52,
     justifyContent: 'center',
@@ -736,11 +911,11 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     color: colors.red,
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: bodyFontExtraBold,
   },
   historyRow: {
     backgroundColor: colors.white,
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 16,
     marginBottom: 12,
     borderLeftWidth: 4,
@@ -748,12 +923,13 @@ const styles = StyleSheet.create({
   },
   historyEventName: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: bodyFontBold,
     color: colors.textPrimary,
   },
   historyMeta: {
     fontSize: 14,
     lineHeight: 20,
+    fontFamily: bodyFont,
     color: colors.textSecondary,
     marginTop: 3,
   },
