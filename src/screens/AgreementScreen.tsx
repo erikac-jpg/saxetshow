@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: 4,
     padding: 22,
     marginBottom: 26,
     shadowColor: '#000',
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   },
   signButton: {
     backgroundColor: colors.flagRed,
-    borderRadius: 12,
+    borderRadius: 999,
     paddingVertical: 20,
     minHeight: 56,
     justifyContent: 'center',

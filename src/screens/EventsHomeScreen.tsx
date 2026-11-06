@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: 4,
     overflow: 'hidden',
     borderLeftWidth: 10,
     borderLeftColor: colors.flagRed,

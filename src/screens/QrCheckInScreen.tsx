@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   },
   permissionButton: {
     backgroundColor: colors.navy,
-    borderRadius: 10,
+    borderRadius: 999,
     paddingVertical: 16,
     paddingHorizontal: 28,
     minHeight: 52,
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: 4,
     padding: 22,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
   },
   warningNotice: {
     backgroundColor: '#F1DCD3',
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 14,
     marginTop: 16,
   },
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
   },
   noticeBox: {
     backgroundColor: '#EDE0C6',
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 14,
     marginTop: 16,
   },
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: colors.navy,
-    borderRadius: 12,
+    borderRadius: 999,
     paddingVertical: 16,
     minHeight: 52,
     justifyContent: 'center',
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
   scanNextButton: {
     marginTop: 22,
     backgroundColor: colors.navy,
-    borderRadius: 12,
+    borderRadius: 999,
     paddingVertical: 16,
     minHeight: 52,
     justifyContent: 'center',

@@ -13,6 +13,7 @@ import {
 import { useAuth } from '../auth/AuthContext';
 import { createTableRequest, getTableRequestsForVendor } from '../db/supabase/tableRequests';
 import type { Event, TableRequest } from '../db/types';
+import EngravedRule from '../components/EngravedRule';
 import FlagWatermark from '../components/FlagWatermark';
 import MascotCelebration from '../components/MascotCelebration';
 import { colors } from '../theme/colors';
@@ -126,7 +127,7 @@ export default function EventDetailScreen({
         {event.location ? <Text style={styles.location}>📍 {event.location}</Text> : null}
         {event.description ? <Text style={styles.description}>{event.description}</Text> : null}
 
-        <View style={styles.divider} />
+        <EngravedRule ornament />
 
         <Text style={styles.sectionLabel}>VENDOR INFO</Text>
         <Text style={styles.sectionBody}>
@@ -188,7 +189,7 @@ export default function EventDetailScreen({
           </Pressable>
         )}
 
-        <View style={styles.divider} />
+        <EngravedRule ornament />
 
         <Text style={styles.sectionLabel}>BECOME A VENDOR</Text>
         <View style={styles.stepsList}>
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 20,
+    borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.16)',
   },
   backButtonText: {
@@ -282,11 +283,6 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: 8,
   },
-  divider: {
-    height: 2,
-    backgroundColor: colors.divider,
-    marginVertical: 26,
-  },
   sectionLabel: {
     fontSize: 14,
     fontWeight: '800',
@@ -302,7 +298,7 @@ const styles = StyleSheet.create({
   },
   ctaButton: {
     backgroundColor: colors.flagRed,
-    borderRadius: 12,
+    borderRadius: 999,
     paddingVertical: 20,
     alignItems: 'center',
     shadowColor: '#000',
@@ -322,7 +318,7 @@ const styles = StyleSheet.create({
   },
   requestStatusCard: {
     backgroundColor: colors.white,
-    borderRadius: 12,
+    borderRadius: 4,
     borderLeftWidth: 6,
     borderLeftColor: colors.navy,
     padding: 18,
@@ -346,7 +342,7 @@ const styles = StyleSheet.create({
   },
   requestForm: {
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: 4,
     padding: 20,
     shadowColor: '#000',
     shadowOpacity: 0.1,

@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   },
   notice: {
     backgroundColor: '#EDE0C6',
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 16,
     marginBottom: 20,
   },
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   },
   errorNotice: {
     backgroundColor: '#F1DCD3',
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 16,
     marginBottom: 20,
   },
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   fieldInput: {
     borderWidth: 1,
     borderColor: colors.divider,
-    borderRadius: 10,
+    borderRadius: 4,
     paddingVertical: 14,
     paddingHorizontal: 16,
     minHeight: 52,
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: colors.navy,
-    borderRadius: 12,
+    borderRadius: 999,
     paddingVertical: 18,
     minHeight: 56,
     justifyContent: 'center',

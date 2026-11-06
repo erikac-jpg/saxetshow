@@ -15,6 +15,7 @@ import { getRequestHistoryForVendor, type VendorRequestHistoryEntry } from '../d
 import { deleteMyAccount } from '../db/supabase/users';
 import { createVendor, getVendorById, updateVendor } from '../db/supabase/vendors';
 import type { TableRequestStatus, Vendor } from '../db/types';
+import EngravedRule from '../components/EngravedRule';
 import FlagWatermark from '../components/FlagWatermark';
 import VendorQrCode from '../components/VendorQrCode';
 import { colors } from '../theme/colors';
@@ -305,6 +306,8 @@ export default function VendorProfileScreen({
         <Field label="Website" value={form.website} onChangeText={updateField('website')} />
         <Field label="Mailing Address" value={form.address} onChangeText={updateField('address')} />
 
+        <EngravedRule />
+
         <Text style={styles.sectionLabel}>VENDOR DETAILS</Text>
         <CategoryField
           value={form.vendorCategory}
@@ -331,6 +334,8 @@ export default function VendorProfileScreen({
 
         {isStaffView && (
           <>
+            <EngravedRule />
+
             <Text style={styles.sectionLabel}>STAFF ONLY</Text>
             <Field
               label="Booth Notes (private)"
@@ -417,17 +422,21 @@ export default function VendorProfileScreen({
         </Pressable>
 
         {!isNewProfile && vendor && (
-          <View style={styles.qrSection}>
-            <Text style={styles.sectionLabel}>CHECK-IN QR CODE</Text>
-            <Text style={styles.qrHint}>
-              Show this to staff at the door — they'll scan it to check you in.
-            </Text>
-            <VendorQrCode vendorId={vendor.id} />
-          </View>
+          <>
+            <EngravedRule />
+            <View style={styles.qrSection}>
+              <Text style={styles.sectionLabel}>CHECK-IN QR CODE</Text>
+              <Text style={styles.qrHint}>
+                Show this to staff at the door — they'll scan it to check you in.
+              </Text>
+              <VendorQrCode vendorId={vendor.id} />
+            </View>
+          </>
         )}
 
         {isStaffView && !isNewProfile && (
           <>
+            <EngravedRule />
             <Text style={styles.sectionLabel}>VENDOR HISTORY</Text>
             {history === null ? (
               <ActivityIndicator color={colors.navy} />
@@ -443,6 +452,7 @@ export default function VendorProfileScreen({
 
         {onSignOut && (
           <View style={styles.dangerZone}>
+            <EngravedRule style={styles.dangerZoneRule} />
             <Text style={styles.sectionLabel}>DELETE ACCOUNT</Text>
             <Text style={styles.dangerHint}>
               Permanently deletes your login and personal information. This cannot be undone.
@@ -656,7 +666,7 @@ const styles = StyleSheet.create({
   },
   notice: {
     backgroundColor: '#EDE0C6',
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 16,
     marginBottom: 20,
   },
@@ -667,7 +677,7 @@ const styles = StyleSheet.create({
   },
   warningNotice: {
     backgroundColor: '#F1DCD3',
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 16,
     marginBottom: 14,
   },
@@ -697,7 +707,7 @@ const styles = StyleSheet.create({
   fieldInput: {
     borderWidth: 1,
     borderColor: colors.divider,
-    borderRadius: 10,
+    borderRadius: 4,
     paddingVertical: 14,
     paddingHorizontal: 16,
     minHeight: 52,
@@ -715,7 +725,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: colors.divider,
-    borderRadius: 10,
+    borderRadius: 4,
     paddingVertical: 14,
     paddingHorizontal: 16,
     minHeight: 52,
@@ -784,7 +794,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: colors.divider,
-    borderRadius: 10,
+    borderRadius: 999,
     paddingVertical: 14,
     minHeight: 52,
     justifyContent: 'center',
@@ -832,7 +842,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: colors.navy,
-    borderRadius: 12,
+    borderRadius: 999,
     paddingVertical: 18,
     minHeight: 56,
     justifyContent: 'center',
@@ -859,7 +869,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   qrSection: {
-    marginTop: 28,
     alignItems: 'center',
   },
   qrHint: {
@@ -870,10 +879,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   dangerZone: {
-    marginTop: 36,
-    paddingTop: 24,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
+    marginTop: 14,
+  },
+  dangerZoneRule: {
+    marginTop: 0,
   },
   dangerHint: {
     fontSize: 15,
@@ -884,7 +893,7 @@ const styles = StyleSheet.create({
   deleteButton: {
     borderWidth: 1,
     borderColor: colors.red,
-    borderRadius: 12,
+    borderRadius: 999,
     paddingVertical: 16,
     minHeight: 52,
     justifyContent: 'center',
@@ -900,7 +909,7 @@ const styles = StyleSheet.create({
   },
   historyRow: {
     backgroundColor: colors.white,
-    borderRadius: 10,
+    borderRadius: 4,
     padding: 16,
     marginBottom: 12,
     borderLeftWidth: 4,
