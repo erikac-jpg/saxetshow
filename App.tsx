@@ -104,7 +104,7 @@ function AppShell() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       {loading ? (
         <View style={styles.loading}>
           <ActivityIndicator color={colors.navy} size="large" />
