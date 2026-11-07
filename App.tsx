@@ -6,40 +6,14 @@ import {
 } from '@expo-google-fonts/public-sans';
 import { Rye_400Regular, useFonts } from '@expo-google-fonts/rye';
 import { StatusBar } from 'expo-status-bar';
-import { useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { useMemo } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-import { AuthProvider, useAuth, type AuthActionResult } from './src/auth/AuthContext';
-import type { Event } from './src/db/types';
-import AgreementScreen from './src/screens/AgreementScreen';
-import AuthScreen from './src/screens/AuthScreen';
-import EventDetailScreen from './src/screens/EventDetailScreen';
-import EventsHomeScreen from './src/screens/EventsHomeScreen';
-import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
-import QrCheckInScreen from './src/screens/QrCheckInScreen';
-import StaffDashboardScreen from './src/screens/StaffDashboardScreen';
-import TermsAndConditionsScreen from './src/screens/TermsAndConditionsScreen';
-import VendorProfileScreen from './src/screens/VendorProfileScreen';
+import { AuthProvider, useAuth } from './src/auth/AuthContext';
+import RootNavigator from './src/navigation/RootNavigator';
 import type { ThemeColors } from './src/theme/colors';
 import { ThemeProvider, useIsDarkMode, useTheme } from './src/theme/ThemeContext';
-import { bodyFontExtraBold } from './src/theme/fonts';
-
-type Route =
-  | { screen: 'home' }
-  | { screen: 'detail'; event: Event }
-  | { screen: 'privacyPolicy' }
-  | { screen: 'termsAndConditions' }
-  | { screen: 'auth'; intent: 'vendor' | 'staff' }
-  | { screen: 'staff' }
-  | { screen: 'vendorProfile'; vendorId: number }
-  | { screen: 'myVendorProfile' }
-  | { screen: 'agreement'; vendorId: number; eventId: number }
-  | { screen: 'qrCheckIn'; eventId: number };
-
-const MEMBER_SCREENS: Route['screen'][] = ['home', 'detail'];
-
-const NOT_STAFF_MESSAGE =
-  "Your account isn't set up for staff access yet. Ask the show organizer to promote your account.";
 
 function AppShell() {
   const [fontsLoaded] = useFonts({
@@ -49,148 +23,22 @@ function AppShell() {
     PublicSans_700Bold,
     PublicSans_800ExtraBold,
   });
-  const [route, setRoute] = useState<Route>({ screen: 'home' });
-  const [pendingRequestEvent, setPendingRequestEvent] = useState<Event | null>(null);
-  const { loading: authLoading, session, appUser, vendor, isStaff, signOut, applyVendor } = useAuth();
+  const { loading: authLoading } = useAuth();
   const colors = useTheme();
   const isDark = useIsDarkMode();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const backToHome = () => {
-    setPendingRequestEvent(null);
-    setRoute({ screen: 'home' });
-  };
-  const backToStaff = () => setRoute({ screen: 'staff' });
-
-  const openVendorTab = () => {
-    setPendingRequestEvent(null);
-    if (!session) {
-      setRoute({ screen: 'auth', intent: 'vendor' });
-      return;
-    }
-    setRoute({ screen: 'myVendorProfile' });
-  };
-
-  // Reached when a visitor taps "Request Tables" on an event without a vendor
-  // account yet - remembers which event they wanted so sign-in/profile
-  // creation can drop them back there instead of their own vendor profile.
-  const handleNeedVendorAccount = (event: Event) => {
-    setPendingRequestEvent(event);
-    if (!session) {
-      setRoute({ screen: 'auth', intent: 'vendor' });
-    } else {
-      setRoute({ screen: 'myVendorProfile' });
-    }
-  };
-
-  const openStaffTab = () => {
-    if (!session) {
-      setRoute({ screen: 'auth', intent: 'staff' });
-      return;
-    }
-    if (!isStaff) {
-      Alert.alert('Staff Access Required', NOT_STAFF_MESSAGE);
-      return;
-    }
-    setRoute({ screen: 'staff' });
-  };
-
-  const handleAuthSuccess = (intent: 'vendor' | 'staff', result: AuthActionResult) => {
-    if (intent === 'staff') {
-      if (result.user?.role === 'staff') {
-        setRoute({ screen: 'staff' });
-      } else {
-        setRoute({ screen: 'home' });
-        Alert.alert('Signed In', NOT_STAFF_MESSAGE);
-      }
-    } else if (pendingRequestEvent) {
-      const returnToEvent = pendingRequestEvent;
-      setPendingRequestEvent(null);
-      setRoute({ screen: 'detail', event: returnToEvent });
-    } else {
-      setRoute({ screen: 'myVendorProfile' });
-    }
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    setRoute({ screen: 'home' });
-  };
-
   const loading = !fontsLoaded || authLoading;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       {loading ? (
         <View style={styles.loading}>
           <ActivityIndicator color={colors.navy} size="large" />
         </View>
-      ) : route.screen === 'home' ? (
-        <EventsHomeScreen
-          onSelectEvent={(event) => setRoute({ screen: 'detail', event })}
-          onOpenPrivacyPolicy={() => setRoute({ screen: 'privacyPolicy' })}
-          onOpenTermsAndConditions={() => setRoute({ screen: 'termsAndConditions' })}
-        />
-      ) : route.screen === 'detail' ? (
-        <EventDetailScreen
-          event={route.event}
-          onBack={backToHome}
-          onNeedVendorAccount={handleNeedVendorAccount}
-        />
-      ) : route.screen === 'privacyPolicy' ? (
-        <PrivacyPolicyScreen onBack={backToHome} />
-      ) : route.screen === 'termsAndConditions' ? (
-        <TermsAndConditionsScreen onBack={backToHome} />
-      ) : route.screen === 'auth' ? (
-        <AuthScreen
-          intent={route.intent}
-          onBack={backToHome}
-          onSuccess={(result) => handleAuthSuccess(route.intent, result)}
-        />
-      ) : route.screen === 'vendorProfile' ? (
-        <VendorProfileScreen vendorId={route.vendorId} onBack={backToStaff} isStaffView />
-      ) : route.screen === 'myVendorProfile' ? (
-        <VendorProfileScreen
-          vendorId={vendor?.id ?? null}
-          linkUserId={appUser?.id ?? null}
-          onBack={backToHome}
-          onSaved={(savedVendor) => {
-            applyVendor(savedVendor);
-            if (pendingRequestEvent) {
-              const returnToEvent = pendingRequestEvent;
-              setPendingRequestEvent(null);
-              setRoute({ screen: 'detail', event: returnToEvent });
-            }
-          }}
-          onSignOut={handleSignOut}
-          subtitle="MY PROFILE"
-        />
-      ) : route.screen === 'agreement' ? (
-        <AgreementScreen vendorId={route.vendorId} eventId={route.eventId} onBack={backToStaff} />
-      ) : route.screen === 'qrCheckIn' ? (
-        <QrCheckInScreen eventId={route.eventId} onBack={backToStaff} />
       ) : (
-        <StaffDashboardScreen
-          onExit={backToHome}
-          onSignOut={handleSignOut}
-          onOpenVendorProfile={(vendorId) => setRoute({ screen: 'vendorProfile', vendorId })}
-          onOpenAgreement={(vendorId, eventId) =>
-            setRoute({ screen: 'agreement', vendorId, eventId })
-          }
-          onOpenQrCheckIn={(eventId) => setRoute({ screen: 'qrCheckIn', eventId })}
-        />
-      )}
-
-      {!loading && MEMBER_SCREENS.includes(route.screen) && (
-        <>
-          <Pressable style={styles.vendorFab} onPress={openVendorTab} hitSlop={8}>
-            <Text style={styles.vendorFabText}>Vendor</Text>
-          </Pressable>
-          <Pressable style={styles.staffFab} onPress={openStaffTab} hitSlop={8}>
-            <Text style={styles.staffFabText}>Staff</Text>
-          </Pressable>
-        </>
+        <RootNavigator />
       )}
     </SafeAreaView>
   );
@@ -199,9 +47,11 @@ function AppShell() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <AppShell />
-      </AuthProvider>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <AppShell />
+        </AuthProvider>
+      </SafeAreaProvider>
     </ThemeProvider>
   );
 }
@@ -215,49 +65,5 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  staffFab: {
-    position: 'absolute',
-    right: 16,
-    bottom: 16,
-    backgroundColor: colors.navy,
-    paddingVertical: 16,
-    paddingHorizontal: 22,
-    minHeight: 52,
-    justifyContent: 'center',
-    borderRadius: 999,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
-  },
-  staffFabText: {
-    color: colors.white,
-    fontSize: 16,
-    fontFamily: bodyFontExtraBold,
-    letterSpacing: 0.5,
-  },
-  vendorFab: {
-    position: 'absolute',
-    left: 16,
-    bottom: 16,
-    backgroundColor: colors.flagRed,
-    paddingVertical: 16,
-    paddingHorizontal: 22,
-    minHeight: 52,
-    justifyContent: 'center',
-    borderRadius: 999,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
-  },
-  vendorFabText: {
-    color: colors.white,
-    fontSize: 16,
-    fontFamily: bodyFontExtraBold,
-    letterSpacing: 0.5,
   },
 });
