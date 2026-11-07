@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -18,7 +18,8 @@ import type { TableRequestStatus, Vendor } from '../db/types';
 import EngravedRule from '../components/EngravedRule';
 import FlagWatermark from '../components/FlagWatermark';
 import VendorQrCode from '../components/VendorQrCode';
-import { colors } from '../theme/colors';
+import type { ThemeColors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 import { daysUntil, expirationWarning } from '../util/expiration';
 
@@ -128,6 +129,8 @@ export default function VendorProfileScreen({
   const [deleting, setDeleting] = useState(false);
   const [history, setHistory] = useState<VendorRequestHistoryEntry[] | null>(null);
   const [otherCategorySelected, setOtherCategorySelected] = useState(false);
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const load = useCallback(async () => {
     if (vendorId === null) {
@@ -238,7 +241,7 @@ export default function VendorProfileScreen({
   if (vendor === undefined) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={colors.navy} size="large" />
+        <ActivityIndicator color={colors.accentText} size="large" />
       </View>
     );
   }
@@ -439,7 +442,7 @@ export default function VendorProfileScreen({
             <EngravedRule />
             <Text style={styles.sectionLabel}>VENDOR HISTORY</Text>
             {history === null ? (
-              <ActivityIndicator color={colors.navy} />
+              <ActivityIndicator color={colors.accentText} />
             ) : history.length === 0 ? (
               <Text style={styles.emptyHistoryText}>No past table requests for this vendor.</Text>
             ) : (
@@ -480,6 +483,8 @@ const STATUS_LABEL: Record<TableRequestStatus, string> = {
 };
 
 function HistoryRow({ entry }: { entry: VendorRequestHistoryEntry }) {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.historyRow}>
       <Text style={styles.historyEventName} numberOfLines={1}>
@@ -511,6 +516,8 @@ function Field({
   keyboardType?: 'phone-pad' | 'email-address';
   placeholder?: string;
 }) {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -542,6 +549,8 @@ function CategoryField({
   onChangeOtherText: (text: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const triggerLabel = otherSelected ? 'Other' : value || 'Select a category';
 
   return (
@@ -605,16 +614,16 @@ function CategoryField({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.cream,
+    backgroundColor: colors.background,
   },
   scrollContent: {
     paddingBottom: 48,
@@ -665,7 +674,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   notice: {
-    backgroundColor: '#EDE0C6',
+    backgroundColor: colors.noticeBg,
     borderRadius: 4,
     padding: 16,
     marginBottom: 20,
@@ -677,7 +686,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   warningNotice: {
-    backgroundColor: '#F1DCD3',
+    backgroundColor: colors.warningBg,
     borderRadius: 4,
     padding: 16,
     marginBottom: 14,
@@ -691,7 +700,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 14,
     fontFamily: bodyFontExtraBold,
-    color: colors.navy,
+    color: colors.accentText,
     letterSpacing: 1.5,
     marginTop: 10,
     marginBottom: 14,
@@ -715,7 +724,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontFamily: bodyFont,
     color: colors.textPrimary,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   fieldInputMultiline: {
     minHeight: 96,
@@ -731,7 +740,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     minHeight: 52,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   categoryTriggerText: {
     fontSize: 17,
@@ -758,14 +767,14 @@ const styles = StyleSheet.create({
   categoryModalCard: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 10,
   },
   categoryModalTitle: {
     fontSize: 14,
     fontFamily: bodyFontExtraBold,
-    color: colors.navy,
+    color: colors.accentText,
     letterSpacing: 1.5,
     paddingVertical: 10,
     paddingHorizontal: 10,
@@ -802,7 +811,7 @@ const styles = StyleSheet.create({
     minHeight: 52,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   toggleOptionActive: {
     backgroundColor: colors.navy,
@@ -829,7 +838,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     minHeight: 48,
     justifyContent: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   tagChipActive: {
     backgroundColor: colors.flagRed,
@@ -914,7 +923,7 @@ const styles = StyleSheet.create({
     fontFamily: bodyFontExtraBold,
   },
   historyRow: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: 4,
     padding: 16,
     marginBottom: 12,

@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 const WIDTH = 400;
 const HEIGHT = 900;
@@ -39,6 +39,7 @@ function wavePath(
 }
 
 export default function TopoBackground() {
+  const colors = useTheme();
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Svg width="100%" height="100%" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none">

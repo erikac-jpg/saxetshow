@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -14,7 +14,8 @@ import {
   VENDOR_AGREEMENT_TITLE,
 } from '../content/vendorAgreementTemplate';
 import FlagWatermark from '../components/FlagWatermark';
-import { colors } from '../theme/colors';
+import type { ThemeColors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 
 export default function AgreementScreen({
@@ -31,6 +32,8 @@ export default function AgreementScreen({
   const [agreement, setAgreement] = useState<Agreement | null>(null);
   const [loading, setLoading] = useState(true);
   const [signing, setSigning] = useState(false);
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -95,7 +98,7 @@ export default function AgreementScreen({
 
       {loading ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={colors.navy} size="large" />
+          <ActivityIndicator color={colors.accentText} size="large" />
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -131,10 +134,10 @@ export default function AgreementScreen({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
@@ -185,10 +188,10 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   statusPillNotSigned: {
-    backgroundColor: '#EDE0C6',
+    backgroundColor: colors.noticeBg,
   },
   statusPillSigned: {
-    backgroundColor: '#DCEBDD',
+    backgroundColor: colors.successBg,
   },
   statusPillText: {
     fontSize: 14,
@@ -196,7 +199,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: 4,
     padding: 22,
     marginBottom: 26,
@@ -210,7 +213,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 28,
     fontFamily: bodyFontExtraBold,
-    color: colors.navy,
+    color: colors.accentText,
     marginBottom: 16,
   },
   paragraph: {
@@ -237,7 +240,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   signButtonSigned: {
-    backgroundColor: '#DCEBDD',
+    backgroundColor: colors.successBg,
     shadowOpacity: 0,
     elevation: 0,
   },
@@ -248,6 +251,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   signButtonTextSigned: {
-    color: colors.navy,
+    color: colors.accentText,
   },
 });

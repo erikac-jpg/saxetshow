@@ -6,7 +6,7 @@ import {
 } from '@expo-google-fonts/public-sans';
 import { Rye_400Regular, useFonts } from '@expo-google-fonts/rye';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 import { AuthProvider, useAuth, type AuthActionResult } from './src/auth/AuthContext';
@@ -20,7 +20,8 @@ import QrCheckInScreen from './src/screens/QrCheckInScreen';
 import StaffDashboardScreen from './src/screens/StaffDashboardScreen';
 import TermsAndConditionsScreen from './src/screens/TermsAndConditionsScreen';
 import VendorProfileScreen from './src/screens/VendorProfileScreen';
-import { colors } from './src/theme/colors';
+import type { ThemeColors } from './src/theme/colors';
+import { ThemeProvider, useIsDarkMode, useTheme } from './src/theme/ThemeContext';
 import { bodyFontExtraBold } from './src/theme/fonts';
 
 type Route =
@@ -51,6 +52,9 @@ function AppShell() {
   const [route, setRoute] = useState<Route>({ screen: 'home' });
   const [pendingRequestEvent, setPendingRequestEvent] = useState<Event | null>(null);
   const { loading: authLoading, session, appUser, vendor, isStaff, signOut, applyVendor } = useAuth();
+  const colors = useTheme();
+  const isDark = useIsDarkMode();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const backToHome = () => {
     setPendingRequestEvent(null);
@@ -117,7 +121,7 @@ function AppShell() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="dark" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       {loading ? (
         <View style={styles.loading}>
           <ActivityIndicator color={colors.navy} size="large" />
@@ -194,16 +198,18 @@ function AppShell() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppShell />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppShell />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: colors.background,
   },
   loading: {
     flex: 1,

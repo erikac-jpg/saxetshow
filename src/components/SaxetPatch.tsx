@@ -1,7 +1,7 @@
 import { Image, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { displayFont } from '../theme/fonts';
 
 const texasMark = require('../../assets/texas-mark.png');
@@ -24,6 +24,7 @@ export default function SaxetPatch({
   const bandHeight = size * (12 / 52);
   const bandRadius = size * (2 / 52);
   const fontSize = size * (9 / 52);
+  const colors = useTheme();
 
   return (
     <View style={[{ width: size, height: size }, style]}>
