@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '../theme/colors';
+import type { ThemeColors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontExtraBold, displayFont } from '../theme/fonts';
 import { getCurrentSeason, SEASON_LABEL } from '../util/season';
 import MascotIcon from './mascots/MascotIcon';
@@ -22,6 +24,8 @@ export default function MascotCelebration({
   onDismiss: () => void;
 }) {
   const season = getCurrentSeason();
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onDismiss}>
@@ -45,7 +49,7 @@ export default function MascotCelebration({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   scrim: {
     flex: 1,
     backgroundColor: 'rgba(27,42,65,0.55)',
@@ -56,7 +60,7 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: 20,
     paddingVertical: 28,
     paddingHorizontal: 24,
@@ -92,7 +96,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: displayFont,
     fontSize: 28,
-    color: colors.navy,
+    color: colors.accentText,
     textAlign: 'center',
     marginBottom: 10,
   },

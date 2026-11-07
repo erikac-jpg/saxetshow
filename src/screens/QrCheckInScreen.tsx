@@ -1,7 +1,7 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useAudioPlayer } from 'expo-audio';
 import * as Haptics from 'expo-haptics';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { parseVendorQrPayload } from '../components/VendorQrCode';
@@ -13,7 +13,8 @@ import {
 import { getVendorById } from '../db/supabase/vendors';
 import type { TableRequest, Vendor } from '../db/types';
 import FlagWatermark from '../components/FlagWatermark';
-import { colors } from '../theme/colors';
+import type { ThemeColors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 import { expirationWarning } from '../util/expiration';
 
@@ -34,6 +35,8 @@ export default function QrCheckInScreen({
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
   const dingPlayer = useAudioPlayer(require('../../assets/sounds/scan-success.wav'));
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   // Staff are scanning in a noisy, busy room and aren't staring at the
   // screen — a ding + buzz tells them "got it" (or "try again") without
@@ -129,7 +132,7 @@ export default function QrCheckInScreen({
 
       {!permission ? (
         <View style={styles.centered}>
-          <ActivityIndicator color={colors.navy} size="large" />
+          <ActivityIndicator color={colors.accentText} size="large" />
         </View>
       ) : !permission.granted ? (
         <View style={styles.centered}>
@@ -177,6 +180,8 @@ export default function QrCheckInScreen({
 }
 
 function ResultCard({ tone, message }: { tone: 'error'; message: string }) {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={[styles.card, tone === 'error' && styles.cardError]}>
       <Text style={styles.cardErrorText}>{message}</Text>
@@ -197,6 +202,8 @@ function VendorScanCard({
   onToggleCheckIn: () => void;
   onMarkPaid: () => void;
 }) {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const fflWarning = expirationWarning('FFL license', vendor.fflExpirationDate ?? '');
   const isCheckedIn = Boolean(request?.checkedInAt);
   const isPaid = request?.paymentStatus === 'paid';
@@ -251,10 +258,10 @@ function VendorScanCard({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
@@ -344,7 +351,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: 4,
     padding: 22,
     shadowColor: '#000',
@@ -354,7 +361,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   cardError: {
-    backgroundColor: '#F1DCD3',
+    backgroundColor: colors.warningBg,
   },
   cardErrorText: {
     fontSize: 17,
@@ -368,7 +375,7 @@ const styles = StyleSheet.create({
     // read this fast and correctly to catch a wrong-person scan.
     fontSize: 24,
     fontFamily: bodyFontExtraBold,
-    color: colors.navy,
+    color: colors.accentText,
   },
   vendorMeta: {
     fontSize: 16,
@@ -377,7 +384,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   warningNotice: {
-    backgroundColor: '#F1DCD3',
+    backgroundColor: colors.warningBg,
     borderRadius: 4,
     padding: 14,
     marginTop: 16,
@@ -389,7 +396,7 @@ const styles = StyleSheet.create({
     color: colors.red,
   },
   noticeBox: {
-    backgroundColor: '#EDE0C6',
+    backgroundColor: colors.noticeBg,
     borderRadius: 4,
     padding: 14,
     marginTop: 16,
@@ -421,7 +428,7 @@ const styles = StyleSheet.create({
     // collect in cash, it needs to be unambiguous, not stylized.
     fontSize: 28,
     fontFamily: bodyFontExtraBold,
-    color: colors.navy,
+    color: colors.accentText,
   },
   actionRow: {
     flexDirection: 'row',
@@ -431,7 +438,7 @@ const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
     borderWidth: 1,
-    borderColor: colors.navy,
+    borderColor: colors.accentText,
     borderRadius: 999,
     paddingVertical: 16,
     minHeight: 52,
@@ -439,16 +446,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionButtonActive: {
-    backgroundColor: '#DCEBDD',
-    borderColor: '#DCEBDD',
+    backgroundColor: colors.successBg,
+    borderColor: colors.successBg,
   },
   actionButtonText: {
     fontSize: 15,
     fontFamily: bodyFontExtraBold,
-    color: colors.navy,
+    color: colors.accentText,
   },
   actionButtonTextActive: {
-    color: colors.navy,
+    color: colors.accentText,
   },
   scanNextButton: {
     marginTop: 22,

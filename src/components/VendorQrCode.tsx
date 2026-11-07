@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 const QR_VERSION = 1;
 
@@ -28,7 +28,11 @@ export function parseVendorQrPayload(raw: string): number | null {
 }
 
 export default function VendorQrCode({ vendorId, size = 200 }: { vendorId: number; size?: number }) {
+  const colors = useTheme();
   return (
+    // Deliberately always white/navy, never `surface`/`accentText` - a QR
+    // code needs strong, reliable module contrast to scan, independent of
+    // the active theme.
     <View style={{ padding: 12, backgroundColor: colors.white, borderRadius: 4 }}>
       <QRCode value={buildVendorQrPayload(vendorId)} size={size} color={colors.navy} backgroundColor={colors.white} />
     </View>

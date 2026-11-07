@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -17,7 +17,8 @@ import AppIcon from '../components/AppIcon';
 import EngravedRule from '../components/EngravedRule';
 import FlagWatermark from '../components/FlagWatermark';
 import MascotCelebration from '../components/MascotCelebration';
-import { colors } from '../theme/colors';
+import type { ThemeColors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 
 function formatEventDate(dateString: string): string {
@@ -51,6 +52,8 @@ export default function EventDetailScreen({
   onNeedVendorAccount: (event: Event) => void;
 }) {
   const { session, vendor } = useAuth();
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [existingRequest, setExistingRequest] = useState<TableRequest | null | undefined>(undefined);
   const [requesting, setRequesting] = useState(false);
   const [tablesWanted, setTablesWanted] = useState(1);
@@ -142,7 +145,7 @@ export default function EventDetailScreen({
         </Text>
 
         {existingRequest === undefined ? (
-          <ActivityIndicator color={colors.navy} />
+          <ActivityIndicator color={colors.accentText} />
         ) : existingRequest ? (
           <View style={styles.requestStatusCard}>
             <Text style={styles.requestStatusTitle}>
@@ -215,6 +218,8 @@ export default function EventDetailScreen({
 }
 
 function VendorStep({ number, label }: { number: number; label: string }) {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.stepRow}>
       <View style={styles.stepNumber}>
@@ -225,10 +230,10 @@ function VendorStep({ number, label }: { number: number; label: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: colors.background,
   },
   scrollContent: {
     paddingBottom: 48,
@@ -263,14 +268,14 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: displayFont,
     fontSize: 34,
-    color: colors.navy,
+    color: colors.accentText,
     marginBottom: 10,
   },
   date: {
     fontSize: 17,
     lineHeight: 25,
     fontFamily: bodyFontBold,
-    color: colors.navy,
+    color: colors.accentText,
     marginBottom: 8,
   },
   locationRow: {
@@ -299,7 +304,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 14,
     fontFamily: bodyFontExtraBold,
-    color: colors.navy,
+    color: colors.accentText,
     letterSpacing: 1.5,
     marginBottom: 12,
   },
@@ -331,10 +336,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   requestStatusCard: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: 4,
     borderLeftWidth: 6,
-    borderLeftColor: colors.navy,
+    borderLeftColor: colors.accentText,
     padding: 18,
     shadowColor: '#000',
     shadowOpacity: 0.08,
@@ -351,11 +356,11 @@ const styles = StyleSheet.create({
   requestStatusBody: {
     fontSize: 16,
     lineHeight: 23,
-    color: colors.navy,
+    color: colors.accentText,
     fontFamily: bodyFontBold,
   },
   requestForm: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: 4,
     padding: 20,
     shadowColor: '#000',
@@ -382,7 +387,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: colors.cream,
+    backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.divider,
     alignItems: 'center',
@@ -391,7 +396,7 @@ const styles = StyleSheet.create({
   stepperButtonText: {
     fontSize: 26,
     fontFamily: bodyFontExtraBold,
-    color: colors.navy,
+    color: colors.accentText,
   },
   stepperValue: {
     fontSize: 28,

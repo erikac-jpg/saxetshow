@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -5,10 +6,13 @@ import {
   TERMS_AND_CONDITIONS_TITLE,
 } from '../content/termsAndConditionsTemplate';
 import FlagWatermark from '../components/FlagWatermark';
-import { colors } from '../theme/colors';
+import type { ThemeColors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, displayFont } from '../theme/fonts';
 
 export default function TermsAndConditionsScreen({ onBack }: { onBack: () => void }) {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -33,10 +37,10 @@ export default function TermsAndConditionsScreen({ onBack }: { onBack: () => voi
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: colors.background,
   },
   header: {
     backgroundColor: colors.navy,
@@ -68,7 +72,7 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: 4,
     padding: 22,
     shadowColor: '#000',
@@ -81,7 +85,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 28,
     fontFamily: bodyFontExtraBold,
-    color: colors.navy,
+    color: colors.accentText,
     marginBottom: 16,
   },
   paragraph: {

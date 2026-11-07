@@ -1,7 +1,9 @@
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 
-import { colors } from '../theme/colors';
+import type { ThemeColors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 /**
  * A restrained "engraved" section rule: a full-width hairline with either a
@@ -17,6 +19,8 @@ export default function EngravedRule({
   ornament?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={[styles.wrap, style]}>
       <View style={styles.hairline} />
@@ -25,7 +29,7 @@ export default function EngravedRule({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   wrap: {
     marginVertical: 22,
     alignItems: 'center',

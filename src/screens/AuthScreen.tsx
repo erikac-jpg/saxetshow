@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -13,7 +13,8 @@ import {
 
 import { useAuth, type AuthActionResult } from '../auth/AuthContext';
 import FlagWatermark from '../components/FlagWatermark';
-import { colors } from '../theme/colors';
+import type { ThemeColors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 
 type Mode = 'signIn' | 'signUp';
@@ -28,6 +29,8 @@ export default function AuthScreen({
   onSuccess: (result: AuthActionResult) => void;
 }) {
   const { signIn, signUp } = useAuth();
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [mode, setMode] = useState<Mode>('signIn');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -165,6 +168,8 @@ function Field({
   keyboardType?: 'email-address';
   autoCapitalize?: 'none' | 'words';
 }) {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -181,10 +186,10 @@ function Field({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -225,7 +230,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   notice: {
-    backgroundColor: '#EDE0C6',
+    backgroundColor: colors.noticeBg,
     borderRadius: 4,
     padding: 16,
     marginBottom: 20,
@@ -237,7 +242,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   errorNotice: {
-    backgroundColor: '#F1DCD3',
+    backgroundColor: colors.warningBg,
     borderRadius: 4,
     padding: 16,
     marginBottom: 20,
@@ -267,7 +272,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontFamily: bodyFont,
     color: colors.textPrimary,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   submitButton: {
     backgroundColor: colors.navy,
@@ -301,6 +306,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 23,
     fontFamily: bodyFontBold,
-    color: colors.navy,
+    color: colors.accentText,
   },
 });

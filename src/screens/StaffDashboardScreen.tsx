@@ -23,7 +23,8 @@ import { getWaitlistForEvent, removeFromWaitlist } from '../db/supabase/waitlist
 import type { Agreement, Event, PaymentStatus, TableRequest, Vendor, WaitlistEntry } from '../db/types';
 import AppIcon from '../components/AppIcon';
 import FlagWatermark from '../components/FlagWatermark';
-import { colors } from '../theme/colors';
+import type { ThemeColors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 
 function daysUntil(dateString: string): number {
@@ -71,6 +72,8 @@ export default function StaffDashboardScreen({
   const [totalTablesInput, setTotalTablesInput] = useState('0');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const loadEvents = useCallback(async () => {
     try {
@@ -216,7 +219,7 @@ export default function StaffDashboardScreen({
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={colors.navy} size="large" />
+        <ActivityIndicator color={colors.accentText} size="large" />
       </View>
     );
   }
@@ -367,6 +370,8 @@ export default function StaffDashboardScreen({
 }
 
 function StatTile({ label, value }: { label: string; value: string }) {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.statTile}>
       <Text style={styles.statValue}>{value}</Text>
@@ -420,6 +425,8 @@ function RequestRow({
   onToggleCheckIn: () => void;
 }) {
   const isSigned = agreementStatus === 'signed';
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [methodInput, setMethodInput] = useState(request.paymentMethod ?? '');
   const [checkNumberInput, setCheckNumberInput] = useState(request.checkNumber ?? '');
 
@@ -537,6 +544,8 @@ function WaitlistRow({
   onRemove: () => void;
   onOpenVendorProfile: () => void;
 }) {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.row}>
       <View style={styles.rowTopLine}>
@@ -568,16 +577,16 @@ function WaitlistRow({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.cream,
+    backgroundColor: colors.background,
   },
   errorText: {
     fontSize: 16,
@@ -643,7 +652,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   selectorPill: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: 999,
     paddingVertical: 14,
     paddingHorizontal: 18,
@@ -683,7 +692,7 @@ const styles = StyleSheet.create({
   },
   statTile: {
     width: '48%',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: 4,
     paddingVertical: 18,
     paddingHorizontal: 14,
@@ -701,7 +710,7 @@ const styles = StyleSheet.create({
     // staff need to read quickly and accurately, not a title.
     fontSize: 32,
     fontFamily: bodyFontExtraBold,
-    color: colors.navy,
+    color: colors.accentText,
   },
   statLabel: {
     fontSize: 13,
@@ -736,7 +745,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: 4,
     padding: 20,
     marginBottom: 18,
@@ -749,7 +758,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 14,
     fontFamily: bodyFontExtraBold,
-    color: colors.navy,
+    color: colors.accentText,
     letterSpacing: 1.5,
     marginBottom: 14,
   },
@@ -822,7 +831,7 @@ const styles = StyleSheet.create({
     color: colors.red,
   },
   agreementLinkTextSigned: {
-    color: colors.navy,
+    color: colors.accentText,
   },
   paymentSection: {
     marginTop: 14,
@@ -848,7 +857,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   paymentPillActive: {
     backgroundColor: colors.navy,
@@ -877,12 +886,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: bodyFont,
     color: colors.textPrimary,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   checkInButton: {
     marginTop: 12,
     borderWidth: 1,
-    borderColor: colors.navy,
+    borderColor: colors.accentText,
     borderRadius: 999,
     paddingVertical: 14,
     minHeight: 48,
@@ -890,16 +899,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkInButtonActive: {
-    backgroundColor: '#DCEBDD',
-    borderColor: '#DCEBDD',
+    backgroundColor: colors.successBg,
+    borderColor: colors.successBg,
   },
   checkInButtonText: {
     fontSize: 15,
     fontFamily: bodyFontBold,
-    color: colors.navy,
+    color: colors.accentText,
   },
   checkInButtonTextActive: {
-    color: colors.navy,
+    color: colors.accentText,
   },
   statusPill: {
     borderRadius: 999,
@@ -907,13 +916,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   statusPill_pending: {
-    backgroundColor: '#EDE0C6',
+    backgroundColor: colors.noticeBg,
   },
   statusPill_approved: {
-    backgroundColor: '#DCEBDD',
+    backgroundColor: colors.successBg,
   },
   statusPill_denied: {
-    backgroundColor: '#F1DCD3',
+    backgroundColor: colors.warningBg,
   },
   statusPillText: {
     fontSize: 12,
@@ -924,7 +933,7 @@ const styles = StyleSheet.create({
   waitlistPosition: {
     fontSize: 16,
     fontFamily: bodyFontExtraBold,
-    color: colors.navy,
+    color: colors.accentText,
   },
   rowActions: {
     flexDirection: 'row',
@@ -951,7 +960,7 @@ const styles = StyleSheet.create({
     fontFamily: bodyFontBold,
   },
   denyButton: {
-    backgroundColor: colors.cream,
+    backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.red,
   },

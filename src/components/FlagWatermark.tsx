@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import { colors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 
 // Tone-on-tone flag silhouette (stripes + canton + stars), all white at low
 // opacity, for use inside solid navy shapes only (header bars, card image
@@ -89,6 +89,7 @@ export default function FlagWatermark({
   starOpacity?: number;
   angleDeg?: number;
 }) {
+  const colors = useTheme();
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       {/* Oversized (220%) and centered so rotating it never exposes a

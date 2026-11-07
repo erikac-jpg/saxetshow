@@ -16,7 +16,8 @@ import AppIcon from '../components/AppIcon';
 import FlagWatermark from '../components/FlagWatermark';
 import SaxetPatch from '../components/SaxetPatch';
 import TopoBackground from '../components/TopoBackground';
-import { colors } from '../theme/colors';
+import type { ThemeColors } from '../theme/colors';
+import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
 
 function formatEventDate(dateString: string): string {
@@ -33,6 +34,8 @@ function formatEventDate(dateString: string): string {
 }
 
 function EventCard({ event, onPress }: { event: Event; onPress: () => void }) {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <Pressable
       onPress={onPress}
@@ -68,6 +71,8 @@ function YearTabs({
   selectedYear: number | null;
   onSelectYear: (year: number) => void;
 }) {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   if (years.length < 2) return null;
   return (
     <View style={styles.yearTabRow}>
@@ -88,6 +93,8 @@ function YearTabs({
 }
 
 function EmptyState() {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.emptyState}>
       <AppIcon
@@ -116,6 +123,8 @@ export default function EventsHomeScreen({
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const loadEvents = useCallback(async () => {
     try {
@@ -166,7 +175,7 @@ export default function EventsHomeScreen({
         <YearTabs years={years} selectedYear={selectedYear} onSelectYear={setSelectedYear} />
         {events === null ? (
           <View style={styles.centered}>
-            <ActivityIndicator color={colors.navy} size="large" />
+            <ActivityIndicator color={colors.accentText} size="large" />
           </View>
         ) : error ? (
           <View style={styles.centered}>
@@ -184,7 +193,7 @@ export default function EventsHomeScreen({
             )}
             contentContainerStyle={styles.listContent}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.navy} />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accentText} />
             }
           />
         )}
@@ -205,10 +214,10 @@ export default function EventsHomeScreen({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
+    backgroundColor: colors.background,
   },
   header: {
     backgroundColor: colors.navy,
@@ -256,8 +265,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 999,
     borderWidth: 1.5,
-    borderColor: colors.navy,
-    backgroundColor: colors.white,
+    borderColor: colors.accentText,
+    backgroundColor: colors.surface,
   },
   yearTabActive: {
     backgroundColor: colors.navy,
@@ -265,7 +274,7 @@ const styles = StyleSheet.create({
   yearTabText: {
     fontSize: 15,
     fontFamily: bodyFontBold,
-    color: colors.navy,
+    color: colors.accentText,
   },
   yearTabTextActive: {
     color: colors.white,
@@ -282,7 +291,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: colors.divider,
-    backgroundColor: colors.cream,
+    backgroundColor: colors.background,
   },
   footerLinkRow: {
     flexDirection: 'row',
@@ -303,7 +312,7 @@ const styles = StyleSheet.create({
   },
   card: {
     flexDirection: 'row',
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderRadius: 4,
     overflow: 'hidden',
     borderLeftWidth: 10,
@@ -342,7 +351,7 @@ const styles = StyleSheet.create({
   cardDate: {
     fontSize: 16,
     lineHeight: 23,
-    color: colors.navy,
+    color: colors.accentText,
     fontFamily: bodyFontBold,
     marginTop: 8,
   },
