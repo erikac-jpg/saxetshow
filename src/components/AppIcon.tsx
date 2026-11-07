@@ -1,7 +1,7 @@
 import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
 import type { StyleProp, ViewStyle } from 'react-native';
 
-export type IconName = 'camera' | 'locationPin' | 'calendar' | 'star';
+export type IconName = 'camera' | 'locationPin' | 'calendar' | 'star' | 'ticket' | 'person' | 'shield';
 
 /**
  * A small custom icon set, drawn as single-stroke line art rather than
@@ -74,6 +74,57 @@ export default function AppIcon({
           <Line x1={3} y1={9.5} x2={21} y2={9.5} stroke={color} strokeWidth={strokeWidth} />
           <Line x1={8} y1={3} x2={8} y2={7} stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
           <Line x1={16} y1={3} x2={16} y2={7} stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+        </Svg>
+      );
+    case 'ticket':
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+          <Path
+            d="M3,8 C4.1,8 5,7.1 5,6 L19,6 C19,7.1 19.9,8 21,8 L21,10 C19.9,10 19,10.9 19,12 C19,13.1 19.9,14 21,14 L21,16 C19.9,16 19,16.9 19,18 L5,18 C5,16.9 4.1,16 3,16 L3,14 C4.1,14 5,13.1 5,12 C5,10.9 4.1,10 3,10 Z"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeLinejoin="round"
+          />
+          <Line
+            x1={13.5}
+            y1={7.5}
+            x2={13.5}
+            y2={16.5}
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeDasharray="1.8,1.8"
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+    case 'person':
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+          <Circle cx={12} cy={7.5} r={4} stroke={color} strokeWidth={strokeWidth} />
+          <Path
+            d="M4,21 C4,16.3 7.6,13.5 12,13.5 C16.4,13.5 20,16.3 20,21"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+    case 'shield':
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+          <Path
+            d="M12,2.5 L19.5,5.5 L19.5,11.5 C19.5,16.5 16.3,19.9 12,21.5 C7.7,19.9 4.5,16.5 4.5,11.5 L4.5,5.5 Z"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M8.7,12 L10.8,14.1 L15.3,9.3"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </Svg>
       );
     case 'star':
