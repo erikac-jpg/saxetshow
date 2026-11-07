@@ -47,6 +47,10 @@ export default function RootNavigator() {
         <Tab.Navigator
           screenOptions={{
             headerShown: false,
+            // The bar has a fixed height - at the largest accessibility text
+            // sizes, a scaling label would overlap the icon above it.
+            // Screen readers still announce the full tab name regardless.
+            tabBarAllowFontScaling: false,
             tabBarStyle: {
               backgroundColor: colors.navy,
               borderTopColor: colors.flagRed,

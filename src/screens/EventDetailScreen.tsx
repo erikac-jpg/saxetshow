@@ -163,7 +163,9 @@ export default function EventDetailScreen({
                 onPress={() => setTablesWanted((n) => Math.max(1, n - 1))}
                 hitSlop={8}
               >
-                <Text style={styles.stepperButtonText}>−</Text>
+                <Text style={styles.stepperButtonText} allowFontScaling={false}>
+                  −
+                </Text>
               </Pressable>
               <Text style={styles.stepperValue}>{tablesWanted}</Text>
               <Pressable
@@ -171,7 +173,9 @@ export default function EventDetailScreen({
                 onPress={() => setTablesWanted((n) => Math.min(10, n + 1))}
                 hitSlop={8}
               >
-                <Text style={styles.stepperButtonText}>+</Text>
+                <Text style={styles.stepperButtonText} allowFontScaling={false}>
+                  +
+                </Text>
               </Pressable>
             </View>
             <Pressable
