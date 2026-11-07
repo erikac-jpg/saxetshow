@@ -1,6 +1,7 @@
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useMemo } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AppIcon from '../components/AppIcon';
 import type { ThemeColors } from '../theme/colors';
@@ -40,6 +41,15 @@ export default function RootNavigator() {
   const colors = useTheme();
   const isDark = useIsDarkMode();
   const navigationTheme = useMemo(() => buildNavigationTheme(colors, isDark), [colors, isDark]);
+  // Setting an explicit tabBarStyle.height opts out of React Navigation's
+  // own safe-area handling, so the home-indicator/gesture-bar inset has to
+  // be added back in by hand or the icons/labels render underneath it.
+  const insets = useSafeAreaInsets();
+  // 56 is the icon+label content height the bar was already sized for; the
+  // bottom padding below reserves room for the home indicator on top of it
+  // instead of eating into that space.
+  const tabBarBottomPadding = Math.max(insets.bottom, 8);
+  const tabBarHeight = 8 + 56 + tabBarBottomPadding;
 
   return (
     <PendingVendorRequestProvider>
@@ -55,8 +65,9 @@ export default function RootNavigator() {
               backgroundColor: colors.navy,
               borderTopColor: colors.flagRed,
               borderTopWidth: 3,
-              height: 64,
+              height: tabBarHeight,
               paddingTop: 8,
+              paddingBottom: tabBarBottomPadding,
             },
             tabBarActiveTintColor: colors.white,
             tabBarInactiveTintColor: colors.headerSubtitle,
