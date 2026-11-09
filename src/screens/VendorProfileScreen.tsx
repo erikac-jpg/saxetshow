@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -24,16 +23,6 @@ import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFon
 import { daysUntil, expirationWarning } from '../util/expiration';
 
 const STAFF_TAG_OPTIONS = ['Reliable', 'New Vendor', 'VIP', 'Do Not Rebook'] as const;
-
-const CATEGORY_OPTIONS = [
-  'Food and baked goods',
-  'Pet products',
-  'Crafts and handmade',
-  'Apparel and accessories',
-  'Outdoor and hunting gear',
-  'Collectibles',
-  'Services and organizations',
-] as const;
 
 interface FormState {
   businessName: string;
@@ -85,10 +74,6 @@ function formFromVendor(vendor: Vendor): FormState {
   };
 }
 
-function isPresetCategory(category: string): boolean {
-  return (CATEGORY_OPTIONS as readonly string[]).includes(category);
-}
-
 function deriveAttendance(entry: VendorRequestHistoryEntry): string {
   if (entry.status === 'denied') return 'Cancelled';
   if (entry.checkedInAt) return 'Attended';
@@ -128,7 +113,6 @@ export default function VendorProfileScreen({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [history, setHistory] = useState<VendorRequestHistoryEntry[] | null>(null);
-  const [otherCategorySelected, setOtherCategorySelected] = useState(false);
   const colors = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -136,16 +120,11 @@ export default function VendorProfileScreen({
     if (vendorId === null) {
       setVendor(null);
       setForm(EMPTY_FORM);
-      setOtherCategorySelected(false);
       return;
     }
     const found = await getVendorById(vendorId);
     setVendor(found);
-    const nextForm = found ? formFromVendor(found) : EMPTY_FORM;
-    setForm(nextForm);
-    setOtherCategorySelected(
-      nextForm.vendorCategory !== '' && !isPresetCategory(nextForm.vendorCategory)
-    );
+    setForm(found ? formFromVendor(found) : EMPTY_FORM);
   }, [vendorId]);
 
   useEffect(() => {
@@ -312,21 +291,11 @@ export default function VendorProfileScreen({
         <EngravedRule />
 
         <Text style={styles.sectionLabel}>VENDOR DETAILS</Text>
-        <CategoryField
+        <Field
+          label="Vendor Category"
           value={form.vendorCategory}
-          otherSelected={otherCategorySelected}
-          onSelectPreset={(category) => {
-            setOtherCategorySelected(false);
-            setForm((prev) => ({ ...prev, vendorCategory: category }));
-          }}
-          onSelectOther={() => {
-            setOtherCategorySelected(true);
-            setForm((prev) => ({
-              ...prev,
-              vendorCategory: isPresetCategory(prev.vendorCategory) ? '' : prev.vendorCategory,
-            }));
-          }}
-          onChangeOtherText={updateField('vendorCategory')}
+          onChangeText={updateField('vendorCategory')}
+          placeholder="Firearms, apparel, food…"
         />
         <Field
           label="Preferred Table Location"
@@ -535,85 +504,6 @@ function Field({
   );
 }
 
-function CategoryField({
-  value,
-  otherSelected,
-  onSelectPreset,
-  onSelectOther,
-  onChangeOtherText,
-}: {
-  value: string;
-  otherSelected: boolean;
-  onSelectPreset: (category: string) => void;
-  onSelectOther: () => void;
-  onChangeOtherText: (text: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const colors = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-  const triggerLabel = otherSelected ? 'Other' : value || 'Select a category';
-
-  return (
-    <View style={styles.field}>
-      <Text style={styles.fieldLabel}>Vendor Category</Text>
-      <Pressable style={styles.categoryTrigger} onPress={() => setOpen(true)}>
-        <Text
-          style={[styles.categoryTriggerText, !otherSelected && !value && styles.categoryTriggerPlaceholder]}
-        >
-          {triggerLabel}
-        </Text>
-        <Text style={styles.categoryTriggerChevron}>▾</Text>
-      </Pressable>
-
-      {otherSelected && (
-        <TextInput
-          value={value}
-          onChangeText={onChangeOtherText}
-          style={[styles.fieldInput, styles.categoryOtherInput]}
-          placeholder="Describe your category"
-          placeholderTextColor={colors.textSecondary}
-        />
-      )}
-
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <Pressable style={styles.categoryModalScrim} onPress={() => setOpen(false)}>
-          <Pressable style={styles.categoryModalCard} onPress={() => {}}>
-            <Text style={styles.categoryModalTitle}>Vendor Category</Text>
-            {CATEGORY_OPTIONS.map((category) => {
-              const active = !otherSelected && value === category;
-              return (
-                <Pressable
-                  key={category}
-                  style={[styles.categoryOption, active && styles.categoryOptionActive]}
-                  onPress={() => {
-                    onSelectPreset(category);
-                    setOpen(false);
-                  }}
-                >
-                  <Text style={[styles.categoryOptionText, active && styles.categoryOptionTextActive]}>
-                    {category}
-                  </Text>
-                </Pressable>
-              );
-            })}
-            <Pressable
-              style={[styles.categoryOption, otherSelected && styles.categoryOptionActive]}
-              onPress={() => {
-                onSelectOther();
-                setOpen(false);
-              }}
-            >
-              <Text style={[styles.categoryOptionText, otherSelected && styles.categoryOptionTextActive]}>
-                Other (free text)
-              </Text>
-            </Pressable>
-          </Pressable>
-        </Pressable>
-      </Modal>
-    </View>
-  );
-}
-
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
@@ -729,74 +619,6 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   fieldInputMultiline: {
     minHeight: 96,
     textAlignVertical: 'top',
-  },
-  categoryTrigger: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: colors.divider,
-    borderRadius: 4,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    minHeight: 52,
-    backgroundColor: colors.surface,
-  },
-  categoryTriggerText: {
-    fontSize: 17,
-    fontFamily: bodyFont,
-    color: colors.textPrimary,
-  },
-  categoryTriggerPlaceholder: {
-    color: colors.textSecondary,
-  },
-  categoryTriggerChevron: {
-    fontSize: 15,
-    color: colors.textSecondary,
-  },
-  categoryOtherInput: {
-    marginTop: 10,
-  },
-  categoryModalScrim: {
-    flex: 1,
-    backgroundColor: 'rgba(27,42,65,0.55)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  categoryModalCard: {
-    width: '100%',
-    maxWidth: 400,
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 10,
-  },
-  categoryModalTitle: {
-    fontSize: 14,
-    fontFamily: bodyFontExtraBold,
-    color: colors.accentText,
-    letterSpacing: 1.5,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-  },
-  categoryOption: {
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    minHeight: 48,
-    justifyContent: 'center',
-  },
-  categoryOptionActive: {
-    backgroundColor: colors.navy,
-  },
-  categoryOptionText: {
-    fontSize: 16,
-    fontFamily: bodyFontSemiBold,
-    color: colors.textPrimary,
-  },
-  categoryOptionTextActive: {
-    color: colors.white,
-    fontFamily: bodyFontExtraBold,
   },
   toggleRow: {
     flexDirection: 'row',
