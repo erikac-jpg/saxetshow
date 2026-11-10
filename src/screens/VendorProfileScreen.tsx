@@ -20,7 +20,6 @@ import VendorQrCode from '../components/VendorQrCode';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
-import { daysUntil, expirationWarning } from '../util/expiration';
 
 const STAFF_TAG_OPTIONS = ['Reliable', 'New Vendor', 'VIP', 'Do Not Rebook'] as const;
 
@@ -35,8 +34,6 @@ interface FormState {
   vendorCategory: string;
   preferredTableLocation: string;
   staffNotes: string;
-  insuranceOnFile: boolean;
-  insuranceExpirationDate: string;
   staffTags: string[];
 }
 
@@ -51,8 +48,6 @@ const EMPTY_FORM: FormState = {
   vendorCategory: '',
   preferredTableLocation: '',
   staffNotes: '',
-  insuranceOnFile: false,
-  insuranceExpirationDate: '',
   staffTags: [],
 };
 
@@ -68,8 +63,6 @@ function formFromVendor(vendor: Vendor): FormState {
     vendorCategory: vendor.vendorCategory ?? '',
     preferredTableLocation: vendor.preferredTableLocation ?? '',
     staffNotes: vendor.staffNotes ?? '',
-    insuranceOnFile: vendor.insuranceOnFile,
-    insuranceExpirationDate: vendor.insuranceExpirationDate ?? '',
     staffTags: vendor.staffTags,
   };
 }
@@ -170,8 +163,6 @@ export default function VendorProfileScreen({
           ? {
               boothNotes: form.boothNotes.trim() || null,
               staffNotes: form.staffNotes.trim() || null,
-              insuranceOnFile: form.insuranceOnFile,
-              insuranceExpirationDate: form.insuranceExpirationDate.trim() || null,
               staffTags: form.staffTags,
             }
           : {}),
@@ -226,9 +217,6 @@ export default function VendorProfileScreen({
   }
 
   const isNewProfile = vendor === null;
-  const insuranceWarning = isStaffView
-    ? expirationWarning('Insurance', form.insuranceExpirationDate)
-    : null;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
@@ -254,11 +242,6 @@ export default function VendorProfileScreen({
             <Text style={styles.noticeText}>
               No profile yet — fill in what you know below to create one.
             </Text>
-          </View>
-        )}
-        {insuranceWarning && (
-          <View style={styles.warningNotice}>
-            <Text style={styles.warningNoticeText}>{insuranceWarning}</Text>
           </View>
         )}
 
@@ -321,44 +304,6 @@ export default function VendorProfileScreen({
               onChangeText={updateField('staffNotes')}
               multiline
               placeholder="Always brings extra tables, difficult to reach…"
-            />
-
-            <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Insurance On File</Text>
-              <View style={styles.toggleRow}>
-                <Pressable
-                  style={[styles.toggleOption, form.insuranceOnFile && styles.toggleOptionActive]}
-                  onPress={() => setForm((prev) => ({ ...prev, insuranceOnFile: true }))}
-                >
-                  <Text
-                    style={[
-                      styles.toggleOptionText,
-                      form.insuranceOnFile && styles.toggleOptionTextActive,
-                    ]}
-                  >
-                    Yes
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.toggleOption, !form.insuranceOnFile && styles.toggleOptionActive]}
-                  onPress={() => setForm((prev) => ({ ...prev, insuranceOnFile: false }))}
-                >
-                  <Text
-                    style={[
-                      styles.toggleOptionText,
-                      !form.insuranceOnFile && styles.toggleOptionTextActive,
-                    ]}
-                  >
-                    No
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-
-            <Field
-              label="Insurance Expiration Date (YYYY-MM-DD)"
-              value={form.insuranceExpirationDate}
-              onChangeText={updateField('insuranceExpirationDate')}
             />
 
             <View style={styles.field}>
@@ -575,18 +520,6 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     fontFamily: bodyFont,
     color: colors.textPrimary,
   },
-  warningNotice: {
-    backgroundColor: colors.warningBg,
-    borderRadius: 4,
-    padding: 16,
-    marginBottom: 14,
-  },
-  warningNoticeText: {
-    fontSize: 16,
-    lineHeight: 23,
-    fontFamily: bodyFontBold,
-    color: colors.red,
-  },
   sectionLabel: {
     fontSize: 14,
     fontFamily: bodyFontExtraBold,
@@ -619,33 +552,6 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   fieldInputMultiline: {
     minHeight: 96,
     textAlignVertical: 'top',
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  toggleOption: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    borderRadius: 999,
-    paddingVertical: 14,
-    minHeight: 52,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-  },
-  toggleOptionActive: {
-    backgroundColor: colors.navy,
-    borderColor: colors.navy,
-  },
-  toggleOptionText: {
-    fontSize: 16,
-    fontFamily: bodyFontBold,
-    color: colors.textPrimary,
-  },
-  toggleOptionTextActive: {
-    color: colors.white,
   },
   tagRow: {
     flexDirection: 'row',

@@ -31,15 +31,13 @@ export interface Vendor {
   productsTheyBring: string | null;
   boothNotes: string | null;
   feesOwed: number;
-  /** Vendor-editable: facts about themselves. */
+  /** Staff-tracked compliance data, checked for a warning at event check-in. */
   fflLicenseNumber: string | null;
   fflExpirationDate: string | null;
   vendorCategory: string | null;
   preferredTableLocation: string | null;
   /** Staff-only: never shown to the vendor about themselves. */
   staffNotes: string | null;
-  insuranceOnFile: boolean;
-  insuranceExpirationDate: string | null;
   staffTags: string[];
   createdAt: string;
   updatedAt: string;
