@@ -1,10 +1,14 @@
 import {
+  PlayfairDisplay_700Bold,
+  PlayfairDisplay_900Black,
+  useFonts,
+} from '@expo-google-fonts/playfair-display';
+import {
   PublicSans_400Regular,
   PublicSans_600SemiBold,
   PublicSans_700Bold,
   PublicSans_800ExtraBold,
 } from '@expo-google-fonts/public-sans';
-import { Rye_400Regular, useFonts } from '@expo-google-fonts/rye';
 import { StatusBar } from 'expo-status-bar';
 import { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -17,7 +21,8 @@ import { ThemeProvider, useIsDarkMode, useTheme } from './src/theme/ThemeContext
 
 function AppShell() {
   const [fontsLoaded] = useFonts({
-    Rye_400Regular,
+    PlayfairDisplay_700Bold,
+    PlayfairDisplay_900Black,
     PublicSans_400Regular,
     PublicSans_600SemiBold,
     PublicSans_700Bold,

@@ -276,17 +276,12 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   submitButton: {
     backgroundColor: colors.navy,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 18,
     minHeight: 56,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
   },
   submitButtonPressed: {
     opacity: 0.85,

@@ -73,13 +73,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 4,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: colors.accentText,
     padding: 22,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
   },
   policyTitle: {
     fontSize: 20,

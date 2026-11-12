@@ -561,7 +561,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   tagChip: {
     borderWidth: 1,
     borderColor: colors.divider,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 12,
     paddingHorizontal: 16,
     minHeight: 48,
@@ -582,17 +582,12 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   saveButton: {
     backgroundColor: colors.navy,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 18,
     minHeight: 56,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
   },
   saveButtonPressed: {
     opacity: 0.85,
@@ -636,7 +631,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   deleteButton: {
     borderWidth: 1,
     borderColor: colors.red,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 16,
     minHeight: 52,
     justifyContent: 'center',

@@ -1,19 +1,11 @@
 /**
- * "Old Glory" palette - a patriotic red/white/blue, built on the same
- * legibility rules as the "Field Manual" palette it replaces: near-black
- * text on a crisp near-white (light) or near-white text on a near-black
- * navy ground (dark), one solid dark primary color, one accent used only
- * in small bounded shapes - never as a large background.
- *
- * Most tokens hold the exact same value in both themes - `navy`, `white`,
- * `flagRed`, `cream` and `headerSubtitle` are all used on surfaces that
- * stay dark (the navy header/button chrome) or are themselves fixed
- * decorative tints, so they don't need a dark-mode variant. Only the
- * tokens that sit directly on the page background change: `background`,
- * `surface`, `textPrimary`, `textSecondary`, `accentText`, `red`,
- * `divider`, `topoLine`, and the three notice/warning/success banner
- * backgrounds, which become dark, muted versions of the same hues rather
- * than staying light pastels.
+ * "Americana Editorial" palette - a vintage event-poster patriotic look:
+ * midnight navy and warm ivory as the primary pair, brick red reserved for
+ * accents and dividing lines, dusty blue for secondary/muted text on navy
+ * surfaces. Same legibility rules as the palette it replaces - near-black
+ * text on a crisp light background (light theme) or near-white text on a
+ * near-black navy ground (dark theme), one solid dark primary color, one
+ * accent used only in small bounded shapes - never as a large background.
  */
 export interface ThemeColors {
   /** Page background. */
@@ -32,7 +24,7 @@ export interface ThemeColors {
   white: string;
   textPrimary: string;
   textSecondary: string;
-  /** Subtitle text on the navy header. */
+  /** Subtitle/muted text on the navy header - dusty blue. */
   headerSubtitle: string;
   /** `navy` used as emphasis text/icons/borders directly on `background` (not as a fill). */
   accentText: string;
@@ -49,43 +41,43 @@ export interface ThemeColors {
 }
 
 export const lightColors: ThemeColors = {
-  background: '#F7F6F2',
+  background: '#F6F1E7',
   surface: '#FFFFFF',
-  navy: '#1B2A41',
-  red: '#8C3B2E',
-  flagRed: '#9E2A2B',
-  cream: '#F7F6F2',
+  navy: '#14243B',
+  red: '#A73536',
+  flagRed: '#A73536',
+  cream: '#F6F1E7',
   white: '#FFFFFF',
-  textPrimary: '#1C1C1C',
-  textSecondary: '#5B5347',
-  headerSubtitle: '#E9B9B9',
-  accentText: '#1B2A41',
-  divider: '#DAD7CF',
-  topoLine: 'rgba(27, 42, 65, 0.05)',
+  textPrimary: '#14243B',
+  textSecondary: '#5C6B82',
+  headerSubtitle: '#9AAFC7',
+  accentText: '#14243B',
+  divider: '#DDD3BE',
+  topoLine: 'rgba(20, 36, 59, 0.05)',
   noticeBg: '#EDE0C6',
-  warningBg: '#F1DCD3',
+  warningBg: '#F0DAD2',
   successBg: '#DCEBDD',
 };
 
 export const darkColors: ThemeColors = {
   // A near-black navy, not true black - keeps the "ink," not a void.
-  background: '#10161F',
-  surface: '#1B2430',
-  navy: '#1B2A41',
-  // Lifted from the light-mode error red so it still reads at ~6.5:1 on
-  // the new dark background - the original value is ~2.4:1 there.
-  red: '#DB8468',
-  flagRed: '#9E2A2B',
-  cream: '#F7F6F2',
+  background: '#0F1826',
+  surface: '#1B2740',
+  navy: '#14243B',
+  // Lifted from the light-mode brick red so it still reads at good
+  // contrast on the new dark background.
+  red: '#C85A54',
+  flagRed: '#A73536',
+  cream: '#F6F1E7',
   white: '#FFFFFF',
   // Warm off-white, never pure white - avoids the flat white-on-black
-  // "AI app" look while still landing ~14.8:1 on the dark background.
+  // "AI app" look while still landing at high contrast on the dark background.
   textPrimary: '#EDE8DD',
   textSecondary: '#B7AFA0',
-  headerSubtitle: '#E9B9B9',
-  // A lightened navy so text/icons/borders that read as `navy` on the
-  // light background stay legible (~7.5:1) against the dark one.
-  accentText: '#8FA8C9',
+  headerSubtitle: '#9AAFC7',
+  // Dusty blue doubles as the lightened accent that reads clearly against
+  // the dark navy background.
+  accentText: '#9AAFC7',
   divider: '#2E3747',
   topoLine: 'rgba(255, 255, 255, 0.04)',
   // Dark, muted versions of the same hues (not the light pastels) so the

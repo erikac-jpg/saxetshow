@@ -1,7 +1,16 @@
 import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
 import type { StyleProp, ViewStyle } from 'react-native';
 
-export type IconName = 'camera' | 'locationPin' | 'calendar' | 'star' | 'ticket' | 'person' | 'shield';
+export type IconName =
+  | 'camera'
+  | 'locationPin'
+  | 'calendar'
+  | 'star'
+  | 'ticket'
+  | 'person'
+  | 'shield'
+  | 'storefront'
+  | 'people';
 
 /**
  * A small custom icon set, drawn as single-stroke line art rather than
@@ -103,6 +112,44 @@ export default function AppIcon({
           <Circle cx={12} cy={7.5} r={4} stroke={color} strokeWidth={strokeWidth} />
           <Path
             d="M4,21 C4,16.3 7.6,13.5 12,13.5 C16.4,13.5 20,16.3 20,21"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+          />
+        </Svg>
+      );
+    case 'storefront':
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+          <Path
+            d="M3,9 Q4.5,5.5 6,9 Q7.5,5.5 9,9 Q10.5,5.5 12,9 Q13.5,5.5 15,9 Q16.5,5.5 18,9 Q19.5,5.5 21,9"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M4,9 L4,20 L20,20 L20,9"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeLinejoin="round"
+          />
+          <Rect x={10} y={14} width={4} height={6} stroke={color} strokeWidth={strokeWidth} />
+        </Svg>
+      );
+    case 'people':
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+          <Circle cx={8.5} cy={8} r={3} stroke={color} strokeWidth={strokeWidth} />
+          <Circle cx={16} cy={9} r={2.4} stroke={color} strokeWidth={strokeWidth} />
+          <Path
+            d="M2,21 C2,16.6 4.9,14.2 8.5,14.2 C11.1,14.2 13.2,15.4 14.2,17.4"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+          />
+          <Path
+            d="M13,17.2 C13.9,15.7 15.6,14.8 17.5,14.8 C20.3,14.8 22,16.9 22,20"
             stroke={color}
             strokeWidth={strokeWidth}
             strokeLinecap="round"
