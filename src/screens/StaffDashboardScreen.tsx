@@ -22,7 +22,7 @@ import { getAllVendors } from '../db/supabase/vendors';
 import { getWaitlistForEvent, removeFromWaitlist } from '../db/supabase/waitlist';
 import type { Agreement, Event, PaymentStatus, TableRequest, Vendor, WaitlistEntry } from '../db/types';
 import AppIcon from '../components/AppIcon';
-import FlagWatermark from '../components/FlagWatermark';
+import HeroRibbon from '../components/HeroRibbon';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
@@ -227,7 +227,7 @@ export default function StaffDashboardScreen({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <FlagWatermark />
+        <HeroRibbon />
         <View style={styles.headerTopRow}>
           <Pressable onPress={onExit} style={styles.exitButton} hitSlop={12}>
             <Text style={styles.exitButtonText}>‹ Exit</Text>
@@ -653,7 +653,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   selectorPill: {
     backgroundColor: colors.surface,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 14,
     paddingHorizontal: 18,
     marginRight: 10,
@@ -700,10 +700,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     borderLeftWidth: 6,
     borderLeftColor: colors.flagRed,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.04,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
+    elevation: 1,
   },
   statValue: {
     // Deliberately not the decorative display font - these are numbers
@@ -721,17 +721,17 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   scanButton: {
     backgroundColor: colors.flagRed,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 18,
     minHeight: 56,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.04,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
+    elevation: 1,
   },
   scanButtonRow: {
     flexDirection: 'row',
@@ -750,10 +750,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     padding: 20,
     marginBottom: 18,
     shadowColor: '#000',
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.03,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
+    elevation: 1,
   },
   sectionLabel: {
     fontSize: 14,
@@ -852,7 +852,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: colors.divider,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 12,
     minHeight: 48,
     justifyContent: 'center',
@@ -892,7 +892,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     marginTop: 12,
     borderWidth: 1,
     borderColor: colors.accentText,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 14,
     minHeight: 48,
     justifyContent: 'center',
@@ -911,7 +911,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     color: colors.accentText,
   },
   statusPill: {
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
@@ -942,7 +942,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 14,
     minHeight: 48,
     justifyContent: 'center',

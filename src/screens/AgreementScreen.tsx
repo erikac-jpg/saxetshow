@@ -13,7 +13,7 @@ import {
   VENDOR_AGREEMENT_PARAGRAPHS,
   VENDOR_AGREEMENT_TITLE,
 } from '../content/vendorAgreementTemplate';
-import FlagWatermark from '../components/FlagWatermark';
+import HeroRibbon from '../components/HeroRibbon';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
@@ -84,7 +84,7 @@ export default function AgreementScreen({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <FlagWatermark />
+        <HeroRibbon />
         <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
           <Text style={styles.backButtonText}>‹ Back</Text>
         </Pressable>
@@ -182,7 +182,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   statusPill: {
     alignSelf: 'flex-start',
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 8,
     paddingHorizontal: 16,
     marginBottom: 18,
@@ -204,10 +204,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     padding: 22,
     marginBottom: 26,
     shadowColor: '#000',
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.03,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
+    elevation: 1,
   },
   agreementTitle: {
     fontSize: 20,
@@ -225,16 +225,16 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   signButton: {
     backgroundColor: colors.flagRed,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 20,
     minHeight: 56,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.06,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    elevation: 1,
   },
   signButtonPressed: {
     opacity: 0.85,

@@ -15,7 +15,7 @@ import { deleteMyAccount } from '../db/supabase/users';
 import { createVendor, getVendorById, updateVendor } from '../db/supabase/vendors';
 import type { TableRequestStatus, Vendor } from '../db/types';
 import EngravedRule from '../components/EngravedRule';
-import FlagWatermark from '../components/FlagWatermark';
+import HeroRibbon from '../components/HeroRibbon';
 import VendorQrCode from '../components/VendorQrCode';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
@@ -221,7 +221,7 @@ export default function VendorProfileScreen({
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
-        <FlagWatermark />
+        <HeroRibbon />
         <View style={styles.headerTopRow}>
           <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
             <Text style={styles.backButtonText}>‹ Back</Text>
@@ -561,7 +561,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   tagChip: {
     borderWidth: 1,
     borderColor: colors.divider,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 12,
     paddingHorizontal: 16,
     minHeight: 48,
@@ -582,17 +582,12 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   saveButton: {
     backgroundColor: colors.navy,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 18,
     minHeight: 56,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
   },
   saveButtonPressed: {
     opacity: 0.85,
@@ -636,7 +631,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   deleteButton: {
     borderWidth: 1,
     borderColor: colors.red,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 16,
     minHeight: 52,
     justifyContent: 'center',

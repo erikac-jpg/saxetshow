@@ -12,7 +12,7 @@ import {
 } from '../db/supabase/tableRequests';
 import { getVendorById } from '../db/supabase/vendors';
 import type { TableRequest, Vendor } from '../db/types';
-import FlagWatermark from '../components/FlagWatermark';
+import HeroRibbon from '../components/HeroRibbon';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
@@ -122,7 +122,7 @@ export default function QrCheckInScreen({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <FlagWatermark />
+        <HeroRibbon />
         <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
           <Text style={styles.backButtonText}>‹ Back</Text>
         </Pressable>
@@ -311,7 +311,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   permissionButton: {
     backgroundColor: colors.navy,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 16,
     paddingHorizontal: 28,
     minHeight: 52,
@@ -355,10 +355,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     borderRadius: 4,
     padding: 22,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.04,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
+    elevation: 1,
   },
   cardError: {
     backgroundColor: colors.warningBg,
@@ -439,7 +439,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: colors.accentText,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 16,
     minHeight: 52,
     justifyContent: 'center',
@@ -460,7 +460,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   scanNextButton: {
     marginTop: 22,
     backgroundColor: colors.navy,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 16,
     minHeight: 52,
     justifyContent: 'center',

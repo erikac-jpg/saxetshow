@@ -83,7 +83,7 @@ export default function RootNavigator() {
             component={ShowsStackNavigator}
             options={{
               title: 'Shows',
-              tabBarIcon: ({ color, size }) => <AppIcon name="ticket" color={color} size={size} />,
+              tabBarIcon: ({ color, size }) => <AppIcon name="calendar" color={color} size={size} />,
             }}
           />
           <Tab.Screen
@@ -91,7 +91,7 @@ export default function RootNavigator() {
             component={VendorStackNavigator}
             options={{
               title: 'Vendor',
-              tabBarIcon: ({ color, size }) => <AppIcon name="person" color={color} size={size} />,
+              tabBarIcon: ({ color, size }) => <AppIcon name="storefront" color={color} size={size} />,
             }}
           />
           <Tab.Screen
@@ -99,7 +99,7 @@ export default function RootNavigator() {
             component={StaffStackNavigator}
             options={{
               title: 'Staff',
-              tabBarIcon: ({ color, size }) => <AppIcon name="shield" color={color} size={size} />,
+              tabBarIcon: ({ color, size }) => <AppIcon name="people" color={color} size={size} />,
             }}
           />
         </Tab.Navigator>

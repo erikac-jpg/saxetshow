@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
-  Image,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -13,12 +12,21 @@ import {
 import { getUpcomingEvents } from '../db/supabase/events';
 import type { Event } from '../db/types';
 import AppIcon from '../components/AppIcon';
-import FlagWatermark from '../components/FlagWatermark';
+import HeroRibbon from '../components/HeroRibbon';
 import SaxetPatch from '../components/SaxetPatch';
-import TopoBackground from '../components/TopoBackground';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
-import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
+import {
+  bodyFont,
+  bodyFontBold,
+  bodyFontExtraBold,
+  displayFont,
+  displayFontBold,
+} from '../theme/fonts';
+
+const MONTH_ABBR = [
+  'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
+];
 
 function formatEventDate(dateString: string): string {
   const date = new Date(`${dateString}T00:00:00`);
@@ -33,26 +41,34 @@ function formatEventDate(dateString: string): string {
   });
 }
 
+/** Month abbreviation + day number for the date block, parsed straight from the ISO date so it never drifts from `formatEventDate`'s own parsing. */
+function dateBlockParts(dateString: string): { month: string; day: string } {
+  const [, monthStr, dayStr] = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/) ?? [];
+  const monthIndex = monthStr ? Number(monthStr) - 1 : NaN;
+  return {
+    month: MONTH_ABBR[monthIndex] ?? '',
+    day: dayStr ? String(Number(dayStr)) : '',
+  };
+}
+
 function EventCard({ event, onPress }: { event: Event; onPress: () => void }) {
   const colors = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const cardStyles = useMemo(() => createStyles(colors), [colors]);
+  const { month, day } = dateBlockParts(event.date);
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      style={({ pressed }) => [cardStyles.card, pressed && cardStyles.cardPressed]}
     >
-      {event.image ? (
-        <Image source={{ uri: event.image }} style={styles.cardImage} />
-      ) : (
-        <View style={[styles.cardImage, styles.cardImagePlaceholder]}>
-          <FlagWatermark />
-          <AppIcon name="star" size={36} color={colors.white} />
-        </View>
-      )}
-      <View style={styles.cardBody}>
-        <Text style={styles.cardTitle}>{event.name}</Text>
-        <Text style={styles.cardDate}>{formatEventDate(event.date)}</Text>
-        {event.location ? <Text style={styles.cardLocation}>{event.location}</Text> : null}
+      <View style={cardStyles.dateBlock}>
+        <AppIcon name="star" size={14} color={colors.cream} style={cardStyles.dateBlockStar} />
+        <Text style={cardStyles.dateBlockMonth}>{month}</Text>
+        <Text style={cardStyles.dateBlockDay}>{day}</Text>
+      </View>
+      <View style={cardStyles.cardBody}>
+        <Text style={cardStyles.cardTitle}>{event.name}</Text>
+        <Text style={cardStyles.cardDate}>{formatEventDate(event.date)}</Text>
+        {event.location ? <Text style={cardStyles.cardLocation}>{event.location}</Text> : null}
       </View>
     </Pressable>
   );
@@ -72,19 +88,19 @@ function YearTabs({
   onSelectYear: (year: number) => void;
 }) {
   const colors = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const yearStyles = useMemo(() => createStyles(colors), [colors]);
   if (years.length < 2) return null;
   return (
-    <View style={styles.yearTabRow}>
+    <View style={yearStyles.yearTabRow}>
       {years.map((year) => {
         const active = year === selectedYear;
         return (
           <Pressable
             key={year}
             onPress={() => onSelectYear(year)}
-            style={[styles.yearTab, active && styles.yearTabActive]}
+            style={[yearStyles.yearTab, active && yearStyles.yearTabActive]}
           >
-            <Text style={[styles.yearTabText, active && styles.yearTabTextActive]}>{year}</Text>
+            <Text style={[yearStyles.yearTabText, active && yearStyles.yearTabTextActive]}>{year}</Text>
           </Pressable>
         );
       })}
@@ -94,18 +110,18 @@ function YearTabs({
 
 function EmptyState() {
   const colors = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const emptyStyles = useMemo(() => createStyles(colors), [colors]);
   return (
-    <View style={styles.emptyState}>
+    <View style={emptyStyles.emptyState}>
       <AppIcon
         name="calendar"
         size={48}
         color={colors.textSecondary}
         strokeWidth={1.4}
-        style={styles.emptyStateIcon}
+        style={emptyStyles.emptyStateIcon}
       />
-      <Text style={styles.emptyStateTitle}>No shows on the calendar yet</Text>
-      <Text style={styles.emptyStateSubtitle}>Add your first event and it’ll show up here.</Text>
+      <Text style={emptyStyles.emptyStateTitle}>No shows on the calendar yet</Text>
+      <Text style={emptyStyles.emptyStateSubtitle}>Add your first event and it’ll show up here.</Text>
     </View>
   );
 }
@@ -124,7 +140,7 @@ export default function EventsHomeScreen({
   const [error, setError] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const colors = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const screenStyles = useMemo(() => createStyles(colors), [colors]);
 
   const loadEvents = useCallback(async () => {
     try {
@@ -160,56 +176,73 @@ export default function EventsHomeScreen({
   }, [events, selectedYear]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <FlagWatermark />
-        <SaxetPatch size={44} style={styles.headerPatch} />
-        <View style={styles.headerTextBlock}>
-          <Text style={styles.headerTitle}>Saxet Gun Show</Text>
-          <Text style={styles.headerSubtitle}>UPCOMING GUN SHOWS</Text>
+    <View style={screenStyles.container}>
+      <View style={screenStyles.header}>
+        <HeroRibbon width={220} height={160} opacity={1} />
+        <View style={screenStyles.headerStarRow}>
+          <AppIcon name="star" size={30} color={colors.cream} />
+          <AppIcon name="star" size={18} color={colors.cream} style={screenStyles.headerStarSmall} />
         </View>
+        <SaxetPatch size={64} style={screenStyles.headerPatch} />
+        <View style={screenStyles.eyebrowRow}>
+          <View style={screenStyles.eyebrowRule} />
+          <Text style={screenStyles.eyebrow}>Texas Tradition</Text>
+          <View style={screenStyles.eyebrowRule} />
+        </View>
+        <Text style={screenStyles.headerTitle}>Saxet Gun Show</Text>
+      </View>
+      <View style={screenStyles.headerBand}>
+        <AppIcon name="star" size={12} color={colors.white} />
+        <Text style={screenStyles.headerBandText}>Upcoming Gun Shows</Text>
+        <AppIcon name="star" size={12} color={colors.white} />
       </View>
 
-      <View style={styles.body}>
-        <TopoBackground />
+      <ScrollView
+        style={screenStyles.body}
+        contentContainerStyle={screenStyles.bodyContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accentText} />
+        }
+      >
+        <Text style={screenStyles.sectionHeading}>Find your next show.</Text>
         <YearTabs years={years} selectedYear={selectedYear} onSelectYear={setSelectedYear} />
         {events === null ? (
-          <View style={styles.centered}>
+          <View style={screenStyles.centered}>
             <ActivityIndicator color={colors.accentText} size="large" />
           </View>
         ) : error ? (
-          <View style={styles.centered}>
-            <Text style={styles.errorText}>{error}</Text>
+          <View style={screenStyles.centered}>
+            <Text style={screenStyles.errorText}>{error}</Text>
           </View>
         ) : events.length === 0 ? (
           <EmptyState />
         ) : (
-          <FlatList
-            key={selectedYear}
-            data={visibleEvents}
-            keyExtractor={(item) => String(item.id)}
-            renderItem={({ item }) => (
-              <EventCard event={item} onPress={() => onSelectEvent(item)} />
-            )}
-            contentContainerStyle={styles.listContent}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accentText} />
-            }
-          />
+          <View style={screenStyles.listContent}>
+            {visibleEvents.map((item) => (
+              <EventCard key={item.id} event={item} onPress={() => onSelectEvent(item)} />
+            ))}
+          </View>
         )}
-      </View>
 
-      <View style={styles.footer}>
-        <View style={styles.footerLinkRow}>
+        <View style={screenStyles.footerDivider}>
+          <View style={screenStyles.footerDividerLine} />
+          <View style={screenStyles.footerDividerStars}>
+            <AppIcon name="star" size={10} color={colors.accentText} />
+            <AppIcon name="star" size={10} color={colors.accentText} />
+            <AppIcon name="star" size={10} color={colors.accentText} />
+          </View>
+          <View style={screenStyles.footerDividerLine} />
+        </View>
+        <View style={screenStyles.footerLinkRow}>
           <Pressable onPress={onOpenPrivacyPolicy} hitSlop={12}>
-            <Text style={styles.footerLink}>Privacy Policy</Text>
+            <Text style={screenStyles.footerLink}>Privacy Policy</Text>
           </Pressable>
-          <Text style={styles.footerLinkDivider}>·</Text>
+          <Text style={screenStyles.footerLinkDivider}>|</Text>
           <Pressable onPress={onOpenTermsAndConditions} hitSlop={12}>
-            <Text style={styles.footerLink}>Terms & Conditions</Text>
+            <Text style={screenStyles.footerLink}>Terms & Conditions</Text>
           </Pressable>
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -221,52 +254,93 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   header: {
     backgroundColor: colors.navy,
-    paddingTop: 20,
-    paddingBottom: 22,
-    paddingHorizontal: 20,
-    borderBottomWidth: 4,
-    borderBottomColor: colors.flagRed,
+    paddingTop: 28,
+    paddingBottom: 24,
+    paddingHorizontal: 24,
+    alignItems: 'center',
     overflow: 'hidden',
+  },
+  headerStarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    marginBottom: 14,
+  },
+  headerStarSmall: {
+    marginTop: 10,
   },
   headerPatch: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: 20,
+    right: 20,
   },
-  // Reserves room so the title never runs under the corner patch on
-  // narrower phones - it wraps to a second line instead.
-  headerTextBlock: {
-    paddingRight: 60,
+  eyebrowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 6,
+  },
+  eyebrowRule: {
+    width: 28,
+    height: 1,
+    backgroundColor: colors.headerSubtitle,
+  },
+  eyebrow: {
+    fontFamily: bodyFontBold,
+    color: colors.cream,
+    fontSize: 13,
+    letterSpacing: 3,
+    textTransform: 'uppercase',
   },
   headerTitle: {
     fontFamily: displayFont,
-    color: colors.white,
-    fontSize: 36,
-    letterSpacing: 0.5,
+    color: colors.cream,
+    fontSize: 48,
+    lineHeight: 54,
+    textAlign: 'center',
   },
-  headerSubtitle: {
-    color: colors.headerSubtitle,
-    fontSize: 14,
-    marginTop: 4,
-    letterSpacing: 1.5,
-    fontFamily: bodyFontSemiBold,
+  headerBand: {
+    backgroundColor: colors.flagRed,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  headerBandText: {
+    fontFamily: bodyFontExtraBold,
+    color: colors.white,
+    fontSize: 13,
+    letterSpacing: 2.5,
+    textTransform: 'uppercase',
   },
   body: {
     flex: 1,
+  },
+  bodyContent: {
+    paddingBottom: 28,
+  },
+  sectionHeading: {
+    fontFamily: displayFontBold,
+    color: colors.textPrimary,
+    fontSize: 28,
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 4,
   },
   yearTabRow: {
     flexDirection: 'row',
     gap: 10,
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 14,
   },
   yearTab: {
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 999,
+    paddingVertical: 9,
+    paddingHorizontal: 22,
+    borderRadius: 6,
     borderWidth: 1.5,
     borderColor: colors.accentText,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
   },
   yearTabActive: {
     backgroundColor: colors.navy,
@@ -277,26 +351,35 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     color: colors.accentText,
   },
   yearTabTextActive: {
-    color: colors.white,
+    color: colors.cream,
   },
   listContent: {
     padding: 16,
   },
-  footer: {
-    paddingTop: 16,
-    // The Vendor/Staff floating buttons sit fixed at the bottom of the
-    // screen (see App.tsx) - this clears space so their bigger, more
-    // tappable footprint doesn't sit on top of these links.
-    paddingBottom: 92,
+  footerDivider: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-    backgroundColor: colors.background,
+    justifyContent: 'center',
+    gap: 14,
+    marginTop: 12,
+    paddingHorizontal: 40,
+  },
+  footerDividerLine: {
+    flex: 1,
+    maxWidth: 64,
+    height: 1.5,
+    backgroundColor: colors.flagRed,
+  },
+  footerDividerStars: {
+    flexDirection: 'row',
+    gap: 6,
   },
   footerLinkRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 12,
+    marginTop: 14,
   },
   footerLink: {
     fontSize: 15,
@@ -313,54 +396,62 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   card: {
     flexDirection: 'row',
     backgroundColor: colors.surface,
-    borderRadius: 4,
+    borderRadius: 6,
     overflow: 'hidden',
-    borderLeftWidth: 10,
-    borderLeftColor: colors.flagRed,
-    marginBottom: 22,
-    shadowColor: '#000',
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 5,
+    borderWidth: 1.5,
+    borderColor: colors.accentText,
+    marginBottom: 16,
   },
   cardPressed: {
-    opacity: 0.85,
+    opacity: 0.8,
   },
-  cardImage: {
-    width: 108,
-    alignSelf: 'stretch',
-  },
-  cardImagePlaceholder: {
+  dateBlock: {
+    width: 84,
     backgroundColor: colors.navy,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
+    paddingVertical: 18,
+  },
+  dateBlockStar: {
+    marginBottom: 6,
+  },
+  dateBlockMonth: {
+    fontSize: 13,
+    letterSpacing: 1.5,
+    fontFamily: bodyFontExtraBold,
+    color: colors.headerSubtitle,
+  },
+  dateBlockDay: {
+    fontSize: 34,
+    lineHeight: 38,
+    fontFamily: bodyFontExtraBold,
+    color: colors.cream,
+    marginTop: 2,
   },
   cardBody: {
     flex: 1,
-    padding: 18,
+    padding: 16,
     justifyContent: 'center',
   },
   cardTitle: {
-    fontSize: 19,
-    lineHeight: 27,
-    fontFamily: bodyFontExtraBold,
+    fontSize: 20,
+    lineHeight: 25,
+    fontFamily: displayFontBold,
     color: colors.textPrimary,
   },
   cardDate: {
-    fontSize: 16,
-    lineHeight: 23,
-    color: colors.accentText,
-    fontFamily: bodyFontBold,
-    marginTop: 8,
-  },
-  cardLocation: {
     fontSize: 15,
     lineHeight: 21,
+    color: colors.accentText,
+    fontFamily: bodyFontBold,
+    marginTop: 6,
+  },
+  cardLocation: {
+    fontSize: 14,
+    lineHeight: 19,
     fontFamily: bodyFont,
     color: colors.textSecondary,
-    marginTop: 6,
+    marginTop: 4,
   },
   centered: {
     flex: 1,

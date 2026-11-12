@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 
 import { useAuth, type AuthActionResult } from '../auth/AuthContext';
-import FlagWatermark from '../components/FlagWatermark';
+import HeroRibbon from '../components/HeroRibbon';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
@@ -85,7 +85,7 @@ export default function AuthScreen({
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <FlagWatermark />
+          <HeroRibbon />
           <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
             <Text style={styles.backButtonText}>‹ Back</Text>
           </Pressable>
@@ -192,7 +192,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.background,
   },
   scrollContent: {
-    flexGrow: 1,
+    paddingBottom: 48,
   },
   header: {
     backgroundColor: colors.navy,
@@ -276,17 +276,12 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   submitButton: {
     backgroundColor: colors.navy,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 18,
     minHeight: 56,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
   },
   submitButtonPressed: {
     opacity: 0.85,

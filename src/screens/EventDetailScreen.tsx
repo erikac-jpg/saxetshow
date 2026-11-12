@@ -15,7 +15,7 @@ import { createTableRequest, getTableRequestsForVendor } from '../db/supabase/ta
 import type { Event, TableRequest } from '../db/types';
 import AppIcon from '../components/AppIcon';
 import EngravedRule from '../components/EngravedRule';
-import FlagWatermark from '../components/FlagWatermark';
+import HeroRibbon from '../components/HeroRibbon';
 import MascotCelebration from '../components/MascotCelebration';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
@@ -119,7 +119,7 @@ export default function EventDetailScreen({
           <Image source={{ uri: event.image }} style={StyleSheet.absoluteFill} resizeMode="cover" />
         ) : (
           <>
-            <FlagWatermark />
+            <HeroRibbon />
             <AppIcon name="star" size={96} color={colors.white} />
           </>
         )}
@@ -258,7 +258,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     zIndex: 10,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 999,
+    borderRadius: 6,
     backgroundColor: 'rgba(255,255,255,0.16)',
   },
   backButtonText: {
@@ -321,14 +321,9 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   ctaButton: {
     backgroundColor: colors.flagRed,
-    borderRadius: 999,
+    borderRadius: 6,
     paddingVertical: 20,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
   },
   ctaButtonPressed: {
     opacity: 0.85,
@@ -341,15 +336,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   requestStatusCard: {
     backgroundColor: colors.surface,
-    borderRadius: 4,
-    borderLeftWidth: 6,
-    borderLeftColor: colors.accentText,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: colors.accentText,
     padding: 18,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
   },
   requestStatusTitle: {
     fontSize: 17,
@@ -365,13 +355,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   requestForm: {
     backgroundColor: colors.surface,
-    borderRadius: 4,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: colors.accentText,
     padding: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
   },
   requestFormLabel: {
     fontSize: 16,
