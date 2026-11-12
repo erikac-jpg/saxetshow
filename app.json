@@ -16,7 +16,7 @@
     "android": {
       "package": "com.saxetshow.app",
       "adaptiveIcon": {
-        "backgroundColor": "#1B2A41",
+        "backgroundColor": "#14243B",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
