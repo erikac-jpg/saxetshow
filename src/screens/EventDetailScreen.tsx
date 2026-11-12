@@ -15,7 +15,7 @@ import { createTableRequest, getTableRequestsForVendor } from '../db/supabase/ta
 import type { Event, TableRequest } from '../db/types';
 import AppIcon from '../components/AppIcon';
 import EngravedRule from '../components/EngravedRule';
-import FlagWatermark from '../components/FlagWatermark';
+import HeroRibbon from '../components/HeroRibbon';
 import MascotCelebration from '../components/MascotCelebration';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
@@ -119,7 +119,7 @@ export default function EventDetailScreen({
           <Image source={{ uri: event.image }} style={StyleSheet.absoluteFill} resizeMode="cover" />
         ) : (
           <>
-            <FlagWatermark />
+            <HeroRibbon />
             <AppIcon name="star" size={96} color={colors.white} />
           </>
         )}

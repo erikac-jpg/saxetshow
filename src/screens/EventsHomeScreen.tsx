@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import Svg, { Line } from 'react-native-svg';
 
 import { getUpcomingEvents } from '../db/supabase/events';
 import type { Event } from '../db/types';
 import AppIcon from '../components/AppIcon';
+import HeroRibbon from '../components/HeroRibbon';
 import SaxetPatch from '../components/SaxetPatch';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
@@ -50,40 +50,6 @@ function dateBlockParts(dateString: string): { month: string; day: string } {
     day: dayStr ? String(Number(dayStr)) : '',
   };
 }
-
-/** Flowing diagonal red/ivory ribbon - a restrained echo of a flag's stripes, clipped to the header's top-left corner behind the title. */
-function HeroRibbon({ colors }: { colors: ThemeColors }) {
-  const bands = [
-    { offset: -40, color: colors.flagRed, opacity: 1 },
-    { offset: -12, color: colors.cream, opacity: 1 },
-    { offset: 16, color: colors.flagRed, opacity: 1 },
-  ];
-  return (
-    <Svg width={220} height={160} viewBox="0 0 220 160" style={styles.ribbonSvg}>
-      {bands.map((band, i) => (
-        <Line
-          key={i}
-          x1={-40 + band.offset}
-          y1={-20}
-          x2={120 + band.offset}
-          y2={200}
-          stroke={band.color}
-          strokeOpacity={band.opacity}
-          strokeWidth={16}
-          strokeLinecap="round"
-        />
-      ))}
-    </Svg>
-  );
-}
-
-const styles = StyleSheet.create({
-  ribbonSvg: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-  },
-});
 
 function EventCard({ event, onPress }: { event: Event; onPress: () => void }) {
   const colors = useTheme();
@@ -212,7 +178,7 @@ export default function EventsHomeScreen({
   return (
     <View style={screenStyles.container}>
       <View style={screenStyles.header}>
-        <HeroRibbon colors={colors} />
+        <HeroRibbon width={220} height={160} opacity={1} />
         <View style={screenStyles.headerStarRow}>
           <AppIcon name="star" size={30} color={colors.cream} />
           <AppIcon name="star" size={18} color={colors.cream} style={screenStyles.headerStarSmall} />
@@ -231,7 +197,13 @@ export default function EventsHomeScreen({
         <AppIcon name="star" size={12} color={colors.white} />
       </View>
 
-      <View style={screenStyles.body}>
+      <ScrollView
+        style={screenStyles.body}
+        contentContainerStyle={screenStyles.bodyContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accentText} />
+        }
+      >
         <Text style={screenStyles.sectionHeading}>Find your next show.</Text>
         <YearTabs years={years} selectedYear={selectedYear} onSelectYear={setSelectedYear} />
         {events === null ? (
@@ -245,22 +217,22 @@ export default function EventsHomeScreen({
         ) : events.length === 0 ? (
           <EmptyState />
         ) : (
-          <FlatList
-            key={selectedYear}
-            data={visibleEvents}
-            keyExtractor={(item) => String(item.id)}
-            renderItem={({ item }) => (
-              <EventCard event={item} onPress={() => onSelectEvent(item)} />
-            )}
-            contentContainerStyle={screenStyles.listContent}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accentText} />
-            }
-          />
+          <View style={screenStyles.listContent}>
+            {visibleEvents.map((item) => (
+              <EventCard key={item.id} event={item} onPress={() => onSelectEvent(item)} />
+            ))}
+          </View>
         )}
-      </View>
 
-      <View style={screenStyles.footer}>
+        <View style={screenStyles.footerDivider}>
+          <View style={screenStyles.footerDividerLine} />
+          <View style={screenStyles.footerDividerStars}>
+            <AppIcon name="star" size={10} color={colors.accentText} />
+            <AppIcon name="star" size={10} color={colors.accentText} />
+            <AppIcon name="star" size={10} color={colors.accentText} />
+          </View>
+          <View style={screenStyles.footerDividerLine} />
+        </View>
         <View style={screenStyles.footerLinkRow}>
           <Pressable onPress={onOpenPrivacyPolicy} hitSlop={12}>
             <Text style={screenStyles.footerLink}>Privacy Policy</Text>
@@ -270,7 +242,7 @@ export default function EventsHomeScreen({
             <Text style={screenStyles.footerLink}>Terms & Conditions</Text>
           </Pressable>
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -345,6 +317,9 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   body: {
     flex: 1,
   },
+  bodyContent: {
+    paddingBottom: 28,
+  },
   sectionHeading: {
     fontFamily: displayFontBold,
     color: colors.textPrimary,
@@ -381,20 +356,30 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   listContent: {
     padding: 16,
   },
-  footer: {
-    paddingTop: 16,
-    // The bottom tab bar covers this area already (see RootNavigator) -
-    // no extra clearance needed beyond a normal footer now.
-    paddingBottom: 16,
+  footerDivider: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-    backgroundColor: colors.background,
+    justifyContent: 'center',
+    gap: 14,
+    marginTop: 12,
+    paddingHorizontal: 40,
+  },
+  footerDividerLine: {
+    flex: 1,
+    maxWidth: 64,
+    height: 1.5,
+    backgroundColor: colors.flagRed,
+  },
+  footerDividerStars: {
+    flexDirection: 'row',
+    gap: 6,
   },
   footerLinkRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 12,
+    marginTop: 14,
   },
   footerLink: {
     fontSize: 15,

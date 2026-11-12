@@ -15,7 +15,7 @@ import { deleteMyAccount } from '../db/supabase/users';
 import { createVendor, getVendorById, updateVendor } from '../db/supabase/vendors';
 import type { TableRequestStatus, Vendor } from '../db/types';
 import EngravedRule from '../components/EngravedRule';
-import FlagWatermark from '../components/FlagWatermark';
+import HeroRibbon from '../components/HeroRibbon';
 import VendorQrCode from '../components/VendorQrCode';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
@@ -221,7 +221,7 @@ export default function VendorProfileScreen({
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
-        <FlagWatermark />
+        <HeroRibbon />
         <View style={styles.headerTopRow}>
           <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
             <Text style={styles.backButtonText}>‹ Back</Text>

@@ -5,7 +5,7 @@ import {
   TERMS_AND_CONDITIONS_PARAGRAPHS,
   TERMS_AND_CONDITIONS_TITLE,
 } from '../content/termsAndConditionsTemplate';
-import FlagWatermark from '../components/FlagWatermark';
+import HeroRibbon from '../components/HeroRibbon';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, displayFont } from '../theme/fonts';
@@ -16,7 +16,7 @@ export default function TermsAndConditionsScreen({ onBack }: { onBack: () => voi
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <FlagWatermark />
+        <HeroRibbon />
         <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
           <Text style={styles.backButtonText}>‹ Back</Text>
         </Pressable>

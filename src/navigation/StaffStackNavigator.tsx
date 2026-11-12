@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../auth/AuthContext';
-import FlagWatermark from '../components/FlagWatermark';
+import HeroRibbon from '../components/HeroRibbon';
 import AgreementScreen from '../screens/AgreementScreen';
 import AuthScreen from '../screens/AuthScreen';
 import QrCheckInScreen from '../screens/QrCheckInScreen';
@@ -50,7 +50,7 @@ function StaffAccessRequiredScreen({ navigation }: Props<'StaffAccessRequired'>)
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <FlagWatermark />
+        <HeroRibbon />
         <Text style={styles.headerTitle}>Staff</Text>
       </View>
       <View style={styles.content}>

@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 
 import { useAuth, type AuthActionResult } from '../auth/AuthContext';
-import FlagWatermark from '../components/FlagWatermark';
+import HeroRibbon from '../components/HeroRibbon';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
@@ -85,7 +85,7 @@ export default function AuthScreen({
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <FlagWatermark />
+          <HeroRibbon />
           <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
             <Text style={styles.backButtonText}>‹ Back</Text>
           </Pressable>

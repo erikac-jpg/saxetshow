@@ -12,7 +12,7 @@ import {
 } from '../db/supabase/tableRequests';
 import { getVendorById } from '../db/supabase/vendors';
 import type { TableRequest, Vendor } from '../db/types';
-import FlagWatermark from '../components/FlagWatermark';
+import HeroRibbon from '../components/HeroRibbon';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
@@ -122,7 +122,7 @@ export default function QrCheckInScreen({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <FlagWatermark />
+        <HeroRibbon />
         <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
           <Text style={styles.backButtonText}>‹ Back</Text>
         </Pressable>

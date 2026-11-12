@@ -22,7 +22,7 @@ import { getAllVendors } from '../db/supabase/vendors';
 import { getWaitlistForEvent, removeFromWaitlist } from '../db/supabase/waitlist';
 import type { Agreement, Event, PaymentStatus, TableRequest, Vendor, WaitlistEntry } from '../db/types';
 import AppIcon from '../components/AppIcon';
-import FlagWatermark from '../components/FlagWatermark';
+import HeroRibbon from '../components/HeroRibbon';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
@@ -227,7 +227,7 @@ export default function StaffDashboardScreen({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <FlagWatermark />
+        <HeroRibbon />
         <View style={styles.headerTopRow}>
           <Pressable onPress={onExit} style={styles.exitButton} hitSlop={12}>
             <Text style={styles.exitButtonText}>‹ Exit</Text>
