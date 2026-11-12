@@ -192,7 +192,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.background,
   },
   scrollContent: {
-    flexGrow: 1,
+    paddingBottom: 48,
   },
   header: {
     backgroundColor: colors.navy,
