@@ -1,14 +1,35 @@
-import Svg, { Line } from 'react-native-svg';
+import Svg, { Path, G } from 'react-native-svg';
 import { StyleSheet } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 
 import { useTheme } from '../theme/ThemeContext';
 
+const VIEW_W = 220;
+const VIEW_H = 160;
+// How far above/below the flat baseline the single bow rises - one
+// gentle, subtle movement rather than a repeating ripple, but still
+// visible within the small clipped corner the ribbon renders in.
+const BOW = 38;
+const SPAN_LEFT = -40;
+const SPAN_RIGHT = 260;
+
+/** One smooth bow (a single cubic-bezier arc, not a repeating wave) for a band's top edge at baseline `y`; the bottom edge is the same curve offset down by `thickness`. */
+function bandPath(y: number, thickness: number): string {
+  const midX = (SPAN_LEFT + SPAN_RIGHT) / 2;
+  const c1x = SPAN_LEFT + (midX - SPAN_LEFT) * 0.5;
+  const c2x = midX + (SPAN_RIGHT - midX) * 0.5;
+  const topArc = `M${SPAN_LEFT},${y} C${c1x},${y - BOW} ${c2x},${y - BOW} ${SPAN_RIGHT},${y}`;
+  const yb = y + thickness;
+  const bottomArc = `L${SPAN_RIGHT},${yb} C${c2x},${yb - BOW} ${c1x},${yb - BOW} ${SPAN_LEFT},${yb}`;
+  return `${topArc} ${bottomArc} Z`;
+}
+
 /**
- * Flowing diagonal red/ivory ribbon - the brand's one recurring decorative
- * motif, clipped to a navy header's top-left corner behind the title. A
- * restrained echo of a flag's stripes, replacing the old full tone-on-tone
- * flag silhouette (FlagWatermark) everywhere for one consistent look.
+ * A single, subtle waving ribbon - five stripes (starting and ending on
+ * red, like the real flag's stripe count parity), drawn as one smooth bow
+ * rather than a repeating ripple, rotated onto the diagonal. The brand's
+ * one recurring decorative motif, clipped to a navy header's corner behind
+ * the title.
  */
 export default function HeroRibbon({
   // Small and low-opacity by default so it reads as a corner flourish
@@ -18,40 +39,43 @@ export default function HeroRibbon({
   width = 120,
   height = 90,
   opacity = 0.4,
+  /** Which header corner this flows from/into. */
+  corner = 'topLeft',
   style,
 }: {
   width?: number;
   height?: number;
   opacity?: number;
+  corner?: 'topLeft' | 'topRight' | 'bottomRight' | 'bottomLeft';
   style?: StyleProp<ViewStyle>;
 }) {
   const colors = useTheme();
-  const bands = [
-    { offset: -40, color: colors.flagRed },
-    { offset: -12, color: colors.cream },
-    { offset: 16, color: colors.flagRed },
-  ];
+  const thickness = 16;
+  const gap = 6;
+  const bandColors = [colors.flagRed, colors.cream, colors.flagRed, colors.cream, colors.flagRed];
+  const startY = -16;
+
+  const corners: Record<typeof corner, StyleProp<ViewStyle>> = {
+    topLeft: { top: 0, left: 0 },
+    topRight: { top: 0, right: 0, transform: [{ scaleX: -1 }] },
+    bottomRight: { bottom: 0, right: 0, transform: [{ scaleX: -1 }, { scaleY: -1 }] },
+    bottomLeft: { bottom: 0, left: 0, transform: [{ scaleY: -1 }] },
+  };
+
   return (
     <Svg
       width={width}
       height={height}
-      viewBox="0 0 220 160"
-      style={[styles.svg, style]}
+      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+      style={[styles.svg, corners[corner], style]}
       opacity={opacity}
       pointerEvents="none"
     >
-      {bands.map((band, i) => (
-        <Line
-          key={i}
-          x1={-40 + band.offset}
-          y1={-20}
-          x2={120 + band.offset}
-          y2={200}
-          stroke={band.color}
-          strokeWidth={16}
-          strokeLinecap="round"
-        />
-      ))}
+      <G transform={`rotate(-24 ${VIEW_W / 2} ${VIEW_H / 2})`}>
+        {bandColors.map((color, i) => (
+          <Path key={i} d={bandPath(startY + i * (thickness + gap), thickness)} fill={color} />
+        ))}
+      </G>
     </Svg>
   );
 }
@@ -59,7 +83,5 @@ export default function HeroRibbon({
 const styles = StyleSheet.create({
   svg: {
     position: 'absolute',
-    top: 0,
-    left: 0,
   },
 });
