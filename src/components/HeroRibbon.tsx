@@ -13,14 +13,17 @@ const BOW = 38;
 const SPAN_LEFT = -40;
 const SPAN_RIGHT = 260;
 
-/** One smooth bow (a single cubic-bezier arc, not a repeating wave) for a band's top edge at baseline `y`; the bottom edge is the same curve offset down by `thickness`. */
+/** One smooth S-curve (a single wave crest flowing into a trough, not a uniform rainbow-shaped arc) for a band's top edge at baseline `y`; the bottom edge is the same curve offset down by `thickness`. */
 function bandPath(y: number, thickness: number): string {
   const midX = (SPAN_LEFT + SPAN_RIGHT) / 2;
   const c1x = SPAN_LEFT + (midX - SPAN_LEFT) * 0.5;
   const c2x = midX + (SPAN_RIGHT - midX) * 0.5;
-  const topArc = `M${SPAN_LEFT},${y} C${c1x},${y - BOW} ${c2x},${y - BOW} ${SPAN_RIGHT},${y}`;
+  // The two control points bow in opposite directions (one up, one down),
+  // which is what actually produces a wave's crest-then-trough S-shape -
+  // same-direction control points just make a uniform rainbow-like arc.
+  const topArc = `M${SPAN_LEFT},${y} C${c1x},${y - BOW} ${c2x},${y + BOW} ${SPAN_RIGHT},${y}`;
   const yb = y + thickness;
-  const bottomArc = `L${SPAN_RIGHT},${yb} C${c2x},${yb - BOW} ${c1x},${yb - BOW} ${SPAN_LEFT},${yb}`;
+  const bottomArc = `L${SPAN_RIGHT},${yb} C${c2x},${yb + BOW} ${c1x},${yb - BOW} ${SPAN_LEFT},${yb}`;
   return `${topArc} ${bottomArc} Z`;
 }
 
