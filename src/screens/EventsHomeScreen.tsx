@@ -418,13 +418,13 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   dateBlockMonth: {
     fontSize: 13,
     letterSpacing: 1.5,
-    fontFamily: bodyFontExtraBold,
+    fontFamily: displayFontBold,
     color: colors.cream,
   },
   dateBlockDay: {
     fontSize: 34,
     lineHeight: 38,
-    fontFamily: bodyFontExtraBold,
+    fontFamily: displayFontBold,
     color: colors.cream,
     marginTop: 2,
   },
