@@ -136,7 +136,7 @@ export default function EventDetailScreen({
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
-        <HeroRibbon height={150} opacity={1} corner="bottomRight" />
+        <HeroRibbon height={50} opacity={1} corner="bottomRight" />
         <View style={styles.headerTopRow}>
           <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
             <Text style={styles.backButtonText}>‹ All shows</Text>

@@ -7,34 +7,32 @@ import { useTheme } from '../theme/ThemeContext';
 
 const VIEW_W = 220;
 const VIEW_H = 160;
-// How far above/below the flat baseline the single bow rises - one
-// gentle, subtle movement rather than a repeating ripple, but still
-// visible within the small clipped corner the ribbon renders in.
-const BOW = 38;
 const SPAN_LEFT = -40;
 const SPAN_RIGHT = 260;
+// The `height` value the band geometry below (thickness, gap, bow,
+// vertical start) was tuned at, showing all four stripes cleanly. Every
+// instance scales that geometry by its own `height` relative to this, so
+// a short ribbon reads as a smaller version of the same shape instead of
+// the same fixed-pixel bands getting vertically squashed into a smear by
+// the SVG's own height stretch.
+const REF_HEIGHT = 110;
 // How far past the header's own padding the ribbon box overshoots left
 // and right, so its horizontal ends run off the header's true left/right
 // edge (and get clipped there by the header's overflow: hidden) instead
 // of stopping short inside the padding where the cut would be visible.
 const EDGE_BLEED = 48;
-// The matching overshoot on the anchor (top or bottom) side is kept much
-// smaller - just enough to bleed the ribbon's near corner off that edge
-// too, without eating so much of `height` that the band stack itself
-// gets clipped before all four stripes have a chance to show.
-const ANCHOR_BLEED = 14;
 
 /** One smooth S-curve (a single wave crest flowing into a trough, not a uniform rainbow-shaped arc) for a band's top edge at baseline `y`; the bottom edge is the same curve offset down by `thickness`. */
-function bandPath(y: number, thickness: number): string {
+function bandPath(y: number, thickness: number, bow: number): string {
   const midX = (SPAN_LEFT + SPAN_RIGHT) / 2;
   const c1x = SPAN_LEFT + (midX - SPAN_LEFT) * 0.5;
   const c2x = midX + (SPAN_RIGHT - midX) * 0.5;
   // The two control points bow in opposite directions (one up, one down),
   // which is what actually produces a wave's crest-then-trough S-shape -
   // same-direction control points just make a uniform rainbow-like arc.
-  const topArc = `M${SPAN_LEFT},${y} C${c1x},${y - BOW} ${c2x},${y + BOW} ${SPAN_RIGHT},${y}`;
+  const topArc = `M${SPAN_LEFT},${y} C${c1x},${y - bow} ${c2x},${y + bow} ${SPAN_RIGHT},${y}`;
   const yb = y + thickness;
-  const bottomArc = `L${SPAN_RIGHT},${yb} C${c2x},${yb + BOW} ${c1x},${yb - BOW} ${SPAN_LEFT},${yb}`;
+  const bottomArc = `L${SPAN_RIGHT},${yb} C${c2x},${yb + bow} ${c1x},${yb - bow} ${SPAN_LEFT},${yb}`;
   return `${topArc} ${bottomArc} Z`;
 }
 
@@ -44,14 +42,15 @@ function bandPath(y: number, thickness: number): string {
  * the diagonal. Always runs the full width of its header so both ends
  * bleed off the screen's true edges rather than stopping mid-header;
  * `corner` picks which top/bottom edge it hugs and which side reads as
- * the "bold" (red) end.
+ * the "bold" (red) end. Sized so it stays clear of a header's own text -
+ * shrink `height` further for a header where text sits close to that edge.
  */
 export default function HeroRibbon({
-  // Thin and low-opacity by default so it reads as a quiet flourish behind
-  // a back button, not something fighting left-aligned title text for
-  // contrast - pass the larger/bolder props explicitly for a marquee hero
-  // header (see EventsHomeScreen) where the title sits clear of it.
-  height = 90,
+  // Thin and low-opacity by default so it clears a back button and title
+  // sitting right at the top of the header instead of running behind
+  // them - pass the larger/bolder props explicitly only where the header
+  // itself gives the ribbon that much clearance (see EventsHomeScreen).
+  height = 34,
   opacity = 0.4,
   /** Which header edge this hugs, and which side reads as the bold end. */
   corner = 'topLeft',
@@ -63,10 +62,19 @@ export default function HeroRibbon({
   style?: StyleProp<ViewStyle>;
 }) {
   const colors = useTheme();
+  // The anchor-edge overshoot scales with height (floored so a very short
+  // ribbon still bleeds off its edge instead of sitting flush); band
+  // thickness/gap/bow/start stay at the fixed values they were tuned at
+  // - since boxHeight = height + anchorBleed grows in step with height,
+  // the SVG's own height-stretch ratio (boxHeight / VIEW_H) already scales
+  // those fixed values down for a shorter ribbon, so scaling them again
+  // here would shrink them twice.
+  const anchorBleed = Math.max(6, 14 * (height / REF_HEIGHT));
   const thickness = 16;
   const gap = 6;
-  const bandColors = [colors.flagRed, colors.cream, colors.flagRed, colors.cream];
+  const bow = 38;
   const startY = -16;
+  const bandColors = [colors.flagRed, colors.cream, colors.flagRed, colors.cream];
   // The SVG needs its pixel width set explicitly (and matched exactly by
   // its viewBox-stretch target) to reliably fill the header edge-to-edge -
   // a plain View stretches correctly from left/right alone, but an <Svg>
@@ -79,18 +87,18 @@ export default function HeroRibbon({
   };
 
   const corners: Record<typeof corner, StyleProp<ViewStyle>> = {
-    topLeft: { top: -ANCHOR_BLEED, left: -EDGE_BLEED, right: -EDGE_BLEED },
-    topRight: { top: -ANCHOR_BLEED, left: -EDGE_BLEED, right: -EDGE_BLEED, transform: [{ scaleX: -1 }] },
+    topLeft: { top: -anchorBleed, left: -EDGE_BLEED, right: -EDGE_BLEED },
+    topRight: { top: -anchorBleed, left: -EDGE_BLEED, right: -EDGE_BLEED, transform: [{ scaleX: -1 }] },
     bottomRight: {
-      bottom: -ANCHOR_BLEED,
+      bottom: -anchorBleed,
       left: -EDGE_BLEED,
       right: -EDGE_BLEED,
       transform: [{ scaleX: -1 }, { scaleY: -1 }],
     },
-    bottomLeft: { bottom: -ANCHOR_BLEED, left: -EDGE_BLEED, right: -EDGE_BLEED, transform: [{ scaleY: -1 }] },
+    bottomLeft: { bottom: -anchorBleed, left: -EDGE_BLEED, right: -EDGE_BLEED, transform: [{ scaleY: -1 }] },
   };
 
-  const boxHeight = height + ANCHOR_BLEED;
+  const boxHeight = height + anchorBleed;
 
   return (
     <View
@@ -108,7 +116,7 @@ export default function HeroRibbon({
         >
           <G transform={`rotate(-24 ${VIEW_W / 2} ${VIEW_H / 2})`}>
             {bandColors.map((color, i) => (
-              <Path key={i} d={bandPath(startY + i * (thickness + gap), thickness)} fill={color} />
+              <Path key={i} d={bandPath(startY + i * (thickness + gap), thickness, bow)} fill={color} />
             ))}
           </G>
         </Svg>
