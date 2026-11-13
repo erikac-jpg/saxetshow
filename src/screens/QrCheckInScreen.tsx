@@ -15,7 +15,7 @@ import type { TableRequest, Vendor } from '../db/types';
 import HeroRibbon from '../components/HeroRibbon';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
-import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFontBold } from '../theme/fonts';
 import { expirationWarning } from '../util/expiration';
 
 type ScanResult =
@@ -290,7 +290,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     fontFamily: bodyFontBold,
   },
   headerTitle: {
-    fontFamily: displayFont,
+    fontFamily: displayFontBold,
     color: colors.white,
     fontSize: 32,
     letterSpacing: 0.5,

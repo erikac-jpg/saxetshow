@@ -8,7 +8,7 @@ import {
 import HeroRibbon from '../components/HeroRibbon';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
-import { bodyFont, bodyFontBold, bodyFontExtraBold, displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontBold, bodyFontExtraBold, displayFontBold } from '../theme/fonts';
 
 export default function PrivacyPolicyScreen({ onBack }: { onBack: () => void }) {
   const colors = useTheme();
@@ -62,7 +62,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     fontFamily: bodyFontBold,
   },
   headerTitle: {
-    fontFamily: displayFont,
+    fontFamily: displayFontBold,
     color: colors.white,
     fontSize: 30,
     letterSpacing: 0.5,

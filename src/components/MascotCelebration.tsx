@@ -3,7 +3,7 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
-import { bodyFont, bodyFontExtraBold, displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontExtraBold, displayFontBold } from '../theme/fonts';
 import { getCurrentSeason, SEASON_LABEL } from '../util/season';
 import MascotIcon from './mascots/MascotIcon';
 
@@ -94,7 +94,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     opacity: 0.85,
   },
   title: {
-    fontFamily: displayFont,
+    fontFamily: displayFontBold,
     fontSize: 28,
     color: colors.accentText,
     textAlign: 'center',

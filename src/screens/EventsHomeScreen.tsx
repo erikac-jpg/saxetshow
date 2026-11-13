@@ -20,7 +20,6 @@ import {
   bodyFont,
   bodyFontBold,
   bodyFontExtraBold,
-  displayFont,
   displayFontBold,
 } from '../theme/fonts';
 
@@ -43,7 +42,7 @@ function formatEventDate(dateString: string): string {
 
 /** Month abbreviation + day number for the date block, parsed straight from the ISO date so it never drifts from `formatEventDate`'s own parsing. */
 function dateBlockParts(dateString: string): { month: string; day: string } {
-  const [, monthStr, dayStr] = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/) ?? [];
+  const [, , monthStr, dayStr] = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/) ?? [];
   const monthIndex = monthStr ? Number(monthStr) - 1 : NaN;
   return {
     month: MONTH_ABBR[monthIndex] ?? '',
@@ -178,7 +177,7 @@ export default function EventsHomeScreen({
   return (
     <View style={screenStyles.container}>
       <View style={screenStyles.header}>
-        <HeroRibbon width={140} height={110} opacity={1} />
+        <HeroRibbon height={90} opacity={1} fullBleed />
         <View style={screenStyles.headerStarRow}>
           <AppIcon name="star" size={30} color={colors.cream} />
           <AppIcon name="star" size={18} color={colors.cream} style={screenStyles.headerStarSmall} />
@@ -286,14 +285,14 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.headerSubtitle,
   },
   eyebrow: {
-    fontFamily: bodyFontBold,
+    fontFamily: displayFontBold,
     color: colors.cream,
-    fontSize: 13,
+    fontSize: 15,
     letterSpacing: 3,
     textTransform: 'uppercase',
   },
   headerTitle: {
-    fontFamily: displayFont,
+    fontFamily: displayFontBold,
     color: colors.cream,
     fontSize: 48,
     lineHeight: 54,
@@ -411,22 +410,23 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 18,
+    gap: 10,
   },
   dateBlockStar: {
-    marginBottom: 6,
+    marginBottom: 0,
   },
   dateBlockMonth: {
     fontSize: 13,
     letterSpacing: 1.5,
-    fontFamily: bodyFontExtraBold,
-    color: colors.headerSubtitle,
+    fontFamily: displayFontBold,
+    color: colors.cream,
   },
   dateBlockDay: {
     fontSize: 34,
     lineHeight: 38,
-    fontFamily: bodyFontExtraBold,
+    fontFamily: displayFontBold,
     color: colors.cream,
-    marginTop: 2,
+    marginTop: 0,
   },
   cardBody: {
     flex: 1,
