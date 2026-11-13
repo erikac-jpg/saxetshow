@@ -410,9 +410,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 18,
+    gap: 10,
   },
   dateBlockStar: {
-    marginBottom: 6,
+    marginBottom: 0,
   },
   dateBlockMonth: {
     fontSize: 13,
@@ -425,7 +426,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     lineHeight: 38,
     fontFamily: displayFontBold,
     color: colors.cream,
-    marginTop: 2,
+    marginTop: 0,
   },
   cardBody: {
     flex: 1,
