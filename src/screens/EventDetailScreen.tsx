@@ -334,9 +334,9 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     marginBottom: 8,
   },
   eyebrow: {
-    fontFamily: bodyFontExtraBold,
+    fontFamily: displayFontBold,
     color: colors.cream,
-    fontSize: 13,
+    fontSize: 15,
     letterSpacing: 2.5,
     textTransform: 'uppercase',
   },

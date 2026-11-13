@@ -285,9 +285,9 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.headerSubtitle,
   },
   eyebrow: {
-    fontFamily: bodyFontBold,
+    fontFamily: displayFontBold,
     color: colors.cream,
-    fontSize: 13,
+    fontSize: 15,
     letterSpacing: 3,
     textTransform: 'uppercase',
   },
