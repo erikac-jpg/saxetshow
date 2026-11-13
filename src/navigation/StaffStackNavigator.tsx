@@ -14,7 +14,7 @@ import StaffDashboardScreen from '../screens/StaffDashboardScreen';
 import VendorProfileScreen from '../screens/VendorProfileScreen';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
-import { bodyFont, bodyFontBold, bodyFontExtraBold, displayFont } from '../theme/fonts';
+import { bodyFont, bodyFontBold, bodyFontExtraBold, displayFontBold } from '../theme/fonts';
 import type { RootTabParamList, StaffStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<StaffStackParamList>();
@@ -158,7 +158,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     overflow: 'hidden',
   },
   headerTitle: {
-    fontFamily: displayFont,
+    fontFamily: displayFontBold,
     color: colors.white,
     fontSize: 30,
     letterSpacing: 0.5,

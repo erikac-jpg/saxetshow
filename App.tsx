@@ -1,8 +1,4 @@
-import {
-  PlayfairDisplay_700Bold,
-  PlayfairDisplay_900Black,
-  useFonts,
-} from '@expo-google-fonts/playfair-display';
+import { PlayfairDisplay_700Bold, useFonts } from '@expo-google-fonts/playfair-display';
 import {
   PublicSans_400Regular,
   PublicSans_600SemiBold,
@@ -22,7 +18,6 @@ import { ThemeProvider, useIsDarkMode, useTheme } from './src/theme/ThemeContext
 function AppShell() {
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_700Bold,
-    PlayfairDisplay_900Black,
     PublicSans_400Regular,
     PublicSans_600SemiBold,
     PublicSans_700Bold,

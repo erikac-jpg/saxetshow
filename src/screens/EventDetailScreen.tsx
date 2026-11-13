@@ -25,7 +25,6 @@ import {
   bodyFontBold,
   bodyFontExtraBold,
   bodyFontSemiBold,
-  displayFont,
   displayFontBold,
 } from '../theme/fonts';
 
@@ -347,7 +346,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.headerSubtitle,
   },
   title: {
-    fontFamily: displayFont,
+    fontFamily: displayFontBold,
     fontSize: 40,
     lineHeight: 46,
     color: colors.cream,

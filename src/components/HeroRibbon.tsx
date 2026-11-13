@@ -13,11 +13,16 @@ const VIEW_H = 160;
 const BOW = 38;
 const SPAN_LEFT = -40;
 const SPAN_RIGHT = 260;
-// How far past the header's own padding the ribbon box overshoots on
-// every side, so its ends run off the header's true outer edge (and get
-// clipped there by the header's overflow: hidden) instead of stopping
-// short inside the padding where the cut would be visible.
+// How far past the header's own padding the ribbon box overshoots left
+// and right, so its horizontal ends run off the header's true left/right
+// edge (and get clipped there by the header's overflow: hidden) instead
+// of stopping short inside the padding where the cut would be visible.
 const EDGE_BLEED = 48;
+// The matching overshoot on the anchor (top or bottom) side is kept much
+// smaller - just enough to bleed the ribbon's near corner off that edge
+// too, without eating so much of `height` that the band stack itself
+// gets clipped before all four stripes have a chance to show.
+const ANCHOR_BLEED = 14;
 
 /** One smooth S-curve (a single wave crest flowing into a trough, not a uniform rainbow-shaped arc) for a band's top edge at baseline `y`; the bottom edge is the same curve offset down by `thickness`. */
 function bandPath(y: number, thickness: number): string {
@@ -34,12 +39,12 @@ function bandPath(y: number, thickness: number): string {
 }
 
 /**
- * A single, subtle waving ribbon - five stripes (starting and ending on
- * red, like the real flag's stripe count parity), drawn as one smooth bow
- * rather than a repeating ripple, rotated onto the diagonal. Always runs
- * the full width of its header so both ends bleed off the screen's true
- * edges rather than stopping mid-header; `corner` picks which top/bottom
- * edge it hugs and which side reads as the "bold" end.
+ * A single, subtle waving ribbon - four alternating red/white stripes,
+ * drawn as one smooth bow rather than a repeating ripple, rotated onto
+ * the diagonal. Always runs the full width of its header so both ends
+ * bleed off the screen's true edges rather than stopping mid-header;
+ * `corner` picks which top/bottom edge it hugs and which side reads as
+ * the "bold" (red) end.
  */
 export default function HeroRibbon({
   // Thin and low-opacity by default so it reads as a quiet flourish behind
@@ -60,7 +65,7 @@ export default function HeroRibbon({
   const colors = useTheme();
   const thickness = 16;
   const gap = 6;
-  const bandColors = [colors.flagRed, colors.cream, colors.flagRed, colors.cream, colors.flagRed];
+  const bandColors = [colors.flagRed, colors.cream, colors.flagRed, colors.cream];
   const startY = -16;
   // The SVG needs its pixel width set explicitly (and matched exactly by
   // its viewBox-stretch target) to reliably fill the header edge-to-edge -
@@ -74,18 +79,18 @@ export default function HeroRibbon({
   };
 
   const corners: Record<typeof corner, StyleProp<ViewStyle>> = {
-    topLeft: { top: -EDGE_BLEED, left: -EDGE_BLEED, right: -EDGE_BLEED },
-    topRight: { top: -EDGE_BLEED, left: -EDGE_BLEED, right: -EDGE_BLEED, transform: [{ scaleX: -1 }] },
+    topLeft: { top: -ANCHOR_BLEED, left: -EDGE_BLEED, right: -EDGE_BLEED },
+    topRight: { top: -ANCHOR_BLEED, left: -EDGE_BLEED, right: -EDGE_BLEED, transform: [{ scaleX: -1 }] },
     bottomRight: {
-      bottom: -EDGE_BLEED,
+      bottom: -ANCHOR_BLEED,
       left: -EDGE_BLEED,
       right: -EDGE_BLEED,
       transform: [{ scaleX: -1 }, { scaleY: -1 }],
     },
-    bottomLeft: { bottom: -EDGE_BLEED, left: -EDGE_BLEED, right: -EDGE_BLEED, transform: [{ scaleY: -1 }] },
+    bottomLeft: { bottom: -ANCHOR_BLEED, left: -EDGE_BLEED, right: -EDGE_BLEED, transform: [{ scaleY: -1 }] },
   };
 
-  const boxHeight = height + EDGE_BLEED;
+  const boxHeight = height + ANCHOR_BLEED;
 
   return (
     <View

@@ -20,7 +20,6 @@ import {
   bodyFont,
   bodyFontBold,
   bodyFontExtraBold,
-  displayFont,
   displayFontBold,
 } from '../theme/fonts';
 
@@ -293,7 +292,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     textTransform: 'uppercase',
   },
   headerTitle: {
-    fontFamily: displayFont,
+    fontFamily: displayFontBold,
     color: colors.cream,
     fontSize: 48,
     lineHeight: 54,
