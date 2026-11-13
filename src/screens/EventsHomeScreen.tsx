@@ -419,7 +419,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     fontSize: 13,
     letterSpacing: 1.5,
     fontFamily: bodyFontExtraBold,
-    color: colors.headerSubtitle,
+    color: colors.cream,
   },
   dateBlockDay: {
     fontSize: 34,
