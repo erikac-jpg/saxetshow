@@ -43,7 +43,7 @@ function formatEventDate(dateString: string): string {
 
 /** Month abbreviation + day number for the date block, parsed straight from the ISO date so it never drifts from `formatEventDate`'s own parsing. */
 function dateBlockParts(dateString: string): { month: string; day: string } {
-  const [, monthStr, dayStr] = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/) ?? [];
+  const [, , monthStr, dayStr] = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/) ?? [];
   const monthIndex = monthStr ? Number(monthStr) - 1 : NaN;
   return {
     month: MONTH_ABBR[monthIndex] ?? '',
@@ -178,7 +178,7 @@ export default function EventsHomeScreen({
   return (
     <View style={screenStyles.container}>
       <View style={screenStyles.header}>
-        <HeroRibbon width={140} height={110} opacity={1} />
+        <HeroRibbon height={110} opacity={1} />
         <View style={screenStyles.headerStarRow}>
           <AppIcon name="star" size={30} color={colors.cream} />
           <AppIcon name="star" size={18} color={colors.cream} style={screenStyles.headerStarSmall} />
