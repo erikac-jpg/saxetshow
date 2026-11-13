@@ -9,6 +9,10 @@ const VIEW_W = 220;
 const VIEW_H = 160;
 const SPAN_LEFT = -40;
 const SPAN_RIGHT = 260;
+// Steep enough that the band clears the header's own content (a star
+// row, a back button) within a short horizontal run instead of staying
+// low enough to cross them most of the way across the screen.
+const ROTATION_DEG = 34;
 // The `height` value the band geometry below (thickness, gap, bow,
 // vertical start) was tuned at, showing all four stripes cleanly. Every
 // instance scales that geometry by its own `height` relative to this, so
@@ -16,11 +20,16 @@ const SPAN_RIGHT = 260;
 // the same fixed-pixel bands getting vertically squashed into a smear by
 // the SVG's own height stretch.
 const REF_HEIGHT = 110;
-// How far past the header's own padding the ribbon box overshoots left
-// and right, so its horizontal ends run off the header's true left/right
-// edge (and get clipped there by the header's overflow: hidden) instead
-// of stopping short inside the padding where the cut would be visible.
+// How far past the header's own padding a full-bleed ribbon overshoots
+// left and right, so its horizontal ends run off the header's true
+// left/right edge (and get clipped there by the header's overflow:
+// hidden) instead of stopping short inside the padding where the cut
+// would be visible.
 const EDGE_BLEED = 48;
+// How far a confined (non-full-bleed) ribbon overshoots past its own
+// anchor corner, so it still bleeds off that one corner rather than
+// sitting flush against it.
+const CORNER_BLEED = 10;
 
 /** One smooth S-curve (a single wave crest flowing into a trough, not a uniform rainbow-shaped arc) for a band's top edge at baseline `y`; the bottom edge is the same curve offset down by `thickness`. */
 function bandPath(y: number, thickness: number, bow: number): string {
@@ -39,26 +48,30 @@ function bandPath(y: number, thickness: number, bow: number): string {
 /**
  * A single, subtle waving ribbon - four alternating red/white stripes,
  * drawn as one smooth bow rather than a repeating ripple, rotated onto
- * the diagonal. Always runs the full width of its header so both ends
- * bleed off the screen's true edges rather than stopping mid-header;
- * `corner` picks which top/bottom edge it hugs and which side reads as
- * the "bold" (red) end. Sized so it stays clear of a header's own text -
- * shrink `height` further for a header where text sits close to that edge.
+ * the diagonal. `corner` picks which corner it hugs and which side reads
+ * as the "bold" (red) end. By default it's a compact flourish confined
+ * to that one corner (bleeding off just its own two edges) so it never
+ * reaches across the header into a title or a star row; pass
+ * `fullBleed` only where the header gives it clear room to run edge to
+ * edge the whole way across (see EventsHomeScreen, EventDetailScreen).
  */
 export default function HeroRibbon({
-  // Thin and low-opacity by default so it clears a back button and title
-  // sitting right at the top of the header instead of running behind
-  // them - pass the larger/bolder props explicitly only where the header
-  // itself gives the ribbon that much clearance (see EventsHomeScreen).
-  height = 34,
+  // Thin and low-opacity by default so it reads as a quiet corner
+  // flourish rather than competing with a back button or title - pass
+  // the larger/bolder props explicitly only where the header gives the
+  // ribbon room for that.
+  height = 46,
   opacity = 0.4,
-  /** Which header edge this hugs, and which side reads as the bold end. */
+  /** Which corner this hugs, and which side reads as the bold end. */
   corner = 'topLeft',
+  /** Run the full width of the header, bleeding off both left and right, instead of staying confined to `corner`. */
+  fullBleed = false,
   style,
 }: {
   height?: number;
   opacity?: number;
   corner?: 'topLeft' | 'topRight' | 'bottomRight' | 'bottomLeft';
+  fullBleed?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
   const colors = useTheme();
@@ -75,46 +88,57 @@ export default function HeroRibbon({
   const bow = 38;
   const startY = -16;
   const bandColors = [colors.flagRed, colors.cream, colors.flagRed, colors.cream];
-  // The SVG needs its pixel width set explicitly (and matched exactly by
-  // its viewBox-stretch target) to reliably fill the header edge-to-edge -
-  // a plain View stretches correctly from left/right alone, but an <Svg>
-  // with no width prop doesn't reliably pick that up. Measure the wrapper
-  // instead and size the Svg to match once we know it.
+  // Full-bleed needs the SVG's pixel width set explicitly (and matched
+  // exactly by its viewBox-stretch target) to reliably fill the header
+  // edge-to-edge - a plain View stretches correctly from left/right
+  // alone, but an <Svg> with no width prop doesn't reliably pick that up.
+  // Measure the wrapper instead and size the Svg to match once known.
   const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
   const handleLayout = (event: LayoutChangeEvent) => {
     const w = event.nativeEvent.layout.width;
     if (w > 0 && w !== measuredWidth) setMeasuredWidth(w);
   };
+  // A confined ribbon keeps the same proportions as the box it was
+  // designed in, just scaled by height.
+  const confinedWidth = height * (VIEW_W / VIEW_H);
 
-  const corners: Record<typeof corner, StyleProp<ViewStyle>> = {
-    topLeft: { top: -anchorBleed, left: -EDGE_BLEED, right: -EDGE_BLEED },
-    topRight: { top: -anchorBleed, left: -EDGE_BLEED, right: -EDGE_BLEED, transform: [{ scaleX: -1 }] },
-    bottomRight: {
-      bottom: -anchorBleed,
-      left: -EDGE_BLEED,
-      right: -EDGE_BLEED,
-      transform: [{ scaleX: -1 }, { scaleY: -1 }],
-    },
-    bottomLeft: { bottom: -anchorBleed, left: -EDGE_BLEED, right: -EDGE_BLEED, transform: [{ scaleY: -1 }] },
-  };
+  const corners: Record<typeof corner, StyleProp<ViewStyle>> = fullBleed
+    ? {
+        topLeft: { top: -anchorBleed, left: -EDGE_BLEED, right: -EDGE_BLEED },
+        topRight: { top: -anchorBleed, left: -EDGE_BLEED, right: -EDGE_BLEED, transform: [{ scaleX: -1 }] },
+        bottomRight: {
+          bottom: -anchorBleed,
+          left: -EDGE_BLEED,
+          right: -EDGE_BLEED,
+          transform: [{ scaleX: -1 }, { scaleY: -1 }],
+        },
+        bottomLeft: { bottom: -anchorBleed, left: -EDGE_BLEED, right: -EDGE_BLEED, transform: [{ scaleY: -1 }] },
+      }
+    : {
+        topLeft: { top: -CORNER_BLEED, left: -CORNER_BLEED },
+        topRight: { top: -CORNER_BLEED, right: -CORNER_BLEED, transform: [{ scaleX: -1 }] },
+        bottomRight: { bottom: -CORNER_BLEED, right: -CORNER_BLEED, transform: [{ scaleX: -1 }, { scaleY: -1 }] },
+        bottomLeft: { bottom: -CORNER_BLEED, left: -CORNER_BLEED, transform: [{ scaleY: -1 }] },
+      };
 
-  const boxHeight = height + anchorBleed;
+  const boxHeight = fullBleed ? height + anchorBleed : height + CORNER_BLEED;
+  const boxWidth = fullBleed ? measuredWidth : confinedWidth + CORNER_BLEED;
 
   return (
     <View
-      onLayout={handleLayout}
+      onLayout={fullBleed ? handleLayout : undefined}
       style={[styles.wrapper, { height: boxHeight }, corners[corner], style]}
       pointerEvents="none"
     >
-      {measuredWidth ? (
+      {boxWidth ? (
         <Svg
-          width={measuredWidth}
+          width={boxWidth}
           height={boxHeight}
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
           preserveAspectRatio="none"
           opacity={opacity}
         >
-          <G transform={`rotate(-24 ${VIEW_W / 2} ${VIEW_H / 2})`}>
+          <G transform={`rotate(-${ROTATION_DEG} ${VIEW_W / 2} ${VIEW_H / 2})`}>
             {bandColors.map((color, i) => (
               <Path key={i} d={bandPath(startY + i * (thickness + gap), thickness, bow)} fill={color} />
             ))}

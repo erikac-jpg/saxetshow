@@ -177,7 +177,7 @@ export default function EventsHomeScreen({
   return (
     <View style={screenStyles.container}>
       <View style={screenStyles.header}>
-        <HeroRibbon height={110} opacity={1} />
+        <HeroRibbon height={90} opacity={1} fullBleed />
         <View style={screenStyles.headerStarRow}>
           <AppIcon name="star" size={30} color={colors.cream} />
           <AppIcon name="star" size={18} color={colors.cream} style={screenStyles.headerStarSmall} />
