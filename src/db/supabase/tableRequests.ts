@@ -46,6 +46,16 @@ export async function getTableRequestsForEvent(eventId: number): Promise<TableRe
   return (data ?? []) as unknown as TableRequest[];
 }
 
+/** Count of pending requests across every event, for the Staff tab's badge - staff-only via RLS, same as every other broad read here. */
+export async function getPendingRequestCount(): Promise<number> {
+  const { count, error } = await supabase
+    .from('table_requests')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending');
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export async function getTableRequestsForVendor(vendorId: number): Promise<TableRequest[]> {
   const { data, error } = await supabase
     .from('table_requests')
