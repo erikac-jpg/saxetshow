@@ -2,7 +2,7 @@ import { supabase } from '../supabaseClient';
 import type { PaymentStatus, TableRequest, TableRequestStatus } from '../types';
 
 const TABLE_REQUEST_SELECT =
-  'id, vendorId:vendor_id, eventId:event_id, tablesWanted:tables_wanted, status, paymentStatus:payment_status, paymentMethod:payment_method, checkNumber:check_number, checkedInAt:checked_in_at, createdAt:created_at, updatedAt:updated_at';
+  'id, vendorId:vendor_id, eventId:event_id, tablesWanted:tables_wanted, status, paymentStatus:payment_status, paymentMethod:payment_method, checkNumber:check_number, paymentLink:payment_link, checkedInAt:checked_in_at, createdAt:created_at, updatedAt:updated_at';
 
 export interface CreateTableRequestInput {
   vendorId: number;
@@ -94,6 +94,18 @@ export async function updateTableRequestPayment(
   return (data as unknown as TableRequest) ?? null;
 }
 
+/** Staff-set checkout URL for this request; `null` clears it. Kept separate from `updateTableRequestPayment` since setting the link isn't itself a payment-status change. */
+export async function setPaymentLink(id: number, paymentLink: string | null): Promise<TableRequest | null> {
+  const { data, error } = await supabase
+    .from('table_requests')
+    .update({ payment_link: paymentLink })
+    .eq('id', id)
+    .select(TABLE_REQUEST_SELECT)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as unknown as TableRequest) ?? null;
+}
+
 /** Toggles day-of check-in for a request. `false` clears it (for corrections). */
 export async function setCheckedIn(id: number, checkedIn: boolean): Promise<TableRequest | null> {
   const { data, error } = await supabase
@@ -119,6 +131,7 @@ export interface VendorRequestHistoryEntry {
   tablesWanted: number;
   status: TableRequestStatus;
   paymentStatus: PaymentStatus;
+  paymentLink: string | null;
   checkedInAt: string | null;
 }
 
@@ -137,7 +150,7 @@ export async function getRequestHistoryForVendor(
   const { data, error } = await supabase
     .from('table_requests')
     .select(
-      'id, eventId:event_id, tablesWanted:tables_wanted, status, paymentStatus:payment_status, checkedInAt:checked_in_at, event:events(name, date)'
+      'id, eventId:event_id, tablesWanted:tables_wanted, status, paymentStatus:payment_status, paymentLink:payment_link, checkedInAt:checked_in_at, event:events(name, date)'
     )
     .eq('vendor_id', vendorId)
     .order('created_at', { ascending: false });
@@ -149,6 +162,7 @@ export async function getRequestHistoryForVendor(
     tablesWanted: number;
     status: TableRequestStatus;
     paymentStatus: PaymentStatus;
+    paymentLink: string | null;
     checkedInAt: string | null;
     event: { name: string; date: string } | null;
   }>).map((row) => ({
@@ -159,6 +173,7 @@ export async function getRequestHistoryForVendor(
     tablesWanted: row.tablesWanted,
     status: row.status,
     paymentStatus: row.paymentStatus,
+    paymentLink: row.paymentLink,
     checkedInAt: row.checkedInAt,
   }));
 }

@@ -68,6 +68,8 @@ export interface TableRequest {
   paymentStatus: PaymentStatus;
   paymentMethod: string | null;
   checkNumber: string | null;
+  /** Staff-set checkout URL (Stripe, etc.) a vendor can pay through in advance. Vendor-readable, staff-writable only. */
+  paymentLink: string | null;
   checkedInAt: string | null;
   createdAt: string;
   updatedAt: string;

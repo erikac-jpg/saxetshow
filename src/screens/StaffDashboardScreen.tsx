@@ -15,6 +15,7 @@ import { getAllEvents, getEventById, updateEvent } from '../db/supabase/events';
 import {
   getTableRequestsForEvent,
   setCheckedIn,
+  setPaymentLink,
   updateTableRequestPayment,
   updateTableRequestStatus,
 } from '../db/supabase/tableRequests';
@@ -192,6 +193,14 @@ export default function StaffDashboardScreen({
     [refreshRequests]
   );
 
+  const handleSetPaymentLink = useCallback(
+    async (request: TableRequest, value: string) => {
+      await setPaymentLink(request.id, value.trim() || null);
+      await refreshRequests();
+    },
+    [refreshRequests]
+  );
+
   const handleToggleCheckIn = useCallback(
     async (request: TableRequest) => {
       await setCheckedIn(request.id, !request.checkedInAt);
@@ -338,6 +347,7 @@ export default function StaffDashboardScreen({
                       onSetPaymentDetail={(field, value) =>
                         handleSetPaymentDetail(request, field, value)
                       }
+                      onSetPaymentLink={(value) => handleSetPaymentLink(request, value)}
                       onToggleCheckIn={() => handleToggleCheckIn(request)}
                     />
                   ))
@@ -410,6 +420,7 @@ function RequestRow({
   onOpenAgreement,
   onSetPaymentStatus,
   onSetPaymentDetail,
+  onSetPaymentLink,
   onToggleCheckIn,
 }: {
   request: TableRequest;
@@ -422,6 +433,7 @@ function RequestRow({
   onOpenAgreement: () => void;
   onSetPaymentStatus: (status: PaymentStatus) => void;
   onSetPaymentDetail: (field: 'paymentMethod' | 'checkNumber', value: string) => void;
+  onSetPaymentLink: (value: string) => void;
   onToggleCheckIn: () => void;
 }) {
   const isSigned = agreementStatus === 'signed';
@@ -429,11 +441,13 @@ function RequestRow({
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [methodInput, setMethodInput] = useState(request.paymentMethod ?? '');
   const [checkNumberInput, setCheckNumberInput] = useState(request.checkNumber ?? '');
+  const [linkInput, setLinkInput] = useState(request.paymentLink ?? '');
 
   useEffect(() => {
     setMethodInput(request.paymentMethod ?? '');
     setCheckNumberInput(request.checkNumber ?? '');
-  }, [request.id, request.paymentMethod, request.checkNumber]);
+    setLinkInput(request.paymentLink ?? '');
+  }, [request.id, request.paymentMethod, request.checkNumber, request.paymentLink]);
 
   return (
     <View style={styles.row}>
@@ -493,6 +507,17 @@ function RequestRow({
             style={styles.paymentDetailInput}
           />
         </View>
+        <TextInput
+          value={linkInput}
+          onChangeText={setLinkInput}
+          onEndEditing={() => onSetPaymentLink(linkInput)}
+          placeholder="Payment link (Stripe, TacticalPay, etc.)"
+          placeholderTextColor={colors.textSecondary}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="url"
+          style={styles.paymentLinkInput}
+        />
       </View>
 
       <Pressable
@@ -877,6 +902,19 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   paymentDetailInput: {
     flex: 1,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    minHeight: 48,
+    fontSize: 15,
+    fontFamily: bodyFont,
+    color: colors.textPrimary,
+    backgroundColor: colors.surface,
+  },
+  paymentLinkInput: {
+    marginTop: 8,
     borderWidth: 1,
     borderColor: colors.divider,
     borderRadius: 4,

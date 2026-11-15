@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -399,6 +400,14 @@ const STATUS_LABEL: Record<TableRequestStatus, string> = {
 function HistoryRow({ entry }: { entry: VendorRequestHistoryEntry }) {
   const colors = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const canPayNow = Boolean(entry.paymentLink) && entry.paymentStatus !== 'paid';
+
+  const handlePayNow = useCallback(() => {
+    if (entry.paymentLink) {
+      Linking.openURL(entry.paymentLink).catch(() => {});
+    }
+  }, [entry.paymentLink]);
+
   return (
     <View style={styles.historyRow}>
       <Text style={styles.historyEventName} numberOfLines={1}>
@@ -411,6 +420,14 @@ function HistoryRow({ entry }: { entry: VendorRequestHistoryEntry }) {
       <Text style={styles.historyMeta}>
         Payment: {entry.paymentStatus} · {deriveAttendance(entry)}
       </Text>
+      {canPayNow && (
+        <Pressable
+          onPress={handlePayNow}
+          style={({ pressed }) => [styles.payNowButton, pressed && styles.payNowButtonPressed]}
+        >
+          <Text style={styles.payNowButtonText}>Pay now</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -664,5 +681,23 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     fontFamily: bodyFont,
     color: colors.textSecondary,
     marginTop: 3,
+  },
+  payNowButton: {
+    backgroundColor: colors.flagRed,
+    borderRadius: 6,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 20,
+  },
+  payNowButtonPressed: {
+    opacity: 0.85,
+  },
+  payNowButtonText: {
+    fontSize: 14,
+    fontFamily: bodyFontBold,
+    color: colors.white,
   },
 });
