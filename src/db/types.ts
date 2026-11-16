@@ -22,7 +22,8 @@ export interface User {
 export interface Vendor {
   id: number;
   userId: number | null;
-  businessName: string;
+  /** Optional - the paper application only requires the vendor's own name, not a business name. */
+  businessName: string | null;
   contactName: string | null;
   phone: string | null;
   email: string | null;

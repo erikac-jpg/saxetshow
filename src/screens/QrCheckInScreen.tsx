@@ -210,8 +210,10 @@ function VendorScanCard({
 
   return (
     <View style={styles.card}>
-      <Text style={styles.vendorName}>{vendor.businessName}</Text>
-      {vendor.contactName && <Text style={styles.vendorMeta}>{vendor.contactName}</Text>}
+      <Text style={styles.vendorName}>{vendor.businessName ?? vendor.contactName ?? 'Vendor'}</Text>
+      {vendor.businessName && vendor.contactName && (
+        <Text style={styles.vendorMeta}>{vendor.contactName}</Text>
+      )}
 
       {fflWarning && (
         <View style={styles.warningNotice}>

@@ -211,7 +211,8 @@ export default function StaffDashboardScreen({
 
   const handleOffer = useCallback(
     (entry: WaitlistEntry) => {
-      const vendorName = vendorsById.get(entry.vendorId)?.businessName ?? 'This vendor';
+      const found = vendorsById.get(entry.vendorId);
+      const vendorName = found?.businessName ?? found?.contactName ?? 'This vendor';
       Alert.alert('Offer Sent', `${vendorName} will be notified about an open table.`);
     },
     [vendorsById]
@@ -334,7 +335,11 @@ export default function StaffDashboardScreen({
                     <RequestRow
                       key={request.id}
                       request={request}
-                      vendorName={vendorsById.get(request.vendorId)?.businessName ?? 'Unknown vendor'}
+                      vendorName={
+                        vendorsById.get(request.vendorId)?.businessName ??
+                        vendorsById.get(request.vendorId)?.contactName ??
+                        'Unknown vendor'
+                      }
                       agreementStatus={agreementsByVendorId.get(request.vendorId)?.status ?? null}
                       exceedsOpenTables={
                         request.status === 'pending' && request.tablesWanted > tablesOpen
@@ -363,7 +368,11 @@ export default function StaffDashboardScreen({
                     <WaitlistRow
                       key={entry.id}
                       entry={entry}
-                      vendorName={vendorsById.get(entry.vendorId)?.businessName ?? 'Unknown vendor'}
+                      vendorName={
+                        vendorsById.get(entry.vendorId)?.businessName ??
+                        vendorsById.get(entry.vendorId)?.contactName ??
+                        'Unknown vendor'
+                      }
                       onOffer={() => handleOffer(entry)}
                       onRemove={() => handleRemoveFromWaitlist(entry)}
                       onOpenVendorProfile={() => onOpenVendorProfile(entry.vendorId)}

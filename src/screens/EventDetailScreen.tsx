@@ -211,9 +211,17 @@ export default function EventDetailScreen({
         <Text style={styles.sectionLabel}>Vendor Info</Text>
         <Text style={styles.vendorHeading}>Save your spot.</Text>
         <Text style={styles.sectionBody}>
-          Interested in setting up a booth at this show? Let us know and our team will follow up
-          with table pricing and availability.
+          Interested in setting up a booth at this show? Request a table below and our team will
+          follow up with a secure payment link.
         </Text>
+        <View style={styles.hoursRow}>
+          <Text style={styles.hoursLabel}>Table Price (card)</Text>
+          <Text style={styles.hoursValue}>$93 / table</Text>
+        </View>
+        <View style={styles.hoursRow}>
+          <Text style={styles.hoursLabel}>Table Price (cash)</Text>
+          <Text style={styles.hoursValue}>$90 / table</Text>
+        </View>
 
         {existingRequest === undefined ? (
           <ActivityIndicator color={colors.accentText} />

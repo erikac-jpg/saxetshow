@@ -6,7 +6,7 @@ const VENDOR_SELECT =
 
 export interface CreateVendorInput {
   userId?: number | null;
-  businessName: string;
+  businessName?: string | null;
   contactName?: string | null;
   phone?: string | null;
   email?: string | null;
@@ -30,7 +30,7 @@ export async function createVendor(input: CreateVendorInput): Promise<Vendor> {
     .from('vendors')
     .insert({
       user_id: input.userId ?? null,
-      business_name: input.businessName,
+      business_name: input.businessName ?? null,
       contact_name: input.contactName ?? null,
       phone: input.phone ?? null,
       email: input.email ?? null,

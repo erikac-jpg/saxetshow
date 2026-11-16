@@ -69,11 +69,15 @@ Deno.serve(async (req) => {
   );
 
   const [{ data: vendor }, { data: event }] = await Promise.all([
-    supabase.from('vendors').select('business_name').eq('id', request.vendor_id).maybeSingle(),
+    supabase
+      .from('vendors')
+      .select('business_name, contact_name')
+      .eq('id', request.vendor_id)
+      .maybeSingle(),
     supabase.from('events').select('name, date').eq('id', request.event_id).maybeSingle(),
   ]);
 
-  const vendorName = vendor?.business_name ?? `Vendor #${request.vendor_id}`;
+  const vendorName = vendor?.business_name ?? vendor?.contact_name ?? `Vendor #${request.vendor_id}`;
   const eventName = event?.name ?? `Event #${request.event_id}`;
   const eventDate = event?.date ?? '';
   const tableWord = request.tables_wanted === 1 ? 'table' : 'tables';

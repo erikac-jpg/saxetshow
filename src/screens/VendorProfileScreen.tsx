@@ -54,7 +54,7 @@ const EMPTY_FORM: FormState = {
 
 function formFromVendor(vendor: Vendor): FormState {
   return {
-    businessName: vendor.businessName,
+    businessName: vendor.businessName ?? '',
     contactName: vendor.contactName ?? '',
     phone: vendor.phone ?? '',
     email: vendor.email ?? '',
@@ -152,14 +152,29 @@ export default function VendorProfileScreen({
   };
 
   const handleSave = useCallback(async () => {
-    if (form.businessName.trim().length === 0) {
-      Alert.alert('Business name required', 'Please enter a business name before saving.');
+    // Matches the client's real paper "Application for Exhibit Space" form:
+    // the vendor's own name, phone, email, and address are required there;
+    // a business name is explicitly optional.
+    if (form.contactName.trim().length === 0) {
+      Alert.alert('Name required', 'Please enter your name before saving.');
+      return;
+    }
+    if (form.phone.trim().length === 0) {
+      Alert.alert('Phone required', 'Please enter a phone number before saving.');
+      return;
+    }
+    if (form.email.trim().length === 0) {
+      Alert.alert('Email required', 'Please enter an email address before saving.');
+      return;
+    }
+    if (form.address.trim().length === 0) {
+      Alert.alert('Address required', 'Please enter your address before saving.');
       return;
     }
     setSaving(true);
     try {
       const input = {
-        businessName: form.businessName.trim(),
+        businessName: form.businessName.trim() || null,
         contactName: form.contactName.trim() || null,
         phone: form.phone.trim() || null,
         email: form.email.trim() || null,
@@ -258,30 +273,30 @@ export default function VendorProfileScreen({
           <>
             <Text style={styles.sectionLabel}>CONTACT INFO</Text>
             <Field
-              label="Business Name*"
-              value={form.businessName}
-              onChangeText={updateField('businessName')}
-            />
-            <Field
-              label="Contact Name"
+              label="Your Name*"
               value={form.contactName}
               onChangeText={updateField('contactName')}
             />
             <Field
-              label="Phone"
+              label="Business Name"
+              value={form.businessName}
+              onChangeText={updateField('businessName')}
+            />
+            <Field
+              label="Phone*"
               value={form.phone}
               onChangeText={updateField('phone')}
               keyboardType="phone-pad"
             />
             <Field
-              label="Email"
+              label="Email*"
               value={form.email}
               onChangeText={updateField('email')}
               keyboardType="email-address"
             />
             <Field label="Website" value={form.website} onChangeText={updateField('website')} />
             <Field
-              label="Mailing Address"
+              label="Mailing Address*"
               value={form.address}
               onChangeText={updateField('address')}
             />
@@ -434,13 +449,20 @@ export default function VendorProfileScreen({
 function ProfileSummaryCard({ vendor, onEdit }: { vendor: Vendor; onEdit: () => void }) {
   const colors = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const summaryLine = [vendor.contactName, vendor.phone, vendor.email].filter(Boolean).join(' · ');
+  const headerName = vendor.contactName ?? vendor.businessName ?? 'Vendor';
+  const summaryLine = [
+    vendor.contactName && vendor.businessName ? vendor.businessName : null,
+    vendor.phone,
+    vendor.email,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <View style={styles.summaryCard}>
       <View style={styles.summaryTopRow}>
         <Text style={styles.summaryBusinessName} numberOfLines={1}>
-          {vendor.businessName}
+          {headerName}
         </Text>
         <Pressable onPress={onEdit} hitSlop={8}>
           <Text style={styles.summaryEditLink}>Edit</Text>
