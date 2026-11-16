@@ -2,7 +2,13 @@
 
 ## notify-staff-pending-request
 
-Sends an email to staff whenever a vendor submits a new table request.
+Sends an email to staff whenever a vendor submits a new table request. The
+email includes the vendor's profile details (name, business, phone, email,
+address, website, category, items for sale), the show, the number of tables,
+whether an FFL license is on file and when it expires, and an estimated total
+at the card and cash/bank-transfer table prices. Replying goes to the vendor
+(Reply-To is set to their email on file). The FFL number itself, staff notes
+and staff tags are deliberately left out of the email.
 
 ### What's needed before this does anything
 
@@ -39,7 +45,8 @@ Authentication's own emails.
    | Secret | Example |
    |---|---|
    | `RESEND_API_KEY` | the key from step 1 |
-   | `STAFF_NOTIFY_EMAIL` | `saxetshowsaxet@gmail.com` (optional - this is already the default if left unset; must match the Resend account's own email until a domain is verified) |
+   | `TABLE_PRICE_CARD` / `TABLE_PRICE_CASH` | optional, default `93` / `90` - used for the estimated total in the email |
+| `STAFF_NOTIFY_EMAIL` | `saxetshowsaxet@gmail.com` (optional - this is already the default if left unset; must match the Resend account's own email until a domain is verified) |
 
 4. **(Optional, later)** Once a real domain is verified with Resend
    (Domains → Add Domain), update `FROM_ADDRESS` in `index.ts` to send

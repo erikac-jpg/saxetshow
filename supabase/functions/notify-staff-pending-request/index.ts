@@ -33,6 +33,12 @@ const DEFAULT_STAFF_EMAIL = 'saxetshowsaxet@gmail.com';
 // with Resend (Domains -> Add Domain).
 const FROM_ADDRESS = 'Saxet Gun Show <onboarding@resend.dev>';
 
+// Table pricing shown in the email's estimated total, matching the
+// paper application ($93 by card, $90 cash / bank transfer). Override
+// with the TABLE_PRICE_CARD / TABLE_PRICE_CASH secrets if prices change.
+const DEFAULT_TABLE_PRICE_CARD = 93;
+const DEFAULT_TABLE_PRICE_CASH = 90;
+
 interface TableRequestRow {
   id: number;
   vendor_id: number;
@@ -69,14 +75,26 @@ Deno.serve(async (req) => {
   );
 
   const [{ data: vendor }, { data: event }] = await Promise.all([
-    supabase.from('vendors').select('business_name').eq('id', request.vendor_id).maybeSingle(),
-    supabase.from('events').select('name, date').eq('id', request.event_id).maybeSingle(),
+    supabase
+      .from('vendors')
+      .select(
+        'business_name, contact_name, phone, email, website, address, products_they_bring, vendor_category, ffl_license_number, ffl_expiration_date'
+      )
+      .eq('id', request.vendor_id)
+      .maybeSingle(),
+    supabase.from('events').select('name, date, location').eq('id', request.event_id).maybeSingle(),
   ]);
 
   const vendorName = vendor?.business_name ?? `Vendor #${request.vendor_id}`;
   const eventName = event?.name ?? `Event #${request.event_id}`;
   const eventDate = event?.date ?? '';
+  const eventLocation = event?.location ?? '';
   const tableWord = request.tables_wanted === 1 ? 'table' : 'tables';
+
+  const priceCard = Number(Deno.env.get('TABLE_PRICE_CARD') ?? DEFAULT_TABLE_PRICE_CARD);
+  const priceCash = Number(Deno.env.get('TABLE_PRICE_CASH') ?? DEFAULT_TABLE_PRICE_CASH);
+  const totalCard = request.tables_wanted * priceCard;
+  const totalCash = request.tables_wanted * priceCash;
 
   const resendApiKey = Deno.env.get('RESEND_API_KEY');
   const staffEmail = Deno.env.get('STAFF_NOTIFY_EMAIL') ?? DEFAULT_STAFF_EMAIL;
@@ -85,6 +103,67 @@ Deno.serve(async (req) => {
     console.error('RESEND_API_KEY is not configured; skipping email send.');
     return new Response('Resend API key not configured', { status: 500 });
   }
+
+  // Vendor-entered text goes into an HTML email, so escape it - a vendor
+  // typing markup into their business name or notes shouldn't be able to
+  // alter the message staff see.
+  const esc = (value: string | null | undefined) =>
+    (value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  const orDash = (value: string | null | undefined) => (value && value.trim() ? value.trim() : '-');
+
+  // Deliberately NOT included: the FFL license number itself (only
+  // whether one is on file and when it expires), staff notes and tags,
+  // and anything payment-related. Email isn't encrypted end to end, so
+  // sensitive identifiers stay in the app's staff dashboard instead.
+  const fflStatus = vendor?.ffl_license_number
+    ? `On file${vendor.ffl_expiration_date ? ` (expires ${vendor.ffl_expiration_date})` : ''}`
+    : 'Not on file';
+
+  const rows: Array<[string, string]> = [
+    ['Name', orDash(vendor?.contact_name)],
+    ['Business', vendorName],
+    ['Cell phone', orDash(vendor?.phone)],
+    ['Email', orDash(vendor?.email)],
+    ['Address', orDash(vendor?.address)],
+    ['Website', orDash(vendor?.website)],
+    ['Show', `${eventName}${eventDate ? ` - ${eventDate}` : ''}${eventLocation ? ` (${eventLocation})` : ''}`],
+    ['Tables requested', `${request.tables_wanted} ${tableWord}`],
+    ['Category', orDash(vendor?.vendor_category)],
+    ['Items for sale', orDash(vendor?.products_they_bring)],
+    ['FFL license', fflStatus],
+    [
+      'Estimated total',
+      `$${totalCard} by card ($${priceCard}/table) or $${totalCash} by cash / bank transfer ($${priceCash}/table)`,
+    ],
+  ];
+
+  const html = `
+    <p><strong>${esc(vendorName)}</strong> requested ${request.tables_wanted} ${tableWord}
+    for <strong>${esc(eventName)}</strong>${eventDate ? ` on ${esc(eventDate)}` : ''}.</p>
+    <table cellpadding="6" style="border-collapse:collapse">
+      ${rows
+        .map(
+          ([label, value]) =>
+            `<tr><td style="vertical-align:top"><strong>${esc(label)}</strong></td><td>${esc(value)}</td></tr>`
+        )
+        .join('')}
+    </table>
+    <p>Open the Staff Dashboard in the app to approve or deny it, then send the payment link.
+    Replying to this email goes to the vendor.</p>
+  `;
+  const text =
+    `${vendorName} requested ${request.tables_wanted} ${tableWord} for ${eventName}.\n\n` +
+    rows.map(([label, value]) => `${label}: ${value}`).join('\n') +
+    '\n\nOpen the Staff Dashboard in the app to approve or deny it, then send the payment link.';
+
+  // Reply-To the vendor so staff can answer them straight from the email,
+  // but only if what's on file actually looks like an email address.
+  const vendorEmail = vendor?.email?.trim();
+  const replyTo = vendorEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(vendorEmail) ? vendorEmail : undefined;
 
   const emailResponse = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -95,12 +174,10 @@ Deno.serve(async (req) => {
     body: JSON.stringify({
       from: FROM_ADDRESS,
       to: staffEmail,
-      subject: `New table request: ${vendorName}`,
-      html: `
-        <p><strong>${vendorName}</strong> requested ${request.tables_wanted} ${tableWord}
-        for <strong>${eventName}</strong>${eventDate ? ` on ${eventDate}` : ''}.</p>
-        <p>Open the Staff Dashboard in the app to approve or deny it.</p>
-      `,
+      ...(replyTo ? { reply_to: replyTo } : {}),
+      subject: `New table request: ${vendorName} - ${request.tables_wanted} ${tableWord}, ${eventName}`,
+      html,
+      text,
     }),
   });
 
