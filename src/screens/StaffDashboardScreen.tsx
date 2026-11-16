@@ -27,20 +27,6 @@ import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFontBold } from '../theme/fonts';
 
-function daysUntil(dateString: string): number {
-  const target = new Date(`${dateString}T00:00:00`);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-}
-
-function formatDaysUntil(days: number): string {
-  if (days === 0) return 'Today';
-  if (days === 1) return '1 day';
-  if (days > 1) return `${days} days`;
-  return 'Past';
-}
-
 function formatShortDate(dateString: string): string {
   const date = new Date(`${dateString}T00:00:00`);
   if (Number.isNaN(date.getTime())) return dateString;
@@ -132,8 +118,6 @@ export default function StaffDashboardScreen({
     () => requests.filter((request) => request.status === 'pending').length,
     [requests]
   );
-  const daysUntilShow = selectedEvent ? daysUntil(selectedEvent.date) : null;
-
   const commitTotalTables = useCallback(async () => {
     if (!selectedEvent) return;
     const parsed = Math.max(0, parseInt(totalTablesInput, 10) || 0);
@@ -290,16 +274,6 @@ export default function StaffDashboardScreen({
 
           {selectedEvent && (
             <>
-              <View style={styles.countsGrid}>
-                <StatTile label="Tables Sold" value={String(tablesSold)} />
-                <StatTile label="Tables Open" value={String(tablesOpen)} />
-                <StatTile label="Pending Requests" value={String(pendingCount)} />
-                <StatTile
-                  label="Days Until Show"
-                  value={daysUntilShow != null ? formatDaysUntil(daysUntilShow) : '—'}
-                />
-              </View>
-
               <View style={styles.card}>
                 <Text style={styles.sectionLabel}>TABLE SETUP</Text>
                 <Text style={styles.fieldLabel}>Total tables at this venue</Text>
@@ -371,17 +345,6 @@ export default function StaffDashboardScreen({
           )}
         </ScrollView>
       )}
-    </View>
-  );
-}
-
-function StatTile({ label, value }: { label: string; value: string }) {
-  const colors = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-  return (
-    <View style={styles.statTile}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
     </View>
   );
 }
@@ -704,41 +667,6 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   selectorPillDateActive: {
     color: colors.headerSubtitle,
-  },
-  countsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  statTile: {
-    width: '48%',
-    backgroundColor: colors.surface,
-    borderRadius: 4,
-    paddingVertical: 18,
-    paddingHorizontal: 14,
-    marginBottom: 12,
-    borderLeftWidth: 6,
-    borderLeftColor: colors.flagRed,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 1,
-  },
-  statValue: {
-    // Deliberately not the decorative display font - these are numbers
-    // staff need to read quickly and accurately, not a title.
-    fontSize: 32,
-    fontFamily: bodyFontExtraBold,
-    color: colors.accentText,
-  },
-  statLabel: {
-    fontSize: 13,
-    fontFamily: bodyFontBold,
-    color: colors.textSecondary,
-    letterSpacing: 0.5,
-    marginTop: 4,
   },
   card: {
     backgroundColor: colors.surface,
