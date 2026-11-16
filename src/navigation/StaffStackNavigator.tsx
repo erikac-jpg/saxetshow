@@ -87,7 +87,6 @@ function StaffDashboardAdapter({ navigation }: Props<'StaffDashboard'>) {
       onOpenAgreement={(vendorId, eventId) =>
         navigation.navigate('StaffAgreement', { vendorId, eventId })
       }
-      onOpenQrCheckIn={(eventId) => navigation.navigate('StaffQrCheckIn', { eventId })}
     />
   );
 }

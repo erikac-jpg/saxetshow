@@ -22,7 +22,8 @@ export interface User {
 export interface Vendor {
   id: number;
   userId: number | null;
-  businessName: string;
+  /** Optional - the paper application only requires the vendor's own name, not a business name. */
+  businessName: string | null;
   contactName: string | null;
   phone: string | null;
   email: string | null;
@@ -34,7 +35,8 @@ export interface Vendor {
   /** Staff-tracked compliance data, checked for a warning at event check-in. */
   fflLicenseNumber: string | null;
   fflExpirationDate: string | null;
-  vendorCategory: string | null;
+  /** Which merchandise categories from the paper application's checklist this vendor brings. */
+  itemCategories: string[];
   preferredTableLocation: string | null;
   /** Staff-only: never shown to the vendor about themselves. */
   staffNotes: string | null;

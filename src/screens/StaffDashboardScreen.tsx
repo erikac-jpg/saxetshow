@@ -22,25 +22,10 @@ import {
 import { getAllVendors } from '../db/supabase/vendors';
 import { getWaitlistForEvent, removeFromWaitlist } from '../db/supabase/waitlist';
 import type { Agreement, Event, PaymentStatus, TableRequest, Vendor, WaitlistEntry } from '../db/types';
-import AppIcon from '../components/AppIcon';
 import HeroRibbon from '../components/HeroRibbon';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFontBold } from '../theme/fonts';
-
-function daysUntil(dateString: string): number {
-  const target = new Date(`${dateString}T00:00:00`);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-}
-
-function formatDaysUntil(days: number): string {
-  if (days === 0) return 'Today';
-  if (days === 1) return '1 day';
-  if (days > 1) return `${days} days`;
-  return 'Past';
-}
 
 function formatShortDate(dateString: string): string {
   const date = new Date(`${dateString}T00:00:00`);
@@ -52,13 +37,11 @@ export default function StaffDashboardScreen({
   onExit,
   onOpenVendorProfile,
   onOpenAgreement,
-  onOpenQrCheckIn,
   onSignOut,
 }: {
   onExit: () => void;
   onOpenVendorProfile: (vendorId: number) => void;
   onOpenAgreement: (vendorId: number, eventId: number) => void;
-  onOpenQrCheckIn: (eventId: number) => void;
   onSignOut?: () => void;
 }) {
   const [events, setEvents] = useState<Event[] | null>(null);
@@ -135,8 +118,6 @@ export default function StaffDashboardScreen({
     () => requests.filter((request) => request.status === 'pending').length,
     [requests]
   );
-  const daysUntilShow = selectedEvent ? daysUntil(selectedEvent.date) : null;
-
   const commitTotalTables = useCallback(async () => {
     if (!selectedEvent) return;
     const parsed = Math.max(0, parseInt(totalTablesInput, 10) || 0);
@@ -211,7 +192,8 @@ export default function StaffDashboardScreen({
 
   const handleOffer = useCallback(
     (entry: WaitlistEntry) => {
-      const vendorName = vendorsById.get(entry.vendorId)?.businessName ?? 'This vendor';
+      const found = vendorsById.get(entry.vendorId);
+      const vendorName = found?.businessName ?? found?.contactName ?? 'This vendor';
       Alert.alert('Offer Sent', `${vendorName} will be notified about an open table.`);
     },
     [vendorsById]
@@ -292,26 +274,6 @@ export default function StaffDashboardScreen({
 
           {selectedEvent && (
             <>
-              <View style={styles.countsGrid}>
-                <StatTile label="Tables Sold" value={String(tablesSold)} />
-                <StatTile label="Tables Open" value={String(tablesOpen)} />
-                <StatTile label="Pending Requests" value={String(pendingCount)} />
-                <StatTile
-                  label="Days Until Show"
-                  value={daysUntilShow != null ? formatDaysUntil(daysUntilShow) : '—'}
-                />
-              </View>
-
-              <Pressable
-                style={({ pressed }) => [styles.scanButton, pressed && styles.actionButtonPressed]}
-                onPress={() => onOpenQrCheckIn(selectedEvent.id)}
-              >
-                <View style={styles.scanButtonRow}>
-                  <AppIcon name="camera" size={20} color={colors.white} strokeWidth={1.8} />
-                  <Text style={styles.scanButtonText}>Scan Check-In</Text>
-                </View>
-              </Pressable>
-
               <View style={styles.card}>
                 <Text style={styles.sectionLabel}>TABLE SETUP</Text>
                 <Text style={styles.fieldLabel}>Total tables at this venue</Text>
@@ -334,7 +296,11 @@ export default function StaffDashboardScreen({
                     <RequestRow
                       key={request.id}
                       request={request}
-                      vendorName={vendorsById.get(request.vendorId)?.businessName ?? 'Unknown vendor'}
+                      vendorName={
+                        vendorsById.get(request.vendorId)?.businessName ??
+                        vendorsById.get(request.vendorId)?.contactName ??
+                        'Unknown vendor'
+                      }
                       agreementStatus={agreementsByVendorId.get(request.vendorId)?.status ?? null}
                       exceedsOpenTables={
                         request.status === 'pending' && request.tablesWanted > tablesOpen
@@ -363,7 +329,11 @@ export default function StaffDashboardScreen({
                     <WaitlistRow
                       key={entry.id}
                       entry={entry}
-                      vendorName={vendorsById.get(entry.vendorId)?.businessName ?? 'Unknown vendor'}
+                      vendorName={
+                        vendorsById.get(entry.vendorId)?.businessName ??
+                        vendorsById.get(entry.vendorId)?.contactName ??
+                        'Unknown vendor'
+                      }
                       onOffer={() => handleOffer(entry)}
                       onRemove={() => handleRemoveFromWaitlist(entry)}
                       onOpenVendorProfile={() => onOpenVendorProfile(entry.vendorId)}
@@ -375,17 +345,6 @@ export default function StaffDashboardScreen({
           )}
         </ScrollView>
       )}
-    </View>
-  );
-}
-
-function StatTile({ label, value }: { label: string; value: string }) {
-  const colors = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-  return (
-    <View style={styles.statTile}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
     </View>
   );
 }
@@ -708,66 +667,6 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   selectorPillDateActive: {
     color: colors.headerSubtitle,
-  },
-  countsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  statTile: {
-    width: '48%',
-    backgroundColor: colors.surface,
-    borderRadius: 4,
-    paddingVertical: 18,
-    paddingHorizontal: 14,
-    marginBottom: 12,
-    borderLeftWidth: 6,
-    borderLeftColor: colors.flagRed,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 1,
-  },
-  statValue: {
-    // Deliberately not the decorative display font - these are numbers
-    // staff need to read quickly and accurately, not a title.
-    fontSize: 32,
-    fontFamily: bodyFontExtraBold,
-    color: colors.accentText,
-  },
-  statLabel: {
-    fontSize: 13,
-    fontFamily: bodyFontBold,
-    color: colors.textSecondary,
-    letterSpacing: 0.5,
-    marginTop: 4,
-  },
-  scanButton: {
-    backgroundColor: colors.flagRed,
-    borderRadius: 6,
-    paddingVertical: 18,
-    minHeight: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 1,
-  },
-  scanButtonRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  scanButtonText: {
-    color: colors.white,
-    fontSize: 17,
-    fontFamily: bodyFontExtraBold,
-    letterSpacing: 0.3,
   },
   card: {
     backgroundColor: colors.surface,

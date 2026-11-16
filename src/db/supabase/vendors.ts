@@ -2,11 +2,11 @@ import { supabase } from '../supabaseClient';
 import type { Vendor } from '../types';
 
 const VENDOR_SELECT =
-  'id, userId:user_id, businessName:business_name, contactName:contact_name, phone, email, website, address, productsTheyBring:products_they_bring, boothNotes:booth_notes, feesOwed:fees_owed, fflLicenseNumber:ffl_license_number, fflExpirationDate:ffl_expiration_date, vendorCategory:vendor_category, preferredTableLocation:preferred_table_location, staffNotes:staff_notes, staffTags:staff_tags, createdAt:created_at, updatedAt:updated_at';
+  'id, userId:user_id, businessName:business_name, contactName:contact_name, phone, email, website, address, productsTheyBring:products_they_bring, boothNotes:booth_notes, feesOwed:fees_owed, fflLicenseNumber:ffl_license_number, fflExpirationDate:ffl_expiration_date, itemCategories:item_categories, preferredTableLocation:preferred_table_location, staffNotes:staff_notes, staffTags:staff_tags, createdAt:created_at, updatedAt:updated_at';
 
 export interface CreateVendorInput {
   userId?: number | null;
-  businessName: string;
+  businessName?: string | null;
   contactName?: string | null;
   phone?: string | null;
   email?: string | null;
@@ -17,7 +17,7 @@ export interface CreateVendorInput {
   feesOwed?: number;
   fflLicenseNumber?: string | null;
   fflExpirationDate?: string | null;
-  vendorCategory?: string | null;
+  itemCategories?: string[];
   preferredTableLocation?: string | null;
   staffNotes?: string | null;
   staffTags?: string[];
@@ -30,7 +30,7 @@ export async function createVendor(input: CreateVendorInput): Promise<Vendor> {
     .from('vendors')
     .insert({
       user_id: input.userId ?? null,
-      business_name: input.businessName,
+      business_name: input.businessName ?? null,
       contact_name: input.contactName ?? null,
       phone: input.phone ?? null,
       email: input.email ?? null,
@@ -41,7 +41,7 @@ export async function createVendor(input: CreateVendorInput): Promise<Vendor> {
       fees_owed: input.feesOwed ?? 0,
       ffl_license_number: input.fflLicenseNumber ?? null,
       ffl_expiration_date: input.fflExpirationDate ?? null,
-      vendor_category: input.vendorCategory ?? null,
+      item_categories: input.itemCategories ?? [],
       preferred_table_location: input.preferredTableLocation ?? null,
       staff_notes: input.staffNotes ?? null,
       staff_tags: input.staffTags ?? [],
@@ -113,7 +113,7 @@ export async function updateVendor(id: number, input: UpdateVendorInput): Promis
   if (input.feesOwed !== undefined) patch.fees_owed = input.feesOwed;
   if (input.fflLicenseNumber !== undefined) patch.ffl_license_number = input.fflLicenseNumber;
   if (input.fflExpirationDate !== undefined) patch.ffl_expiration_date = input.fflExpirationDate;
-  if (input.vendorCategory !== undefined) patch.vendor_category = input.vendorCategory;
+  if (input.itemCategories !== undefined) patch.item_categories = input.itemCategories;
   if (input.preferredTableLocation !== undefined)
     patch.preferred_table_location = input.preferredTableLocation;
   if (input.staffNotes !== undefined) patch.staff_notes = input.staffNotes;

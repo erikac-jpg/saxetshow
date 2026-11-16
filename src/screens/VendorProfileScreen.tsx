@@ -17,12 +17,33 @@ import { createVendor, getVendorById, updateVendor } from '../db/supabase/vendor
 import type { TableRequestStatus, Vendor } from '../db/types';
 import EngravedRule from '../components/EngravedRule';
 import HeroRibbon from '../components/HeroRibbon';
-import VendorQrCode from '../components/VendorQrCode';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFontBold } from '../theme/fonts';
 
 const STAFF_TAG_OPTIONS = ['Reliable', 'New Vendor', 'VIP', 'Do Not Rebook'] as const;
+
+// Matches the client's real paper "Application for Exhibit Space" form's
+// item checklist, word-for-word except "Firearms" (was "Guns") and "Grips
+// & Accessories" (was "Grips/Clips") - softer wording for the app-store
+// facing product, same list and order otherwise.
+const ITEM_CATEGORY_OPTIONS = [
+  'Firearms',
+  'Books',
+  'Reloading',
+  'Leather',
+  'Metal / Cleaning Items',
+  'Grips & Accessories',
+  'Jewelry',
+  'Government Surplus',
+  'Coins',
+  'Clothing',
+  'Electronics',
+  'Parts',
+  'Knives',
+  'Optics',
+  'Other',
+] as const;
 
 interface FormState {
   businessName: string;
@@ -32,7 +53,7 @@ interface FormState {
   website: string;
   address: string;
   boothNotes: string;
-  vendorCategory: string;
+  itemCategories: string[];
   preferredTableLocation: string;
   staffNotes: string;
   staffTags: string[];
@@ -46,7 +67,7 @@ const EMPTY_FORM: FormState = {
   website: '',
   address: '',
   boothNotes: '',
-  vendorCategory: '',
+  itemCategories: [],
   preferredTableLocation: '',
   staffNotes: '',
   staffTags: [],
@@ -54,14 +75,14 @@ const EMPTY_FORM: FormState = {
 
 function formFromVendor(vendor: Vendor): FormState {
   return {
-    businessName: vendor.businessName,
+    businessName: vendor.businessName ?? '',
     contactName: vendor.contactName ?? '',
     phone: vendor.phone ?? '',
     email: vendor.email ?? '',
     website: vendor.website ?? '',
     address: vendor.address ?? '',
     boothNotes: vendor.boothNotes ?? '',
-    vendorCategory: vendor.vendorCategory ?? '',
+    itemCategories: vendor.itemCategories,
     preferredTableLocation: vendor.preferredTableLocation ?? '',
     staffNotes: vendor.staffNotes ?? '',
     staffTags: vendor.staffTags,
@@ -151,21 +172,45 @@ export default function VendorProfileScreen({
     }));
   };
 
+  const toggleItemCategory = (category: string) => {
+    setForm((prev) => ({
+      ...prev,
+      itemCategories: prev.itemCategories.includes(category)
+        ? prev.itemCategories.filter((c) => c !== category)
+        : [...prev.itemCategories, category],
+    }));
+  };
+
   const handleSave = useCallback(async () => {
-    if (form.businessName.trim().length === 0) {
-      Alert.alert('Business name required', 'Please enter a business name before saving.');
+    // Matches the client's real paper "Application for Exhibit Space" form:
+    // the vendor's own name, phone, email, and address are required there;
+    // a business name is explicitly optional.
+    if (form.contactName.trim().length === 0) {
+      Alert.alert('Name required', 'Please enter your name before saving.');
+      return;
+    }
+    if (form.phone.trim().length === 0) {
+      Alert.alert('Phone required', 'Please enter a phone number before saving.');
+      return;
+    }
+    if (form.email.trim().length === 0) {
+      Alert.alert('Email required', 'Please enter an email address before saving.');
+      return;
+    }
+    if (form.address.trim().length === 0) {
+      Alert.alert('Address required', 'Please enter your address before saving.');
       return;
     }
     setSaving(true);
     try {
       const input = {
-        businessName: form.businessName.trim(),
+        businessName: form.businessName.trim() || null,
         contactName: form.contactName.trim() || null,
         phone: form.phone.trim() || null,
         email: form.email.trim() || null,
         website: form.website.trim() || null,
         address: form.address.trim() || null,
-        vendorCategory: form.vendorCategory.trim() || null,
+        itemCategories: form.itemCategories,
         preferredTableLocation: form.preferredTableLocation.trim() || null,
         ...(isStaffView
           ? {
@@ -258,30 +303,30 @@ export default function VendorProfileScreen({
           <>
             <Text style={styles.sectionLabel}>CONTACT INFO</Text>
             <Field
-              label="Business Name*"
-              value={form.businessName}
-              onChangeText={updateField('businessName')}
-            />
-            <Field
-              label="Contact Name"
+              label="Your Name*"
               value={form.contactName}
               onChangeText={updateField('contactName')}
             />
             <Field
-              label="Phone"
+              label="Business Name"
+              value={form.businessName}
+              onChangeText={updateField('businessName')}
+            />
+            <Field
+              label="Phone*"
               value={form.phone}
               onChangeText={updateField('phone')}
               keyboardType="phone-pad"
             />
             <Field
-              label="Email"
+              label="Email*"
               value={form.email}
               onChangeText={updateField('email')}
               keyboardType="email-address"
             />
             <Field label="Website" value={form.website} onChangeText={updateField('website')} />
             <Field
-              label="Mailing Address"
+              label="Mailing Address*"
               value={form.address}
               onChangeText={updateField('address')}
             />
@@ -289,12 +334,25 @@ export default function VendorProfileScreen({
             <EngravedRule />
 
             <Text style={styles.sectionLabel}>VENDOR DETAILS</Text>
-            <Field
-              label="Vendor Category"
-              value={form.vendorCategory}
-              onChangeText={updateField('vendorCategory')}
-              placeholder="Firearms, apparel, food…"
-            />
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>Items for Sale (check all that apply)</Text>
+              <View style={styles.tagRow}>
+                {ITEM_CATEGORY_OPTIONS.map((category) => {
+                  const active = form.itemCategories.includes(category);
+                  return (
+                    <Pressable
+                      key={category}
+                      style={[styles.tagChip, active && styles.tagChipActive]}
+                      onPress={() => toggleItemCategory(category)}
+                    >
+                      <Text style={[styles.tagChipText, active && styles.tagChipTextActive]}>
+                        {category}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
             <Field
               label="Preferred Table Location"
               value={form.preferredTableLocation}
@@ -374,19 +432,6 @@ export default function VendorProfileScreen({
           vendor && <ProfileSummaryCard vendor={vendor} onEdit={() => setEditing(true)} />
         )}
 
-        {!isNewProfile && vendor && (
-          <>
-            <EngravedRule />
-            <View style={styles.qrSection}>
-              <Text style={styles.sectionLabel}>CHECK-IN QR CODE</Text>
-              <Text style={styles.qrHint}>
-                Show this to staff at the door — they'll scan it to check you in.
-              </Text>
-              <VendorQrCode vendorId={vendor.id} />
-            </View>
-          </>
-        )}
-
         {!isNewProfile && (
           <>
             <EngravedRule />
@@ -434,20 +479,29 @@ export default function VendorProfileScreen({
 function ProfileSummaryCard({ vendor, onEdit }: { vendor: Vendor; onEdit: () => void }) {
   const colors = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const summaryLine = [vendor.contactName, vendor.phone, vendor.email].filter(Boolean).join(' · ');
+  const headerName = vendor.contactName ?? vendor.businessName ?? 'Vendor';
+  const summaryLine = [
+    vendor.contactName && vendor.businessName ? vendor.businessName : null,
+    vendor.phone,
+    vendor.email,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <View style={styles.summaryCard}>
       <View style={styles.summaryTopRow}>
         <Text style={styles.summaryBusinessName} numberOfLines={1}>
-          {vendor.businessName}
+          {headerName}
         </Text>
         <Pressable onPress={onEdit} hitSlop={8}>
           <Text style={styles.summaryEditLink}>Edit</Text>
         </Pressable>
       </View>
       {summaryLine.length > 0 && <Text style={styles.summaryMeta}>{summaryLine}</Text>}
-      {vendor.vendorCategory && <Text style={styles.summaryMeta}>{vendor.vendorCategory}</Text>}
+      {vendor.itemCategories.length > 0 && (
+        <Text style={styles.summaryMeta}>{vendor.itemCategories.join(', ')}</Text>
+      )}
     </View>
   );
 }
@@ -740,17 +794,6 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     lineHeight: 23,
     fontFamily: bodyFont,
     color: colors.textSecondary,
-  },
-  qrSection: {
-    alignItems: 'center',
-  },
-  qrHint: {
-    fontSize: 15,
-    lineHeight: 21,
-    fontFamily: bodyFont,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 16,
   },
   dangerZone: {
     marginTop: 14,

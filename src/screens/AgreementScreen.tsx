@@ -91,7 +91,7 @@ export default function AgreementScreen({
         <Text style={styles.headerTitle}>Vendor Agreement</Text>
         {!loading && vendor && event && (
           <Text style={styles.headerSubtitle}>
-            {vendor.businessName.toUpperCase()} · {event.name.toUpperCase()}
+            {(vendor.businessName ?? vendor.contactName ?? 'Vendor').toUpperCase()} · {event.name.toUpperCase()}
           </Text>
         )}
       </View>
