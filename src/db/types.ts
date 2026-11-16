@@ -35,7 +35,8 @@ export interface Vendor {
   /** Staff-tracked compliance data, checked for a warning at event check-in. */
   fflLicenseNumber: string | null;
   fflExpirationDate: string | null;
-  vendorCategory: string | null;
+  /** Which merchandise categories from the paper application's checklist this vendor brings. */
+  itemCategories: string[];
   preferredTableLocation: string | null;
   /** Staff-only: never shown to the vendor about themselves. */
   staffNotes: string | null;

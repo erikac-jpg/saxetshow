@@ -24,6 +24,28 @@ import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFon
 
 const STAFF_TAG_OPTIONS = ['Reliable', 'New Vendor', 'VIP', 'Do Not Rebook'] as const;
 
+// Matches the client's real paper "Application for Exhibit Space" form's
+// item checklist, word-for-word except "Firearms" (was "Guns") and "Grips
+// & Accessories" (was "Grips/Clips") - softer wording for the app-store
+// facing product, same list and order otherwise.
+const ITEM_CATEGORY_OPTIONS = [
+  'Firearms',
+  'Books',
+  'Reloading',
+  'Leather',
+  'Metal / Cleaning Items',
+  'Grips & Accessories',
+  'Jewelry',
+  'Government Surplus',
+  'Coins',
+  'Clothing',
+  'Electronics',
+  'Parts',
+  'Knives',
+  'Optics',
+  'Other',
+] as const;
+
 interface FormState {
   businessName: string;
   contactName: string;
@@ -32,7 +54,7 @@ interface FormState {
   website: string;
   address: string;
   boothNotes: string;
-  vendorCategory: string;
+  itemCategories: string[];
   preferredTableLocation: string;
   staffNotes: string;
   staffTags: string[];
@@ -46,7 +68,7 @@ const EMPTY_FORM: FormState = {
   website: '',
   address: '',
   boothNotes: '',
-  vendorCategory: '',
+  itemCategories: [],
   preferredTableLocation: '',
   staffNotes: '',
   staffTags: [],
@@ -61,7 +83,7 @@ function formFromVendor(vendor: Vendor): FormState {
     website: vendor.website ?? '',
     address: vendor.address ?? '',
     boothNotes: vendor.boothNotes ?? '',
-    vendorCategory: vendor.vendorCategory ?? '',
+    itemCategories: vendor.itemCategories,
     preferredTableLocation: vendor.preferredTableLocation ?? '',
     staffNotes: vendor.staffNotes ?? '',
     staffTags: vendor.staffTags,
@@ -151,6 +173,15 @@ export default function VendorProfileScreen({
     }));
   };
 
+  const toggleItemCategory = (category: string) => {
+    setForm((prev) => ({
+      ...prev,
+      itemCategories: prev.itemCategories.includes(category)
+        ? prev.itemCategories.filter((c) => c !== category)
+        : [...prev.itemCategories, category],
+    }));
+  };
+
   const handleSave = useCallback(async () => {
     // Matches the client's real paper "Application for Exhibit Space" form:
     // the vendor's own name, phone, email, and address are required there;
@@ -180,7 +211,7 @@ export default function VendorProfileScreen({
         email: form.email.trim() || null,
         website: form.website.trim() || null,
         address: form.address.trim() || null,
-        vendorCategory: form.vendorCategory.trim() || null,
+        itemCategories: form.itemCategories,
         preferredTableLocation: form.preferredTableLocation.trim() || null,
         ...(isStaffView
           ? {
@@ -304,12 +335,25 @@ export default function VendorProfileScreen({
             <EngravedRule />
 
             <Text style={styles.sectionLabel}>VENDOR DETAILS</Text>
-            <Field
-              label="Vendor Category"
-              value={form.vendorCategory}
-              onChangeText={updateField('vendorCategory')}
-              placeholder="Firearms, apparel, food…"
-            />
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>Items for Sale (check all that apply)</Text>
+              <View style={styles.tagRow}>
+                {ITEM_CATEGORY_OPTIONS.map((category) => {
+                  const active = form.itemCategories.includes(category);
+                  return (
+                    <Pressable
+                      key={category}
+                      style={[styles.tagChip, active && styles.tagChipActive]}
+                      onPress={() => toggleItemCategory(category)}
+                    >
+                      <Text style={[styles.tagChipText, active && styles.tagChipTextActive]}>
+                        {category}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
             <Field
               label="Preferred Table Location"
               value={form.preferredTableLocation}
@@ -469,7 +513,9 @@ function ProfileSummaryCard({ vendor, onEdit }: { vendor: Vendor; onEdit: () => 
         </Pressable>
       </View>
       {summaryLine.length > 0 && <Text style={styles.summaryMeta}>{summaryLine}</Text>}
-      {vendor.vendorCategory && <Text style={styles.summaryMeta}>{vendor.vendorCategory}</Text>}
+      {vendor.itemCategories.length > 0 && (
+        <Text style={styles.summaryMeta}>{vendor.itemCategories.join(', ')}</Text>
+      )}
     </View>
   );
 }
