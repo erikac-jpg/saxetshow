@@ -187,6 +187,25 @@ export default function EventDetailScreen({
           </>
         ) : null}
 
+        <EngravedRule />
+        <Text style={styles.sectionLabel}>Show Hours</Text>
+        <View style={styles.hoursRow}>
+          <Text style={styles.hoursLabel}>Vendor Setup</Text>
+          <Text style={styles.hoursValue}>Fri 10am–10pm</Text>
+        </View>
+        <View style={styles.hoursRow}>
+          <Text style={styles.hoursLabel}>Vendor Doors</Text>
+          <Text style={styles.hoursValue}>7am both days</Text>
+        </View>
+        <View style={styles.hoursRow}>
+          <Text style={styles.hoursLabel}>Open to Public</Text>
+          <Text style={styles.hoursValue}>Sat 9am–6pm · Sun 9am–5pm</Text>
+        </View>
+        <View style={styles.hoursRow}>
+          <Text style={styles.hoursLabel}>Admission</Text>
+          <Text style={styles.hoursValue}>$10</Text>
+        </View>
+
         <EngravedRule ornament />
 
         <Text style={styles.sectionLabel}>Vendor Info</Text>
@@ -410,6 +429,24 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     fontFamily: displayFontBold,
     color: colors.textPrimary,
     marginBottom: 14,
+  },
+  hoursRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    gap: 12,
+    paddingVertical: 7,
+  },
+  hoursLabel: {
+    fontSize: 15,
+    fontFamily: bodyFontBold,
+    color: colors.textPrimary,
+  },
+  hoursValue: {
+    fontSize: 15,
+    fontFamily: bodyFont,
+    color: colors.textSecondary,
+    textAlign: 'right',
   },
   directionsButton: {
     flexDirection: 'row',
