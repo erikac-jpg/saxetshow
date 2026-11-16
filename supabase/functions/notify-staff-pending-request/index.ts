@@ -21,7 +21,6 @@
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are already provided
 // automatically inside every Edge Function - not something to add by hand.
 
-import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
 
@@ -41,7 +40,7 @@ interface WebhookPayload {
   record: TableRequestRow;
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   let payload: WebhookPayload;
   try {
     payload = await req.json();
