@@ -17,7 +17,6 @@ import { createVendor, getVendorById, updateVendor } from '../db/supabase/vendor
 import type { TableRequestStatus, Vendor } from '../db/types';
 import EngravedRule from '../components/EngravedRule';
 import HeroRibbon from '../components/HeroRibbon';
-import VendorQrCode from '../components/VendorQrCode';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
 import { bodyFont, bodyFontBold, bodyFontExtraBold, bodyFontSemiBold, displayFontBold } from '../theme/fonts';
@@ -433,19 +432,6 @@ export default function VendorProfileScreen({
           vendor && <ProfileSummaryCard vendor={vendor} onEdit={() => setEditing(true)} />
         )}
 
-        {!isNewProfile && vendor && (
-          <>
-            <EngravedRule />
-            <View style={styles.qrSection}>
-              <Text style={styles.sectionLabel}>CHECK-IN QR CODE</Text>
-              <Text style={styles.qrHint}>
-                Show this to staff at the door — they'll scan it to check you in.
-              </Text>
-              <VendorQrCode vendorId={vendor.id} />
-            </View>
-          </>
-        )}
-
         {!isNewProfile && (
           <>
             <EngravedRule />
@@ -808,17 +794,6 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     lineHeight: 23,
     fontFamily: bodyFont,
     color: colors.textSecondary,
-  },
-  qrSection: {
-    alignItems: 'center',
-  },
-  qrHint: {
-    fontSize: 15,
-    lineHeight: 21,
-    fontFamily: bodyFont,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 16,
   },
   dangerZone: {
     marginTop: 14,

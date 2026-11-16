@@ -22,7 +22,6 @@ import {
 import { getAllVendors } from '../db/supabase/vendors';
 import { getWaitlistForEvent, removeFromWaitlist } from '../db/supabase/waitlist';
 import type { Agreement, Event, PaymentStatus, TableRequest, Vendor, WaitlistEntry } from '../db/types';
-import AppIcon from '../components/AppIcon';
 import HeroRibbon from '../components/HeroRibbon';
 import type { ThemeColors } from '../theme/colors';
 import { useTheme } from '../theme/ThemeContext';
@@ -52,13 +51,11 @@ export default function StaffDashboardScreen({
   onExit,
   onOpenVendorProfile,
   onOpenAgreement,
-  onOpenQrCheckIn,
   onSignOut,
 }: {
   onExit: () => void;
   onOpenVendorProfile: (vendorId: number) => void;
   onOpenAgreement: (vendorId: number, eventId: number) => void;
-  onOpenQrCheckIn: (eventId: number) => void;
   onSignOut?: () => void;
 }) {
   const [events, setEvents] = useState<Event[] | null>(null);
@@ -302,16 +299,6 @@ export default function StaffDashboardScreen({
                   value={daysUntilShow != null ? formatDaysUntil(daysUntilShow) : '—'}
                 />
               </View>
-
-              <Pressable
-                style={({ pressed }) => [styles.scanButton, pressed && styles.actionButtonPressed]}
-                onPress={() => onOpenQrCheckIn(selectedEvent.id)}
-              >
-                <View style={styles.scanButtonRow}>
-                  <AppIcon name="camera" size={20} color={colors.white} strokeWidth={1.8} />
-                  <Text style={styles.scanButtonText}>Scan Check-In</Text>
-                </View>
-              </Pressable>
 
               <View style={styles.card}>
                 <Text style={styles.sectionLabel}>TABLE SETUP</Text>
@@ -752,31 +739,6 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     color: colors.textSecondary,
     letterSpacing: 0.5,
     marginTop: 4,
-  },
-  scanButton: {
-    backgroundColor: colors.flagRed,
-    borderRadius: 6,
-    paddingVertical: 18,
-    minHeight: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 1,
-  },
-  scanButtonRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  scanButtonText: {
-    color: colors.white,
-    fontSize: 17,
-    fontFamily: bodyFontExtraBold,
-    letterSpacing: 0.3,
   },
   card: {
     backgroundColor: colors.surface,
