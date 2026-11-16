@@ -28,6 +28,10 @@ import {
   displayFontBold,
 } from '../theme/fonts';
 
+const STAFF_CONTACT_EMAIL = 'saxetshowsaxet@gmail.com';
+const STAFF_CONTACT_PHONE_DISPLAY = '(361) 289-2256';
+const STAFF_CONTACT_PHONE_DIAL = '3612892256';
+
 /** "21" for a single-day show, "21–22" for a multi-day one that doesn't cross a month. */
 function dayRangeLabel(dateString: string, endDateString?: string | null): string {
   const start = new Date(`${dateString}T00:00:00`);
@@ -133,6 +137,16 @@ export default function EventDetailScreen({
     Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`).catch(() => {});
   }, [event.location]);
 
+  const handleEmailAboutCancellation = useCallback(() => {
+    Linking.openURL(
+      `mailto:${STAFF_CONTACT_EMAIL}?subject=${encodeURIComponent(`Cancel table request - ${event.name}`)}`
+    ).catch(() => {});
+  }, [event.name]);
+
+  const handleCallStaff = useCallback(() => {
+    Linking.openURL(`tel:${STAFF_CONTACT_PHONE_DIAL}`).catch(() => {});
+  }, []);
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
@@ -221,6 +235,18 @@ export default function EventDetailScreen({
         <View style={styles.hoursRow}>
           <Text style={styles.hoursLabel}>Table Price (cash)</Text>
           <Text style={styles.hoursValue}>$90 / table</Text>
+        </View>
+        <Text style={styles.cancellationNote}>
+          Cancellations made more than 7 days before the show will be refunded.
+        </Text>
+        <View style={styles.contactRow}>
+          <Pressable onPress={handleEmailAboutCancellation} hitSlop={6}>
+            <Text style={styles.contactLink}>Email us</Text>
+          </Pressable>
+          <Text style={styles.contactDivider}>·</Text>
+          <Pressable onPress={handleCallStaff} hitSlop={6}>
+            <Text style={styles.contactLink}>Call {STAFF_CONTACT_PHONE_DISPLAY}</Text>
+          </Pressable>
         </View>
 
         {existingRequest === undefined ? (
@@ -455,6 +481,29 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     fontFamily: bodyFont,
     color: colors.textSecondary,
     textAlign: 'right',
+  },
+  cancellationNote: {
+    fontSize: 13,
+    fontFamily: bodyFont,
+    color: colors.textSecondary,
+    marginTop: 10,
+    lineHeight: 18,
+  },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  contactLink: {
+    fontSize: 14,
+    fontFamily: bodyFontBold,
+    color: colors.accentText,
+  },
+  contactDivider: {
+    fontSize: 14,
+    fontFamily: bodyFont,
+    color: colors.textSecondary,
   },
   directionsButton: {
     flexDirection: 'row',
