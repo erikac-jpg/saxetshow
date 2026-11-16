@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -106,6 +107,11 @@ export default function VendorProfileScreen({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [history, setHistory] = useState<VendorRequestHistoryEntry[] | null>(null);
+  // Collapsed to a summary once there's a saved profile to show instead of
+  // one - an already-filled-in form sitting open by default read as
+  // unfinished. Starts open for a brand-new profile, since there's
+  // nothing yet to collapse to.
+  const [editing, setEditing] = useState(false);
   const colors = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -113,11 +119,13 @@ export default function VendorProfileScreen({
     if (vendorId === null) {
       setVendor(null);
       setForm(EMPTY_FORM);
+      setEditing(true);
       return;
     }
     const found = await getVendorById(vendorId);
     setVendor(found);
     setForm(found ? formFromVendor(found) : EMPTY_FORM);
+    setEditing(!found);
   }, [vendorId]);
 
   useEffect(() => {
@@ -125,10 +133,10 @@ export default function VendorProfileScreen({
   }, [load]);
 
   useEffect(() => {
-    if (isStaffView && vendorId !== null) {
+    if (vendorId !== null) {
       getRequestHistoryForVendor(vendorId).then(setHistory);
     }
-  }, [isStaffView, vendorId]);
+  }, [vendorId]);
 
   const updateField = (field: keyof FormState) => (value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -173,6 +181,7 @@ export default function VendorProfileScreen({
       setVendor(saved);
       if (saved) {
         onSaved?.(saved);
+        setEditing(false);
       }
       Alert.alert('Saved', 'This vendor profile has been saved.');
     } finally {
@@ -245,98 +254,125 @@ export default function VendorProfileScreen({
           </View>
         )}
 
-        <Text style={styles.sectionLabel}>CONTACT INFO</Text>
-        <Field
-          label="Business Name*"
-          value={form.businessName}
-          onChangeText={updateField('businessName')}
-        />
-        <Field
-          label="Contact Name"
-          value={form.contactName}
-          onChangeText={updateField('contactName')}
-        />
-        <Field
-          label="Phone"
-          value={form.phone}
-          onChangeText={updateField('phone')}
-          keyboardType="phone-pad"
-        />
-        <Field
-          label="Email"
-          value={form.email}
-          onChangeText={updateField('email')}
-          keyboardType="email-address"
-        />
-        <Field label="Website" value={form.website} onChangeText={updateField('website')} />
-        <Field label="Mailing Address" value={form.address} onChangeText={updateField('address')} />
-
-        <EngravedRule />
-
-        <Text style={styles.sectionLabel}>VENDOR DETAILS</Text>
-        <Field
-          label="Vendor Category"
-          value={form.vendorCategory}
-          onChangeText={updateField('vendorCategory')}
-          placeholder="Firearms, apparel, food…"
-        />
-        <Field
-          label="Preferred Table Location"
-          value={form.preferredTableLocation}
-          onChangeText={updateField('preferredTableLocation')}
-          placeholder="Corner, near entrance, near power…"
-        />
-
-        {isStaffView && (
+        {editing ? (
           <>
+            <Text style={styles.sectionLabel}>CONTACT INFO</Text>
+            <Field
+              label="Business Name*"
+              value={form.businessName}
+              onChangeText={updateField('businessName')}
+            />
+            <Field
+              label="Contact Name"
+              value={form.contactName}
+              onChangeText={updateField('contactName')}
+            />
+            <Field
+              label="Phone"
+              value={form.phone}
+              onChangeText={updateField('phone')}
+              keyboardType="phone-pad"
+            />
+            <Field
+              label="Email"
+              value={form.email}
+              onChangeText={updateField('email')}
+              keyboardType="email-address"
+            />
+            <Field label="Website" value={form.website} onChangeText={updateField('website')} />
+            <Field
+              label="Mailing Address"
+              value={form.address}
+              onChangeText={updateField('address')}
+            />
+
             <EngravedRule />
 
-            <Text style={styles.sectionLabel}>STAFF ONLY</Text>
+            <Text style={styles.sectionLabel}>VENDOR DETAILS</Text>
             <Field
-              label="Booth Notes (private)"
-              value={form.boothNotes}
-              onChangeText={updateField('boothNotes')}
-              multiline
+              label="Vendor Category"
+              value={form.vendorCategory}
+              onChangeText={updateField('vendorCategory')}
+              placeholder="Firearms, apparel, food…"
             />
             <Field
-              label="Staff Notes (private)"
-              value={form.staffNotes}
-              onChangeText={updateField('staffNotes')}
-              multiline
-              placeholder="Always brings extra tables, difficult to reach…"
+              label="Preferred Table Location"
+              value={form.preferredTableLocation}
+              onChangeText={updateField('preferredTableLocation')}
+              placeholder="Corner, near entrance, near power…"
             />
 
-            <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Tags</Text>
-              <View style={styles.tagRow}>
-                {STAFF_TAG_OPTIONS.map((tag) => {
-                  const active = form.staffTags.includes(tag);
-                  return (
-                    <Pressable
-                      key={tag}
-                      style={[styles.tagChip, active && styles.tagChipActive]}
-                      onPress={() => toggleTag(tag)}
-                    >
-                      <Text style={[styles.tagChipText, active && styles.tagChipTextActive]}>
-                        {tag}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
+            {isStaffView && (
+              <>
+                <EngravedRule />
+
+                <Text style={styles.sectionLabel}>STAFF ONLY</Text>
+                <Field
+                  label="Booth Notes (private)"
+                  value={form.boothNotes}
+                  onChangeText={updateField('boothNotes')}
+                  multiline
+                />
+                <Field
+                  label="Staff Notes (private)"
+                  value={form.staffNotes}
+                  onChangeText={updateField('staffNotes')}
+                  multiline
+                  placeholder="Always brings extra tables, difficult to reach…"
+                />
+
+                <View style={styles.field}>
+                  <Text style={styles.fieldLabel}>Tags</Text>
+                  <View style={styles.tagRow}>
+                    {STAFF_TAG_OPTIONS.map((tag) => {
+                      const active = form.staffTags.includes(tag);
+                      return (
+                        <Pressable
+                          key={tag}
+                          style={[styles.tagChip, active && styles.tagChipActive]}
+                          onPress={() => toggleTag(tag)}
+                        >
+                          <Text style={[styles.tagChipText, active && styles.tagChipTextActive]}>
+                            {tag}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              </>
+            )}
+
+            <View style={styles.editButtonRow}>
+              {!isNewProfile && (
+                <Pressable
+                  style={({ pressed }) => [styles.cancelButton, pressed && styles.cancelButtonPressed]}
+                  onPress={() => {
+                    setForm(vendor ? formFromVendor(vendor) : EMPTY_FORM);
+                    setEditing(false);
+                  }}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </Pressable>
+              )}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.saveButton,
+                  !isNewProfile && styles.saveButtonFlex,
+                  pressed && styles.saveButtonPressed,
+                ]}
+                onPress={handleSave}
+                disabled={saving}
+              >
+                <Text style={styles.saveButtonText}>
+                  {saving ? 'Saving…' : isNewProfile ? 'Create Profile' : 'Save Changes'}
+                </Text>
+              </Pressable>
             </View>
           </>
+        ) : (
+          vendor && <ProfileSummaryCard vendor={vendor} onEdit={() => setEditing(true)} />
         )}
-
-        <Pressable
-          style={({ pressed }) => [styles.saveButton, pressed && styles.saveButtonPressed]}
-          onPress={handleSave}
-          disabled={saving}
-        >
-          <Text style={styles.saveButtonText}>
-            {saving ? 'Saving…' : isNewProfile ? 'Create Profile' : 'Save Changes'}
-          </Text>
-        </Pressable>
 
         {!isNewProfile && vendor && (
           <>
@@ -351,14 +387,18 @@ export default function VendorProfileScreen({
           </>
         )}
 
-        {isStaffView && !isNewProfile && (
+        {!isNewProfile && (
           <>
             <EngravedRule />
-            <Text style={styles.sectionLabel}>VENDOR HISTORY</Text>
+            <Text style={styles.sectionLabel}>
+              {isStaffView ? 'VENDOR HISTORY' : 'YOUR TABLE REQUESTS'}
+            </Text>
             {history === null ? (
               <ActivityIndicator color={colors.accentText} />
             ) : history.length === 0 ? (
-              <Text style={styles.emptyHistoryText}>No past table requests for this vendor.</Text>
+              <Text style={styles.emptyHistoryText}>
+                {isStaffView ? 'No past table requests for this vendor.' : 'No table requests yet.'}
+              </Text>
             ) : (
               history.map((entry) => (
                 <HistoryRow key={entry.id} entry={entry} />
@@ -390,6 +430,28 @@ export default function VendorProfileScreen({
   );
 }
 
+/** Read-only recap shown once a profile is saved, instead of leaving the full edit form open by default. */
+function ProfileSummaryCard({ vendor, onEdit }: { vendor: Vendor; onEdit: () => void }) {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const summaryLine = [vendor.contactName, vendor.phone, vendor.email].filter(Boolean).join(' · ');
+
+  return (
+    <View style={styles.summaryCard}>
+      <View style={styles.summaryTopRow}>
+        <Text style={styles.summaryBusinessName} numberOfLines={1}>
+          {vendor.businessName}
+        </Text>
+        <Pressable onPress={onEdit} hitSlop={8}>
+          <Text style={styles.summaryEditLink}>Edit</Text>
+        </Pressable>
+      </View>
+      {summaryLine.length > 0 && <Text style={styles.summaryMeta}>{summaryLine}</Text>}
+      {vendor.vendorCategory && <Text style={styles.summaryMeta}>{vendor.vendorCategory}</Text>}
+    </View>
+  );
+}
+
 const STATUS_LABEL: Record<TableRequestStatus, string> = {
   pending: 'Pending',
   approved: 'Approved',
@@ -399,6 +461,14 @@ const STATUS_LABEL: Record<TableRequestStatus, string> = {
 function HistoryRow({ entry }: { entry: VendorRequestHistoryEntry }) {
   const colors = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const canPayNow = Boolean(entry.paymentLink) && entry.paymentStatus !== 'paid';
+
+  const handlePayNow = useCallback(() => {
+    if (entry.paymentLink) {
+      Linking.openURL(entry.paymentLink).catch(() => {});
+    }
+  }, [entry.paymentLink]);
+
   return (
     <View style={styles.historyRow}>
       <Text style={styles.historyEventName} numberOfLines={1}>
@@ -411,6 +481,14 @@ function HistoryRow({ entry }: { entry: VendorRequestHistoryEntry }) {
       <Text style={styles.historyMeta}>
         Payment: {entry.paymentStatus} · {deriveAttendance(entry)}
       </Text>
+      {canPayNow && (
+        <Pressable
+          onPress={handlePayNow}
+          style={({ pressed }) => [styles.payNowButton, pressed && styles.payNowButtonPressed]}
+        >
+          <Text style={styles.payNowButtonText}>Pay now</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -580,6 +658,11 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   tagChipTextActive: {
     color: colors.white,
   },
+  editButtonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 10,
+  },
   saveButton: {
     backgroundColor: colors.navy,
     borderRadius: 6,
@@ -589,6 +672,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
   },
+  saveButtonFlex: {
+    flex: 1,
+    marginTop: 0,
+  },
   saveButtonPressed: {
     opacity: 0.85,
   },
@@ -597,6 +684,56 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     fontSize: 17,
     fontFamily: bodyFontExtraBold,
     letterSpacing: 0.3,
+  },
+  cancelButton: {
+    flex: 1,
+    borderRadius: 6,
+    paddingVertical: 18,
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.divider,
+  },
+  cancelButtonPressed: {
+    opacity: 0.7,
+  },
+  cancelButtonText: {
+    color: colors.textPrimary,
+    fontSize: 17,
+    fontFamily: bodyFontExtraBold,
+    letterSpacing: 0.3,
+  },
+  summaryCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    padding: 18,
+  },
+  summaryTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  summaryBusinessName: {
+    flex: 1,
+    fontSize: 19,
+    fontFamily: displayFontBold,
+    color: colors.textPrimary,
+  },
+  summaryEditLink: {
+    fontSize: 15,
+    fontFamily: bodyFontBold,
+    color: colors.accentText,
+  },
+  summaryMeta: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: bodyFont,
+    color: colors.textSecondary,
+    marginTop: 4,
   },
   emptyHistoryText: {
     fontSize: 16,
@@ -664,5 +801,23 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     fontFamily: bodyFont,
     color: colors.textSecondary,
     marginTop: 3,
+  },
+  payNowButton: {
+    backgroundColor: colors.flagRed,
+    borderRadius: 6,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 20,
+  },
+  payNowButtonPressed: {
+    opacity: 0.85,
+  },
+  payNowButtonText: {
+    fontSize: 14,
+    fontFamily: bodyFontBold,
+    color: colors.white,
   },
 });

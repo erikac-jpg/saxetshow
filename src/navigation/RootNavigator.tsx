@@ -1,9 +1,11 @@
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useAuth } from '../auth/AuthContext';
 import AppIcon from '../components/AppIcon';
+import { getPendingRequestCount, getTableRequestsForVendor } from '../db/supabase/tableRequests';
 import type { ThemeColors } from '../theme/colors';
 import { useIsDarkMode, useTheme } from '../theme/ThemeContext';
 import { bodyFontBold } from '../theme/fonts';
@@ -12,6 +14,70 @@ import ShowsStackNavigator from './ShowsStackNavigator';
 import StaffStackNavigator from './StaffStackNavigator';
 import type { RootTabParamList } from './types';
 import VendorStackNavigator from './VendorStackNavigator';
+
+// How often the tab badges re-poll for changes - there's no realtime
+// subscription here, just a periodic refresh, so this is a tradeoff
+// between staleness and query volume rather than a real-time guarantee.
+const BADGE_POLL_MS = 30000;
+
+/** Count of pending requests across every show, for staff - cleared the moment a request is approved/denied, not tracked as "seen" per person. */
+function usePendingRequestBadge(isStaff: boolean): number {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!isStaff) {
+      setCount(0);
+      return;
+    }
+    let cancelled = false;
+    const refresh = () => {
+      getPendingRequestCount()
+        .then((value) => {
+          if (!cancelled) setCount(value);
+        })
+        .catch(() => {});
+    };
+    refresh();
+    const interval = setInterval(refresh, BADGE_POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [isStaff]);
+
+  return count;
+}
+
+/** Whether the signed-in vendor has at least one approved, not-yet-checked-in request - a live status flag (clears itself once staff checks them in), not an unread count. */
+function useVendorApprovalBadge(vendorId: number | null): boolean {
+  const [hasApproval, setHasApproval] = useState(false);
+
+  useEffect(() => {
+    if (vendorId === null) {
+      setHasApproval(false);
+      return;
+    }
+    let cancelled = false;
+    const refresh = () => {
+      getTableRequestsForVendor(vendorId)
+        .then((requests) => {
+          if (cancelled) return;
+          setHasApproval(
+            requests.some((request) => request.status === 'approved' && !request.checkedInAt)
+          );
+        })
+        .catch(() => {});
+    };
+    refresh();
+    const interval = setInterval(refresh, BADGE_POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [vendorId]);
+
+  return hasApproval;
+}
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -41,6 +107,9 @@ export default function RootNavigator() {
   const colors = useTheme();
   const isDark = useIsDarkMode();
   const navigationTheme = useMemo(() => buildNavigationTheme(colors, isDark), [colors, isDark]);
+  const { isStaff, vendor } = useAuth();
+  const pendingCount = usePendingRequestBadge(isStaff);
+  const hasVendorApproval = useVendorApprovalBadge(vendor?.id ?? null);
   // Setting an explicit tabBarStyle.height opts out of React Navigation's
   // own safe-area handling, so the home-indicator/gesture-bar inset has to
   // be added back in by hand or the icons/labels render underneath it.
@@ -92,6 +161,8 @@ export default function RootNavigator() {
             options={{
               title: 'Vendor',
               tabBarIcon: ({ color, size }) => <AppIcon name="storefront" color={color} size={size} />,
+              tabBarBadge: hasVendorApproval ? '✓' : undefined,
+              tabBarBadgeStyle: { backgroundColor: colors.flagRed },
             }}
           />
           <Tab.Screen
@@ -100,6 +171,8 @@ export default function RootNavigator() {
             options={{
               title: 'Staff',
               tabBarIcon: ({ color, size }) => <AppIcon name="people" color={color} size={size} />,
+              tabBarBadge: pendingCount > 0 ? pendingCount : undefined,
+              tabBarBadgeStyle: { backgroundColor: colors.flagRed },
             }}
           />
         </Tab.Navigator>
