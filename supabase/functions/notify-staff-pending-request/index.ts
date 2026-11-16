@@ -82,11 +82,16 @@ Deno.serve(async (req) => {
     return new Response('SMTP not configured', { status: 500 });
   }
 
+  // Port 465 expects an immediate TLS handshake; port 587 (and anything
+  // else) expects a plain connection that then upgrades via STARTTLS -
+  // forcing immediate TLS on 587 is what produced the
+  // "InvalidData: received corrupt message of type InvalidContentType"
+  // error, since Gmail replies in plaintext first on that port.
   const client = new SMTPClient({
     connection: {
       hostname: smtpHost,
       port: smtpPort,
-      tls: true,
+      tls: smtpPort === 465,
       auth: { username: smtpUser, password: smtpPassword },
     },
   });
