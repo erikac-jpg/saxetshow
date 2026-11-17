@@ -113,3 +113,23 @@ export async function deleteEvent(id: number): Promise<void> {
   const { error } = await supabase.from('events').delete().eq('id', id);
   if (error) throw error;
 }
+
+export interface RemindPastVendorsResult {
+  totalVendors: number;
+  sent: number;
+  failed: string[];
+}
+
+/**
+ * Staff-triggered: emails every vendor who's ever checked in to a past
+ * show, letting them know this one's coming up. Runs server-side (see
+ * supabase/functions/remind-past-vendors) since it needs the Resend
+ * secret key and has to send potentially many emails at once.
+ */
+export async function remindPastVendorsForEvent(eventId: number): Promise<RemindPastVendorsResult> {
+  const { data, error } = await supabase.functions.invoke('remind-past-vendors', {
+    body: { eventId },
+  });
+  if (error) throw error;
+  return data as RemindPastVendorsResult;
+}

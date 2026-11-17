@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 
 import { getAgreementsForEvent } from '../db/supabase/agreements';
-import { getAllEvents, getEventById, updateEvent } from '../db/supabase/events';
+import { getAllEvents, getEventById, remindPastVendorsForEvent, updateEvent } from '../db/supabase/events';
 import {
   getTableRequestsForEvent,
   setCheckedIn,
@@ -128,6 +128,41 @@ export default function StaffDashboardScreen({
       setTotalTablesInput(String(updated.totalTables));
     }
   }, [selectedEvent, totalTablesInput]);
+
+  const [remindingVendors, setRemindingVendors] = useState(false);
+
+  const handleRemindPastVendors = useCallback(async () => {
+    if (!selectedEvent) return;
+    Alert.alert(
+      'Email Past Vendors?',
+      `This sends every vendor who's ever checked in to a past show an email letting them know "${selectedEvent.name}" is coming up.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Send',
+          onPress: async () => {
+            setRemindingVendors(true);
+            try {
+              const result = await remindPastVendorsForEvent(selectedEvent.id);
+              Alert.alert(
+                'Sent',
+                `Emailed ${result.sent} of ${result.totalVendors} past vendor${
+                  result.totalVendors === 1 ? '' : 's'
+                }.${result.failed.length > 0 ? ` ${result.failed.length} failed to send.` : ''}`
+              );
+            } catch (err) {
+              Alert.alert(
+                'Could not send',
+                err instanceof Error ? err.message : 'Something went wrong sending these emails.'
+              );
+            } finally {
+              setRemindingVendors(false);
+            }
+          },
+        },
+      ]
+    );
+  }, [selectedEvent]);
 
   const refreshRequests = useCallback(async () => {
     if (selectedEventId == null) return;
@@ -285,6 +320,27 @@ export default function StaffDashboardScreen({
                   keyboardType="number-pad"
                   style={styles.totalTablesInput}
                 />
+              </View>
+
+              <View style={styles.card}>
+                <Text style={styles.sectionLabel}>REACH OUT</Text>
+                <Text style={styles.fieldLabel}>
+                  Email everyone who's ever checked in to a past show, letting them know this one's
+                  coming up.
+                </Text>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.remindButton,
+                    pressed && styles.actionButtonPressed,
+                    remindingVendors && styles.remindButtonDisabled,
+                  ]}
+                  onPress={handleRemindPastVendors}
+                  disabled={remindingVendors}
+                >
+                  <Text style={styles.remindButtonText}>
+                    {remindingVendors ? 'Sending…' : 'Email Past Vendors'}
+                  </Text>
+                </Pressable>
               </View>
 
               <View style={styles.card}>
@@ -708,6 +764,23 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     lineHeight: 23,
     fontFamily: bodyFont,
     color: colors.textSecondary,
+  },
+  remindButton: {
+    backgroundColor: colors.navy,
+    borderRadius: 6,
+    paddingVertical: 16,
+    minHeight: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  remindButtonDisabled: {
+    opacity: 0.6,
+  },
+  remindButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontFamily: bodyFontExtraBold,
+    letterSpacing: 0.3,
   },
   row: {
     paddingVertical: 20,
