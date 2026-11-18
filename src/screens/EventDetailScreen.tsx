@@ -56,6 +56,18 @@ function dateBandLabel(dateString: string, endDateString?: string | null): strin
   return `${month} ${dayRangeLabel(dateString, endDateString)}, ${year}`;
 }
 
+/**
+ * Public show hours start at 10am from 2027 on; the 2 remaining 2026
+ * shows keep the original 9am start. Everything else about the hours
+ * (end times, vendor setup/doors, admission) stays the same regardless
+ * of year.
+ */
+function publicHoursLabel(dateString: string): string {
+  const year = new Date(`${dateString}T00:00:00`).getFullYear();
+  const startTime = year >= 2027 ? '10am' : '9am';
+  return `Sat ${startTime}–6pm · Sun ${startTime}–5pm`;
+}
+
 const STATUS_LABEL: Record<TableRequest['status'], string> = {
   pending: 'Pending staff approval',
   approved: 'Approved',
@@ -213,7 +225,7 @@ export default function EventDetailScreen({
         </View>
         <View style={styles.hoursRow}>
           <Text style={styles.hoursLabel}>Open to Public</Text>
-          <Text style={styles.hoursValue}>Sat 9am–6pm · Sun 9am–5pm</Text>
+          <Text style={styles.hoursValue}>{publicHoursLabel(event.date)}</Text>
         </View>
         <View style={styles.hoursRow}>
           <Text style={styles.hoursLabel}>Admission</Text>

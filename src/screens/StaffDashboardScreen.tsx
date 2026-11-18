@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 
 import { getAgreementsForEvent } from '../db/supabase/agreements';
-import { getAllEvents, getEventById, updateEvent } from '../db/supabase/events';
+import { getAllEvents, getEventById, remindPastVendorsForEvent } from '../db/supabase/events';
 import {
   getTableRequestsForEvent,
   setCheckedIn,
@@ -20,7 +20,7 @@ import {
   updateTableRequestStatus,
 } from '../db/supabase/tableRequests';
 import { getAllVendors } from '../db/supabase/vendors';
-import { getWaitlistForEvent, removeFromWaitlist } from '../db/supabase/waitlist';
+import { getWaitlistForEvent, joinWaitlist, removeFromWaitlist } from '../db/supabase/waitlist';
 import type { Agreement, Event, PaymentStatus, TableRequest, Vendor, WaitlistEntry } from '../db/types';
 import HeroRibbon from '../components/HeroRibbon';
 import type { ThemeColors } from '../theme/colors';
@@ -62,9 +62,11 @@ export default function StaffDashboardScreen({
   const loadEvents = useCallback(async () => {
     try {
       const [allEvents, allVendors] = await Promise.all([getAllEvents(), getAllVendors()]);
-      setEvents(allEvents);
+      const today = new Date().toISOString().slice(0, 10);
+      const upcomingEvents = allEvents.filter((event) => (event.endDate ?? event.date) >= today);
+      setEvents(upcomingEvents);
       setVendorsById(new Map(allVendors.map((vendor) => [vendor.id, vendor])));
-      setSelectedEventId((current) => current ?? allEvents[0]?.id ?? null);
+      setSelectedEventId((current) => current ?? upcomingEvents[0]?.id ?? null);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong loading the dashboard.');
@@ -112,22 +114,76 @@ export default function StaffDashboardScreen({
         .reduce((sum, request) => sum + request.tablesWanted, 0),
     [requests]
   );
+  /** Denied requests sink to the bottom, collapsed - nothing left to act on, so
+   * they shouldn't compete with pending/approved ones for attention. Stable
+   * sort keeps everything else in its original (oldest-first) order. */
+  const sortedRequests = useMemo(
+    () =>
+      [...requests].sort((a, b) => {
+        const aDenied = a.status === 'denied' ? 1 : 0;
+        const bDenied = b.status === 'denied' ? 1 : 0;
+        return aDenied - bDenied;
+      }),
+    [requests]
+  );
   const totalTables = Number(totalTablesInput) || 0;
   const tablesOpen = Math.max(totalTables - tablesSold, 0);
   const pendingCount = useMemo(
     () => requests.filter((request) => request.status === 'pending').length,
     [requests]
   );
-  const commitTotalTables = useCallback(async () => {
+
+  const [requestSearch, setRequestSearch] = useState('');
+  const [unpaidOnly, setUnpaidOnly] = useState(false);
+  const filteredRequests = useMemo(() => {
+    const query = requestSearch.trim().toLowerCase();
+    return sortedRequests.filter((request) => {
+      if (unpaidOnly && !(request.status === 'approved' && request.paymentStatus !== 'paid')) {
+        return false;
+      }
+      if (query.length === 0) return true;
+      const vendorName =
+        vendorsById.get(request.vendorId)?.businessName ??
+        vendorsById.get(request.vendorId)?.contactName ??
+        '';
+      return vendorName.toLowerCase().includes(query);
+    });
+  }, [sortedRequests, requestSearch, unpaidOnly, vendorsById]);
+
+  const [remindingVendors, setRemindingVendors] = useState(false);
+
+  const handleRemindPastVendors = useCallback(async () => {
     if (!selectedEvent) return;
-    const parsed = Math.max(0, parseInt(totalTablesInput, 10) || 0);
-    const updated = await updateEvent(selectedEvent.id, { totalTables: parsed });
-    if (updated) {
-      setSelectedEvent(updated);
-      setEvents((prev) => prev?.map((event) => (event.id === updated.id ? updated : event)) ?? prev);
-      setTotalTablesInput(String(updated.totalTables));
-    }
-  }, [selectedEvent, totalTablesInput]);
+    Alert.alert(
+      'Email Past Vendors?',
+      `This sends every vendor who's ever checked in to a past show an email letting them know "${selectedEvent.name}" is coming up.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Send',
+          onPress: async () => {
+            setRemindingVendors(true);
+            try {
+              const result = await remindPastVendorsForEvent(selectedEvent.id);
+              Alert.alert(
+                'Sent',
+                `Emailed ${result.sent} of ${result.totalVendors} past vendor${
+                  result.totalVendors === 1 ? '' : 's'
+                }.${result.failed.length > 0 ? ` ${result.failed.length} failed to send.` : ''}`
+              );
+            } catch (err) {
+              Alert.alert(
+                'Could not send',
+                err instanceof Error ? err.message : 'Something went wrong sending these emails.'
+              );
+            } finally {
+              setRemindingVendors(false);
+            }
+          },
+        },
+      ]
+    );
+  }, [selectedEvent]);
 
   const refreshRequests = useCallback(async () => {
     if (selectedEventId == null) return;
@@ -197,6 +253,33 @@ export default function StaffDashboardScreen({
       Alert.alert('Offer Sent', `${vendorName} will be notified about an open table.`);
     },
     [vendorsById]
+  );
+
+  const [addingToWaitlist, setAddingToWaitlist] = useState(false);
+  const [waitlistQuery, setWaitlistQuery] = useState('');
+  const [waitlistTablesWanted, setWaitlistTablesWanted] = useState('1');
+
+  const waitlistMatches = useMemo(() => {
+    const query = waitlistQuery.trim().toLowerCase();
+    if (query.length === 0) return [];
+    const alreadyWaitlisted = new Set(waitlist.map((entry) => entry.vendorId));
+    return Array.from(vendorsById.values())
+      .filter((v) => !alreadyWaitlisted.has(v.id))
+      .filter((v) => (v.businessName ?? v.contactName ?? '').toLowerCase().includes(query))
+      .slice(0, 8);
+  }, [waitlistQuery, vendorsById, waitlist]);
+
+  const handleAddToWaitlist = useCallback(
+    async (vendorToAdd: Vendor) => {
+      if (!selectedEvent) return;
+      const tablesWanted = Math.max(1, parseInt(waitlistTablesWanted, 10) || 1);
+      await joinWaitlist({ vendorId: vendorToAdd.id, eventId: selectedEvent.id, tablesWanted });
+      await refreshWaitlist();
+      setAddingToWaitlist(false);
+      setWaitlistQuery('');
+      setWaitlistTablesWanted('1');
+    },
+    [selectedEvent, waitlistTablesWanted, refreshWaitlist]
   );
 
   const handleRemoveFromWaitlist = useCallback(
@@ -275,48 +358,89 @@ export default function StaffDashboardScreen({
           {selectedEvent && (
             <>
               <View style={styles.card}>
-                <Text style={styles.sectionLabel}>TABLE SETUP</Text>
-                <Text style={styles.fieldLabel}>Total tables at this venue</Text>
-                <TextInput
-                  value={totalTablesInput}
-                  onChangeText={setTotalTablesInput}
-                  onEndEditing={commitTotalTables}
-                  onBlur={commitTotalTables}
-                  keyboardType="number-pad"
-                  style={styles.totalTablesInput}
-                />
+                <Text style={styles.sectionLabel}>REACH OUT</Text>
+                <Text style={styles.fieldLabel}>
+                  Email everyone who's ever checked in to a past show, letting them know this one's
+                  coming up.
+                </Text>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.remindButton,
+                    pressed && styles.actionButtonPressed,
+                    remindingVendors && styles.remindButtonDisabled,
+                  ]}
+                  onPress={handleRemindPastVendors}
+                  disabled={remindingVendors}
+                >
+                  <Text style={styles.remindButtonText}>
+                    {remindingVendors ? 'Sending…' : 'Email Past Vendors'}
+                  </Text>
+                </Pressable>
               </View>
 
               <View style={styles.card}>
                 <Text style={styles.sectionLabel}>VENDOR REQUESTS</Text>
+                {requests.length > 0 && (
+                  <>
+                    <TextInput
+                      value={requestSearch}
+                      onChangeText={setRequestSearch}
+                      placeholder="Search vendors…"
+                      placeholderTextColor={colors.textSecondary}
+                      autoCapitalize="none"
+                      style={styles.searchInput}
+                    />
+                    <Pressable
+                      style={[styles.filterChip, unpaidOnly && styles.filterChipActive]}
+                      onPress={() => setUnpaidOnly((prev) => !prev)}
+                    >
+                      <Text style={[styles.filterChipText, unpaidOnly && styles.filterChipTextActive]}>
+                        Still owes payment
+                      </Text>
+                    </Pressable>
+                  </>
+                )}
                 {requests.length === 0 ? (
                   <Text style={styles.emptySectionText}>No table requests for this show yet.</Text>
+                ) : filteredRequests.length === 0 ? (
+                  <Text style={styles.emptySectionText}>No requests match that search.</Text>
                 ) : (
-                  requests.map((request) => (
-                    <RequestRow
-                      key={request.id}
-                      request={request}
-                      vendorName={
-                        vendorsById.get(request.vendorId)?.businessName ??
-                        vendorsById.get(request.vendorId)?.contactName ??
-                        'Unknown vendor'
-                      }
-                      agreementStatus={agreementsByVendorId.get(request.vendorId)?.status ?? null}
-                      exceedsOpenTables={
-                        request.status === 'pending' && request.tablesWanted > tablesOpen
-                      }
-                      onApprove={() => handleApprove(request)}
-                      onDeny={() => handleDeny(request)}
-                      onOpenVendorProfile={() => onOpenVendorProfile(request.vendorId)}
-                      onOpenAgreement={() => onOpenAgreement(request.vendorId, request.eventId)}
-                      onSetPaymentStatus={(status) => handleSetPaymentStatus(request, status)}
-                      onSetPaymentDetail={(field, value) =>
-                        handleSetPaymentDetail(request, field, value)
-                      }
-                      onSetPaymentLink={(value) => handleSetPaymentLink(request, value)}
-                      onToggleCheckIn={() => handleToggleCheckIn(request)}
-                    />
-                  ))
+                  filteredRequests.map((request) => {
+                    const vendorName =
+                      vendorsById.get(request.vendorId)?.businessName ??
+                      vendorsById.get(request.vendorId)?.contactName ??
+                      'Unknown vendor';
+                    if (request.status === 'denied') {
+                      return (
+                        <DeniedRequestRow
+                          key={request.id}
+                          vendorName={vendorName}
+                          onOpenVendorProfile={() => onOpenVendorProfile(request.vendorId)}
+                        />
+                      );
+                    }
+                    return (
+                      <RequestRow
+                        key={request.id}
+                        request={request}
+                        vendorName={vendorName}
+                        agreementStatus={agreementsByVendorId.get(request.vendorId)?.status ?? null}
+                        exceedsOpenTables={
+                          request.status === 'pending' && request.tablesWanted > tablesOpen
+                        }
+                        onApprove={() => handleApprove(request)}
+                        onDeny={() => handleDeny(request)}
+                        onOpenVendorProfile={() => onOpenVendorProfile(request.vendorId)}
+                        onOpenAgreement={() => onOpenAgreement(request.vendorId, request.eventId)}
+                        onSetPaymentStatus={(status) => handleSetPaymentStatus(request, status)}
+                        onSetPaymentDetail={(field, value) =>
+                          handleSetPaymentDetail(request, field, value)
+                        }
+                        onSetPaymentLink={(value) => handleSetPaymentLink(request, value)}
+                        onToggleCheckIn={() => handleToggleCheckIn(request)}
+                      />
+                    );
+                  })
                 )}
               </View>
 
@@ -339,6 +463,56 @@ export default function StaffDashboardScreen({
                       onOpenVendorProfile={() => onOpenVendorProfile(entry.vendorId)}
                     />
                   ))
+                )}
+
+                {addingToWaitlist ? (
+                  <View style={styles.addWaitlistForm}>
+                    <TextInput
+                      value={waitlistQuery}
+                      onChangeText={setWaitlistQuery}
+                      placeholder="Search vendors…"
+                      placeholderTextColor={colors.textSecondary}
+                      autoCapitalize="none"
+                      style={styles.searchInput}
+                      autoFocus
+                    />
+                    {waitlistMatches.map((match) => (
+                      <Pressable
+                        key={match.id}
+                        style={styles.waitlistMatchRow}
+                        onPress={() => handleAddToWaitlist(match)}
+                      >
+                        <Text style={styles.waitlistMatchText}>
+                          {match.businessName ?? match.contactName ?? 'Unnamed vendor'}
+                        </Text>
+                      </Pressable>
+                    ))}
+                    <View style={styles.waitlistTablesRow}>
+                      <Text style={styles.fieldLabel}>Tables wanted</Text>
+                      <TextInput
+                        value={waitlistTablesWanted}
+                        onChangeText={setWaitlistTablesWanted}
+                        keyboardType="number-pad"
+                        style={styles.waitlistTablesInput}
+                      />
+                    </View>
+                    <Pressable
+                      style={styles.cancelAddButton}
+                      onPress={() => {
+                        setAddingToWaitlist(false);
+                        setWaitlistQuery('');
+                      }}
+                    >
+                      <Text style={styles.cancelAddButtonText}>Cancel</Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  <Pressable
+                    style={styles.addWaitlistButton}
+                    onPress={() => setAddingToWaitlist(true)}
+                  >
+                    <Text style={styles.addWaitlistButtonText}>+ Add to Waitlist</Text>
+                  </Pressable>
                 )}
               </View>
             </>
@@ -367,6 +541,30 @@ const PAYMENT_LABEL: Record<PaymentStatus, string> = {
   partial: 'Partial',
   paid: 'Paid',
 };
+
+/** A denied request has nothing left to act on, so it collapses to one line
+ * at the bottom instead of the full card - tap it to still reach the
+ * vendor's profile if needed. */
+function DeniedRequestRow({
+  vendorName,
+  onOpenVendorProfile,
+}: {
+  vendorName: string;
+  onOpenVendorProfile: () => void;
+}) {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  return (
+    <Pressable onPress={onOpenVendorProfile} style={styles.deniedRow} hitSlop={4}>
+      <Text style={styles.deniedRowText} numberOfLines={1}>
+        {vendorName}
+      </Text>
+      <View style={[styles.statusPill, styles.statusPill_denied]}>
+        <Text style={styles.statusPillText}>{STATUS_LABEL.denied}</Text>
+      </View>
+    </Pressable>
+  );
+}
 
 function RequestRow({
   request,
@@ -648,8 +846,8 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     borderColor: colors.divider,
   },
   selectorPillActive: {
-    backgroundColor: colors.navy,
-    borderColor: colors.navy,
+    backgroundColor: colors.primaryFill,
+    borderColor: colors.primaryFill,
   },
   selectorPillTitle: {
     fontSize: 16,
@@ -657,7 +855,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     color: colors.textPrimary,
   },
   selectorPillTitleActive: {
-    color: colors.white,
+    color: colors.primaryFillText,
   },
   selectorPillDate: {
     fontSize: 14,
@@ -666,7 +864,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     marginTop: 3,
   },
   selectorPillDateActive: {
-    color: colors.headerSubtitle,
+    color: colors.primaryFillText,
   },
   card: {
     backgroundColor: colors.surface,
@@ -692,27 +890,139 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: 10,
   },
-  totalTablesInput: {
-    borderWidth: 1,
-    borderColor: colors.divider,
-    borderRadius: 4,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    minHeight: 52,
-    fontSize: 19,
-    fontFamily: bodyFontBold,
-    color: colors.textPrimary,
-  },
   emptySectionText: {
     fontSize: 16,
     lineHeight: 23,
     fontFamily: bodyFont,
     color: colors.textSecondary,
   },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    minHeight: 46,
+    fontSize: 16,
+    fontFamily: bodyFont,
+    color: colors.textPrimary,
+    marginBottom: 10,
+  },
+  filterChip: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    marginBottom: 6,
+  },
+  filterChipActive: {
+    backgroundColor: colors.primaryFill,
+    borderColor: colors.primaryFill,
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontFamily: bodyFontBold,
+    color: colors.textSecondary,
+  },
+  filterChipTextActive: {
+    color: colors.primaryFillText,
+  },
+  remindButton: {
+    backgroundColor: colors.primaryFill,
+    borderRadius: 6,
+    paddingVertical: 16,
+    minHeight: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  remindButtonDisabled: {
+    opacity: 0.6,
+  },
+  remindButtonText: {
+    color: colors.primaryFillText,
+    fontSize: 16,
+    fontFamily: bodyFontExtraBold,
+    letterSpacing: 0.3,
+  },
+  addWaitlistButton: {
+    borderWidth: 1,
+    borderColor: colors.navy,
+    borderRadius: 6,
+    paddingVertical: 14,
+    marginTop: 14,
+    alignItems: 'center',
+  },
+  addWaitlistButtonText: {
+    color: colors.accentText,
+    fontSize: 15,
+    fontFamily: bodyFontExtraBold,
+  },
+  addWaitlistForm: {
+    marginTop: 14,
+  },
+  waitlistMatchRow: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 4,
+    marginBottom: 6,
+  },
+  waitlistMatchText: {
+    fontSize: 15,
+    fontFamily: bodyFontBold,
+    color: colors.textPrimary,
+  },
+  waitlistTablesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  waitlistTablesInput: {
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    minWidth: 60,
+    fontSize: 16,
+    fontFamily: bodyFontBold,
+    color: colors.textPrimary,
+    textAlign: 'center',
+  },
+  cancelAddButton: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  cancelAddButtonText: {
+    fontSize: 14,
+    fontFamily: bodyFontBold,
+    color: colors.textSecondary,
+  },
   row: {
     paddingVertical: 20,
     borderTopWidth: 1,
     borderTopColor: colors.divider,
+  },
+  deniedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+    opacity: 0.6,
+  },
+  deniedRowText: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: bodyFont,
+    color: colors.textSecondary,
   },
   rowTopLine: {
     flexDirection: 'row',
@@ -784,8 +1094,8 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface,
   },
   paymentPillActive: {
-    backgroundColor: colors.navy,
-    borderColor: colors.navy,
+    backgroundColor: colors.primaryFill,
+    borderColor: colors.primaryFill,
   },
   paymentPillText: {
     fontSize: 14,
@@ -793,7 +1103,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     color: colors.textPrimary,
   },
   paymentPillTextActive: {
-    color: colors.white,
+    color: colors.primaryFillText,
   },
   paymentDetailRow: {
     flexDirection: 'row',
@@ -889,10 +1199,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     opacity: 0.85,
   },
   approveButton: {
-    backgroundColor: colors.navy,
+    backgroundColor: colors.primaryFill,
   },
   approveButtonText: {
-    color: colors.white,
+    color: colors.primaryFillText,
     fontSize: 16,
     fontFamily: bodyFontBold,
   },

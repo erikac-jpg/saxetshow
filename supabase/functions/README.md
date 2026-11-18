@@ -66,3 +66,43 @@ the app, then check the Edge Function's logs (dashboard → Edge Functions
 → notify-staff-pending-request → Logs) to confirm it ran and see any
 error, plus confirm the email actually landed in the `STAFF_NOTIFY_EMAIL`
 inbox.
+
+## remind-past-vendors
+
+Staff-triggered (an "Email Past Vendors" button on the Staff Dashboard,
+scoped to whichever event is selected there) - emails every vendor who's
+ever checked in to a past show, letting them know the selected event is
+coming up.
+
+### What's needed before this does anything
+
+Same Resend setup as `notify-staff-pending-request` above - no separate
+account or API key needed, it reuses `RESEND_API_KEY`.
+
+**The real blocker:** this sends to each vendor's own email address, not
+one fixed staff address. Until a real domain is verified with Resend
+(Domains → Add Domain, a few DNS records added wherever the domain's DNS
+is hosted), Resend's free tier silently rejects every one of those sends
+except in the impossible case a vendor's email happens to match the
+Resend account's own login email. Once the domain verifies, update
+`FROM_ADDRESS` in this function's `index.ts` to an address on that domain
+(same change as step 4 above) and redeploy - this function and
+`notify-staff-pending-request` can share that same verified domain.
+
+1. **Deploy the function** the same way as `notify-staff-pending-request`
+   above (CLI `supabase functions deploy remind-past-vendors`, or paste
+   this file's contents into the dashboard's "Create a new function" flow).
+
+2. **No webhook needed** - unlike `notify-staff-pending-request`, the app
+   calls this one directly (`supabase.functions.invoke`) when staff taps
+   the button, so there's nothing to wire up in Database → Webhooks.
+
+### Testing it
+
+Have a test vendor account check in to a past event (Staff Dashboard →
+pick that past event → QR check-in, or the vendor's own per-request
+"Check In" toggle - the historical status, not the scanner), then from
+the app's Staff Dashboard pick an upcoming event and tap "Email Past
+Vendors." Check this function's logs the same way as above. Until the
+domain is verified, expect every send to fail with a Resend rejection -
+that's the known limitation above, not a bug.
