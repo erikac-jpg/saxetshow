@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 
 import { getAgreementsForEvent } from '../db/supabase/agreements';
-import { getAllEvents, getEventById, remindPastVendorsForEvent, updateEvent } from '../db/supabase/events';
+import { getAllEvents, getEventById, remindPastVendorsForEvent } from '../db/supabase/events';
 import {
   getTableRequestsForEvent,
   setCheckedIn,
@@ -62,9 +62,11 @@ export default function StaffDashboardScreen({
   const loadEvents = useCallback(async () => {
     try {
       const [allEvents, allVendors] = await Promise.all([getAllEvents(), getAllVendors()]);
-      setEvents(allEvents);
+      const today = new Date().toISOString().slice(0, 10);
+      const upcomingEvents = allEvents.filter((event) => (event.endDate ?? event.date) >= today);
+      setEvents(upcomingEvents);
       setVendorsById(new Map(allVendors.map((vendor) => [vendor.id, vendor])));
-      setSelectedEventId((current) => current ?? allEvents[0]?.id ?? null);
+      setSelectedEventId((current) => current ?? upcomingEvents[0]?.id ?? null);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong loading the dashboard.');
@@ -112,23 +114,24 @@ export default function StaffDashboardScreen({
         .reduce((sum, request) => sum + request.tablesWanted, 0),
     [requests]
   );
+  /** Denied requests sink to the bottom, collapsed - nothing left to act on, so
+   * they shouldn't compete with pending/approved ones for attention. Stable
+   * sort keeps everything else in its original (oldest-first) order. */
+  const sortedRequests = useMemo(
+    () =>
+      [...requests].sort((a, b) => {
+        const aDenied = a.status === 'denied' ? 1 : 0;
+        const bDenied = b.status === 'denied' ? 1 : 0;
+        return aDenied - bDenied;
+      }),
+    [requests]
+  );
   const totalTables = Number(totalTablesInput) || 0;
   const tablesOpen = Math.max(totalTables - tablesSold, 0);
   const pendingCount = useMemo(
     () => requests.filter((request) => request.status === 'pending').length,
     [requests]
   );
-  const commitTotalTables = useCallback(async () => {
-    if (!selectedEvent) return;
-    const parsed = Math.max(0, parseInt(totalTablesInput, 10) || 0);
-    const updated = await updateEvent(selectedEvent.id, { totalTables: parsed });
-    if (updated) {
-      setSelectedEvent(updated);
-      setEvents((prev) => prev?.map((event) => (event.id === updated.id ? updated : event)) ?? prev);
-      setTotalTablesInput(String(updated.totalTables));
-    }
-  }, [selectedEvent, totalTablesInput]);
-
   const [remindingVendors, setRemindingVendors] = useState(false);
 
   const handleRemindPastVendors = useCallback(async () => {
@@ -310,19 +313,6 @@ export default function StaffDashboardScreen({
           {selectedEvent && (
             <>
               <View style={styles.card}>
-                <Text style={styles.sectionLabel}>TABLE SETUP</Text>
-                <Text style={styles.fieldLabel}>Total tables at this venue</Text>
-                <TextInput
-                  value={totalTablesInput}
-                  onChangeText={setTotalTablesInput}
-                  onEndEditing={commitTotalTables}
-                  onBlur={commitTotalTables}
-                  keyboardType="number-pad"
-                  style={styles.totalTablesInput}
-                />
-              </View>
-
-              <View style={styles.card}>
                 <Text style={styles.sectionLabel}>REACH OUT</Text>
                 <Text style={styles.fieldLabel}>
                   Email everyone who's ever checked in to a past show, letting them know this one's
@@ -348,31 +338,42 @@ export default function StaffDashboardScreen({
                 {requests.length === 0 ? (
                   <Text style={styles.emptySectionText}>No table requests for this show yet.</Text>
                 ) : (
-                  requests.map((request) => (
-                    <RequestRow
-                      key={request.id}
-                      request={request}
-                      vendorName={
-                        vendorsById.get(request.vendorId)?.businessName ??
-                        vendorsById.get(request.vendorId)?.contactName ??
-                        'Unknown vendor'
-                      }
-                      agreementStatus={agreementsByVendorId.get(request.vendorId)?.status ?? null}
-                      exceedsOpenTables={
-                        request.status === 'pending' && request.tablesWanted > tablesOpen
-                      }
-                      onApprove={() => handleApprove(request)}
-                      onDeny={() => handleDeny(request)}
-                      onOpenVendorProfile={() => onOpenVendorProfile(request.vendorId)}
-                      onOpenAgreement={() => onOpenAgreement(request.vendorId, request.eventId)}
-                      onSetPaymentStatus={(status) => handleSetPaymentStatus(request, status)}
-                      onSetPaymentDetail={(field, value) =>
-                        handleSetPaymentDetail(request, field, value)
-                      }
-                      onSetPaymentLink={(value) => handleSetPaymentLink(request, value)}
-                      onToggleCheckIn={() => handleToggleCheckIn(request)}
-                    />
-                  ))
+                  sortedRequests.map((request) => {
+                    const vendorName =
+                      vendorsById.get(request.vendorId)?.businessName ??
+                      vendorsById.get(request.vendorId)?.contactName ??
+                      'Unknown vendor';
+                    if (request.status === 'denied') {
+                      return (
+                        <DeniedRequestRow
+                          key={request.id}
+                          vendorName={vendorName}
+                          onOpenVendorProfile={() => onOpenVendorProfile(request.vendorId)}
+                        />
+                      );
+                    }
+                    return (
+                      <RequestRow
+                        key={request.id}
+                        request={request}
+                        vendorName={vendorName}
+                        agreementStatus={agreementsByVendorId.get(request.vendorId)?.status ?? null}
+                        exceedsOpenTables={
+                          request.status === 'pending' && request.tablesWanted > tablesOpen
+                        }
+                        onApprove={() => handleApprove(request)}
+                        onDeny={() => handleDeny(request)}
+                        onOpenVendorProfile={() => onOpenVendorProfile(request.vendorId)}
+                        onOpenAgreement={() => onOpenAgreement(request.vendorId, request.eventId)}
+                        onSetPaymentStatus={(status) => handleSetPaymentStatus(request, status)}
+                        onSetPaymentDetail={(field, value) =>
+                          handleSetPaymentDetail(request, field, value)
+                        }
+                        onSetPaymentLink={(value) => handleSetPaymentLink(request, value)}
+                        onToggleCheckIn={() => handleToggleCheckIn(request)}
+                      />
+                    );
+                  })
                 )}
               </View>
 
@@ -423,6 +424,30 @@ const PAYMENT_LABEL: Record<PaymentStatus, string> = {
   partial: 'Partial',
   paid: 'Paid',
 };
+
+/** A denied request has nothing left to act on, so it collapses to one line
+ * at the bottom instead of the full card - tap it to still reach the
+ * vendor's profile if needed. */
+function DeniedRequestRow({
+  vendorName,
+  onOpenVendorProfile,
+}: {
+  vendorName: string;
+  onOpenVendorProfile: () => void;
+}) {
+  const colors = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  return (
+    <Pressable onPress={onOpenVendorProfile} style={styles.deniedRow} hitSlop={4}>
+      <Text style={styles.deniedRowText} numberOfLines={1}>
+        {vendorName}
+      </Text>
+      <View style={[styles.statusPill, styles.statusPill_denied]}>
+        <Text style={styles.statusPillText}>{STATUS_LABEL.denied}</Text>
+      </View>
+    </Pressable>
+  );
+}
 
 function RequestRow({
   request,
@@ -748,17 +773,6 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: 10,
   },
-  totalTablesInput: {
-    borderWidth: 1,
-    borderColor: colors.divider,
-    borderRadius: 4,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    minHeight: 52,
-    fontSize: 19,
-    fontFamily: bodyFontBold,
-    color: colors.textPrimary,
-  },
   emptySectionText: {
     fontSize: 16,
     lineHeight: 23,
@@ -786,6 +800,22 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     paddingVertical: 20,
     borderTopWidth: 1,
     borderTopColor: colors.divider,
+  },
+  deniedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+    opacity: 0.6,
+  },
+  deniedRowText: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: bodyFont,
+    color: colors.textSecondary,
   },
   rowTopLine: {
     flexDirection: 'row',
