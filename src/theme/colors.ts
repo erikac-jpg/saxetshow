@@ -20,6 +20,16 @@ export interface ThemeColors {
   flagRed: string;
   /** Fixed near-white, used as a decorative tint (e.g. the patch's Texas mark) - not the page background. */
   cream: string;
+  /**
+   * Solid fill for a primary/active control (a selected toggle, the
+   * Approve button) - navy on the light background, where it stands out,
+   * but a light ivory on the dark background instead, since `navy` barely
+   * differs from the dark theme's own near-navy background/surface and an
+   * "active" state filled with it would be nearly invisible there.
+   */
+  primaryFill: string;
+  /** Text/icon color sitting on `primaryFill`. */
+  primaryFillText: string;
   /** Text/icon color on dark navy/flagRed surfaces - stays white in both themes. */
   white: string;
   textPrimary: string;
@@ -57,6 +67,8 @@ export const lightColors: ThemeColors = {
   noticeBg: '#EDE0C6',
   warningBg: '#F0DAD2',
   successBg: '#DCEBDD',
+  primaryFill: '#14243B',
+  primaryFillText: '#FFFFFF',
 };
 
 export const darkColors: ThemeColors = {
@@ -85,4 +97,9 @@ export const darkColors: ThemeColors = {
   noticeBg: '#3A3220',
   warningBg: '#3A2420',
   successBg: '#1F3326',
+  // Ivory instead of navy - navy would sit almost flush against this
+  // theme's own near-navy background/surface colors, so an "active" fill
+  // in navy would barely read as active at all.
+  primaryFill: '#F6F1E7',
+  primaryFillText: '#14243B',
 };

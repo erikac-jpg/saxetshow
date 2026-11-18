@@ -846,8 +846,8 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     borderColor: colors.divider,
   },
   selectorPillActive: {
-    backgroundColor: colors.navy,
-    borderColor: colors.navy,
+    backgroundColor: colors.primaryFill,
+    borderColor: colors.primaryFill,
   },
   selectorPillTitle: {
     fontSize: 16,
@@ -855,7 +855,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     color: colors.textPrimary,
   },
   selectorPillTitleActive: {
-    color: colors.white,
+    color: colors.primaryFillText,
   },
   selectorPillDate: {
     fontSize: 14,
@@ -864,7 +864,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     marginTop: 3,
   },
   selectorPillDateActive: {
-    color: colors.headerSubtitle,
+    color: colors.primaryFillText,
   },
   card: {
     backgroundColor: colors.surface,
@@ -918,8 +918,8 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     marginBottom: 6,
   },
   filterChipActive: {
-    backgroundColor: colors.navy,
-    borderColor: colors.navy,
+    backgroundColor: colors.primaryFill,
+    borderColor: colors.primaryFill,
   },
   filterChipText: {
     fontSize: 13,
@@ -927,10 +927,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     color: colors.textSecondary,
   },
   filterChipTextActive: {
-    color: colors.white,
+    color: colors.primaryFillText,
   },
   remindButton: {
-    backgroundColor: colors.navy,
+    backgroundColor: colors.primaryFill,
     borderRadius: 6,
     paddingVertical: 16,
     minHeight: 52,
@@ -941,7 +941,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     opacity: 0.6,
   },
   remindButtonText: {
-    color: colors.white,
+    color: colors.primaryFillText,
     fontSize: 16,
     fontFamily: bodyFontExtraBold,
     letterSpacing: 0.3,
@@ -1094,8 +1094,8 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     backgroundColor: colors.surface,
   },
   paymentPillActive: {
-    backgroundColor: colors.navy,
-    borderColor: colors.navy,
+    backgroundColor: colors.primaryFill,
+    borderColor: colors.primaryFill,
   },
   paymentPillText: {
     fontSize: 14,
@@ -1103,7 +1103,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     color: colors.textPrimary,
   },
   paymentPillTextActive: {
-    color: colors.white,
+    color: colors.primaryFillText,
   },
   paymentDetailRow: {
     flexDirection: 'row',
@@ -1199,10 +1199,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     opacity: 0.85,
   },
   approveButton: {
-    backgroundColor: colors.navy,
+    backgroundColor: colors.primaryFill,
   },
   approveButtonText: {
-    color: colors.white,
+    color: colors.primaryFillText,
     fontSize: 16,
     fontFamily: bodyFontBold,
   },
