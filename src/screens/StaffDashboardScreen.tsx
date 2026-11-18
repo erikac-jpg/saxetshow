@@ -20,7 +20,7 @@ import {
   updateTableRequestStatus,
 } from '../db/supabase/tableRequests';
 import { getAllVendors } from '../db/supabase/vendors';
-import { getWaitlistForEvent, removeFromWaitlist } from '../db/supabase/waitlist';
+import { getWaitlistForEvent, joinWaitlist, removeFromWaitlist } from '../db/supabase/waitlist';
 import type { Agreement, Event, PaymentStatus, TableRequest, Vendor, WaitlistEntry } from '../db/types';
 import HeroRibbon from '../components/HeroRibbon';
 import type { ThemeColors } from '../theme/colors';
@@ -132,6 +132,24 @@ export default function StaffDashboardScreen({
     () => requests.filter((request) => request.status === 'pending').length,
     [requests]
   );
+
+  const [requestSearch, setRequestSearch] = useState('');
+  const [unpaidOnly, setUnpaidOnly] = useState(false);
+  const filteredRequests = useMemo(() => {
+    const query = requestSearch.trim().toLowerCase();
+    return sortedRequests.filter((request) => {
+      if (unpaidOnly && !(request.status === 'approved' && request.paymentStatus !== 'paid')) {
+        return false;
+      }
+      if (query.length === 0) return true;
+      const vendorName =
+        vendorsById.get(request.vendorId)?.businessName ??
+        vendorsById.get(request.vendorId)?.contactName ??
+        '';
+      return vendorName.toLowerCase().includes(query);
+    });
+  }, [sortedRequests, requestSearch, unpaidOnly, vendorsById]);
+
   const [remindingVendors, setRemindingVendors] = useState(false);
 
   const handleRemindPastVendors = useCallback(async () => {
@@ -237,6 +255,33 @@ export default function StaffDashboardScreen({
     [vendorsById]
   );
 
+  const [addingToWaitlist, setAddingToWaitlist] = useState(false);
+  const [waitlistQuery, setWaitlistQuery] = useState('');
+  const [waitlistTablesWanted, setWaitlistTablesWanted] = useState('1');
+
+  const waitlistMatches = useMemo(() => {
+    const query = waitlistQuery.trim().toLowerCase();
+    if (query.length === 0) return [];
+    const alreadyWaitlisted = new Set(waitlist.map((entry) => entry.vendorId));
+    return Array.from(vendorsById.values())
+      .filter((v) => !alreadyWaitlisted.has(v.id))
+      .filter((v) => (v.businessName ?? v.contactName ?? '').toLowerCase().includes(query))
+      .slice(0, 8);
+  }, [waitlistQuery, vendorsById, waitlist]);
+
+  const handleAddToWaitlist = useCallback(
+    async (vendorToAdd: Vendor) => {
+      if (!selectedEvent) return;
+      const tablesWanted = Math.max(1, parseInt(waitlistTablesWanted, 10) || 1);
+      await joinWaitlist({ vendorId: vendorToAdd.id, eventId: selectedEvent.id, tablesWanted });
+      await refreshWaitlist();
+      setAddingToWaitlist(false);
+      setWaitlistQuery('');
+      setWaitlistTablesWanted('1');
+    },
+    [selectedEvent, waitlistTablesWanted, refreshWaitlist]
+  );
+
   const handleRemoveFromWaitlist = useCallback(
     async (entry: WaitlistEntry) => {
       await removeFromWaitlist(entry.id);
@@ -335,10 +380,32 @@ export default function StaffDashboardScreen({
 
               <View style={styles.card}>
                 <Text style={styles.sectionLabel}>VENDOR REQUESTS</Text>
+                {requests.length > 0 && (
+                  <>
+                    <TextInput
+                      value={requestSearch}
+                      onChangeText={setRequestSearch}
+                      placeholder="Search vendors…"
+                      placeholderTextColor={colors.textSecondary}
+                      autoCapitalize="none"
+                      style={styles.searchInput}
+                    />
+                    <Pressable
+                      style={[styles.filterChip, unpaidOnly && styles.filterChipActive]}
+                      onPress={() => setUnpaidOnly((prev) => !prev)}
+                    >
+                      <Text style={[styles.filterChipText, unpaidOnly && styles.filterChipTextActive]}>
+                        Still owes payment
+                      </Text>
+                    </Pressable>
+                  </>
+                )}
                 {requests.length === 0 ? (
                   <Text style={styles.emptySectionText}>No table requests for this show yet.</Text>
+                ) : filteredRequests.length === 0 ? (
+                  <Text style={styles.emptySectionText}>No requests match that search.</Text>
                 ) : (
-                  sortedRequests.map((request) => {
+                  filteredRequests.map((request) => {
                     const vendorName =
                       vendorsById.get(request.vendorId)?.businessName ??
                       vendorsById.get(request.vendorId)?.contactName ??
@@ -396,6 +463,56 @@ export default function StaffDashboardScreen({
                       onOpenVendorProfile={() => onOpenVendorProfile(entry.vendorId)}
                     />
                   ))
+                )}
+
+                {addingToWaitlist ? (
+                  <View style={styles.addWaitlistForm}>
+                    <TextInput
+                      value={waitlistQuery}
+                      onChangeText={setWaitlistQuery}
+                      placeholder="Search vendors…"
+                      placeholderTextColor={colors.textSecondary}
+                      autoCapitalize="none"
+                      style={styles.searchInput}
+                      autoFocus
+                    />
+                    {waitlistMatches.map((match) => (
+                      <Pressable
+                        key={match.id}
+                        style={styles.waitlistMatchRow}
+                        onPress={() => handleAddToWaitlist(match)}
+                      >
+                        <Text style={styles.waitlistMatchText}>
+                          {match.businessName ?? match.contactName ?? 'Unnamed vendor'}
+                        </Text>
+                      </Pressable>
+                    ))}
+                    <View style={styles.waitlistTablesRow}>
+                      <Text style={styles.fieldLabel}>Tables wanted</Text>
+                      <TextInput
+                        value={waitlistTablesWanted}
+                        onChangeText={setWaitlistTablesWanted}
+                        keyboardType="number-pad"
+                        style={styles.waitlistTablesInput}
+                      />
+                    </View>
+                    <Pressable
+                      style={styles.cancelAddButton}
+                      onPress={() => {
+                        setAddingToWaitlist(false);
+                        setWaitlistQuery('');
+                      }}
+                    >
+                      <Text style={styles.cancelAddButtonText}>Cancel</Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  <Pressable
+                    style={styles.addWaitlistButton}
+                    onPress={() => setAddingToWaitlist(true)}
+                  >
+                    <Text style={styles.addWaitlistButtonText}>+ Add to Waitlist</Text>
+                  </Pressable>
                 )}
               </View>
             </>
@@ -779,6 +896,39 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     fontFamily: bodyFont,
     color: colors.textSecondary,
   },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    minHeight: 46,
+    fontSize: 16,
+    fontFamily: bodyFont,
+    color: colors.textPrimary,
+    marginBottom: 10,
+  },
+  filterChip: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    marginBottom: 6,
+  },
+  filterChipActive: {
+    backgroundColor: colors.navy,
+    borderColor: colors.navy,
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontFamily: bodyFontBold,
+    color: colors.textSecondary,
+  },
+  filterChipTextActive: {
+    color: colors.white,
+  },
   remindButton: {
     backgroundColor: colors.navy,
     borderRadius: 6,
@@ -795,6 +945,63 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     fontSize: 16,
     fontFamily: bodyFontExtraBold,
     letterSpacing: 0.3,
+  },
+  addWaitlistButton: {
+    borderWidth: 1,
+    borderColor: colors.navy,
+    borderRadius: 6,
+    paddingVertical: 14,
+    marginTop: 14,
+    alignItems: 'center',
+  },
+  addWaitlistButtonText: {
+    color: colors.accentText,
+    fontSize: 15,
+    fontFamily: bodyFontExtraBold,
+  },
+  addWaitlistForm: {
+    marginTop: 14,
+  },
+  waitlistMatchRow: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 4,
+    marginBottom: 6,
+  },
+  waitlistMatchText: {
+    fontSize: 15,
+    fontFamily: bodyFontBold,
+    color: colors.textPrimary,
+  },
+  waitlistTablesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  waitlistTablesInput: {
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    minWidth: 60,
+    fontSize: 16,
+    fontFamily: bodyFontBold,
+    color: colors.textPrimary,
+    textAlign: 'center',
+  },
+  cancelAddButton: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  cancelAddButtonText: {
+    fontSize: 14,
+    fontFamily: bodyFontBold,
+    color: colors.textSecondary,
   },
   row: {
     paddingVertical: 20,
